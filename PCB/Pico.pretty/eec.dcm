@@ -1,0 +1,7 @@
+EESchema-DOCLIB  Version 2.0
+#
+$CMP PESD5V0L1BA,115
+D PESD5V0L1BA,115
+F https://assets.nexperia.com/documents/data-sheet/PESDXL1BA_SER.pdf
+$ENDCMP
+# end doc library

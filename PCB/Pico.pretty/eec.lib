@@ -1,0 +1,58 @@
+EESchema-LIBRARY Version 2.4
+#encoding utf-8
+#
+# Nexperia PESD5V0L1BA,115
+#
+DEF PESD5V0L1BA,115 D 0 40 Y Y 1 L N
+F0 "D" 0 300 50 H V L CNN 
+F1 "PESD5V0L1BA,115" 0 400 50 H V L CNN 
+F2 "Nexperia-SOD323-09_04_2018-0-*" 0 500 50 H I L CNN 
+F3 "https://assets.nexperia.com/documents/data-sheet/PESDXL1BA_SER.pdf" 0 600 50 H I L CNN 
+F4 "+150°C" 0 700 50 H I L CNN "ambient temperature range high"
+F5 "-65°C" 0 800 50 H I L CNN "ambient temperature range low"
+F6 "7.6V" 0 900 50 H I L CNN "breakdown voltage"
+F7 "75pF" 0 1000 50 H I L CNN "capacitance"
+F8 "Diode" 0 1100 50 H I L CNN "category"
+F9 "33V" 0 1200 50 H I L CNN "clamping voltage"
+F10 "Circuit Protection" 0 1300 50 H I L CNN "device class L1"
+F11 "TVS Diodes" 0 1400 50 H I L CNN "device class L2"
+F12 "unset" 0 1500 50 H I L CNN "device class L3"
+F13 "TVS DIODE 5V 33V SOD323" 0 1600 50 H I L CNN "digikey description"
+F14 "1727-3833-1-ND" 0 1700 50 H I L CNN "digikey part number"
+F15 "Bidirectional" 0 1800 50 H I L CNN "direction"
+F16 "https://assets.nexperia.com/documents/outline-drawing/SOD323.pdf" 0 1900 50 H I L CNN "footprint url"
+F17 "1.1mm" 0 2000 50 H I L CNN "height"
+F18 "yes" 0 2100 50 H I L CNN "lead free"
+F19 "fe0a3283191a191f" 0 2200 50 H I L CNN "library id"
+F20 "Nexperia" 0 2300 50 H I L CNN "manufacturer"
+F21 "+150°C" 0 2400 50 H I L CNN "max junction temp"
+F22 "771-PESD5V0L1BA-T/R" 0 2500 50 H I L CNN "mouser part number"
+F23 "1" 0 2600 50 H I L CNN "number of channels"
+F24 "SOD323" 0 2700 50 H I L CNN "package"
+F25 "15A" 0 2800 50 H I L CNN "peak pulse current"
+F26 "5V" 0 2900 50 H I L CNN "reverse standoff voltage"
+F27 "yes" 0 3000 50 H I L CNN "rohs"
+F28 "0.05mm" 0 3100 50 H I L CNN "standoff height"
+DRAW
+X 1 1 100 0 100 R 40 0 1 1 P 
+X 2 2 800 0 100 L 40 0 1 1 P 
+P 2 1 1 0 500 100 500 -100 N
+P 2 1 1 0 700 50 700 -50 N
+P 2 1 1 0 500 100 700 0 N
+P 2 1 1 0 500 -100 700 0 N
+P 2 1 1 0 700 50 750 100 N
+P 2 1 1 0 700 -50 650 -100 N
+P 2 1 1 0 500 0 400 0 N
+P 2 1 1 0 400 0 400 100 N
+P 2 1 1 0 400 100 400 -100 N
+P 2 1 1 0 400 -100 200 0 N
+P 2 1 1 0 200 0 400 100 N
+P 2 1 1 0 200 0 200 50 N
+P 2 1 1 0 200 50 200 -50 N
+P 2 1 1 0 200 -50 200 -50 N
+P 2 1 1 0 200 -50 260 -100 N
+P 2 1 1 0 200 60 150 110 N
+ENDDRAW
+ENDDEF
+#
+# End Library
