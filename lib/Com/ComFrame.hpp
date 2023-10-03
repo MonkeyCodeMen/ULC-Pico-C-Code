@@ -40,7 +40,8 @@
 
 examples:
     S:R,00,on,0x00FF00FF#
-    S:R,00,blink#
+    garbage S:R,00,on,0x0000FF00#
+    S:R,00,blink,0,0x000000FF,250,250#
 
 
 */

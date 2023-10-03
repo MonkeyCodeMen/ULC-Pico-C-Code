@@ -64,7 +64,7 @@ u32_t convertStrToInt(const char * str){
 
     u32_t sum = 0;
     u32_t value;
-    char  pos=2;
+    char  pos=0;
     while (pos < len){
         sum = sum*10;
         switch(str[pos]){
