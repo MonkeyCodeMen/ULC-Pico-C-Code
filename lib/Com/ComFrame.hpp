@@ -38,7 +38,9 @@
     
 
 
-
+examples:
+    S:R,00,on,0x00FF00FF#
+    S:R,00,blink#
 
 
 */
@@ -54,6 +56,8 @@ public:
     ComFrame();
     ~ComFrame();
     void reset();
+    void addRec (String add);
+    char* print();
 
     char module;
     u8_t index;
@@ -61,5 +65,6 @@ public:
     String par1,par2,par3,par4;
     u32_t  length;
     u8_t * pData;
+    String _rec;
 };
 

@@ -21,7 +21,7 @@ class RgbLedOffAni : public RgbLedAni{
 
 class RgbLedOnAni : public RgbLedAni{
     public:
-        RgbLedOnAni()  : RgbLedAni(String("static"))  {_value = RgbLed::pack(RGB_LED_MAX,RGB_LED_MAX,RGB_LED_MAX);};
+        RgbLedOnAni()  : RgbLedAni(String("on"))  {_value = RgbLed::pack(RGB_LED_MAX,RGB_LED_MAX,RGB_LED_MAX);};
         void reset()                                {};
         void loop(RgbLed * pLed)                  {pLed->set(_value);};
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {_value = 0x00FFFFFF & p1;};

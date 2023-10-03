@@ -1,5 +1,5 @@
 #include "LedCtrl.hpp"
-#include "../Debug/Debug.hpp"
+#include "Debug.hpp"
 
 LedCtrl::LedCtrl(int pin) : Ctrl(){
     // create LED object
@@ -25,7 +25,7 @@ void LedCtrl::loop(){
     ASSERT(_pCurrentAni != NULL,"");
     ASSERT(_pLed != NULL,"");
  
-    takeSemaBlocking();
+    _mutex.lock();
     ((LedAni*)_pCurrentAni)->loop(_pLed);
-    freeSema();
+    _mutex.unlock();
 }

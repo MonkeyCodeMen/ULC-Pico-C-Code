@@ -1,5 +1,5 @@
 #include "RgbLed.hpp"
-#include "../Debug/Debug.hpp"
+#include "Debug.hpp"
 
 RgbLed::RgbLed(int pinRed,int pinGreen,int pinBlue)
 {

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <Arduino.h>
+#include "Mutex.hpp"
 
 
 
@@ -23,6 +24,7 @@ private:
     static void check();
 
     static HardwareSerial * _pSerial;
+    static Mutex            _mutex;
 
 };
 

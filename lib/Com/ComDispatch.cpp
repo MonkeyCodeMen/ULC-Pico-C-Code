@@ -1,5 +1,6 @@
 #include "ComDispatch.hpp"
-#include "../Debug/Debug.hpp"
+#include "Debug.hpp"
+#include "helper.hpp"
 
 
 ComDispatch::ComDispatch()
@@ -31,10 +32,10 @@ void ComDispatch::dispatchLedFrame(ComFrame * pFrame)
             return;
     }
     // this module accept only u32_t parameter
-    u32_t p1 = pFrame->par1.toInt();
-    u32_t p2 = pFrame->par2.toInt();
-    u32_t p3 = pFrame->par3.toInt();
-    u32_t p4 = pFrame->par4.toInt();
+    u32_t p1 = convertStrToInt(pFrame->par1.c_str());
+    u32_t p2 = convertStrToInt(pFrame->par2.c_str());
+    u32_t p3 = convertStrToInt(pFrame->par3.c_str());
+    u32_t p4 = convertStrToInt(pFrame->par4.c_str());
     
     pLedCtrl->setup(pFrame->command,p1,p2,p3,p4,pFrame->length,pFrame->pData);
 }
@@ -49,10 +50,10 @@ void ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
             return;
     }
     // this module accept only u32_t parameter
-    u32_t p1 = pFrame->par1.toInt();
-    u32_t p2 = pFrame->par2.toInt();
-    u32_t p3 = pFrame->par3.toInt();
-    u32_t p4 = pFrame->par4.toInt();
+    u32_t p1 = convertStrToInt(pFrame->par1.c_str());
+    u32_t p2 = convertStrToInt(pFrame->par2.c_str());
+    u32_t p3 = convertStrToInt(pFrame->par3.c_str());
+    u32_t p4 = convertStrToInt(pFrame->par4.c_str());
     
     pRgbCtrl->setup(pFrame->command,p1,p2,p3,p4,pFrame->length,pFrame->pData);
 }

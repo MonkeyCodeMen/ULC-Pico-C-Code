@@ -1,5 +1,5 @@
 #include "Com.hpp"
-#include "../Debug/Debug.hpp"
+#include "Debug.hpp"
 
 Com::Com()
 {
@@ -34,6 +34,8 @@ void Com::loop(){
 }
 
 void Com::reset(){
+    LOG("COM:Reset frame so far:");
+    LOG(_frame.print());
     _endFound = false;
     _field = "";
     _frame.reset();
@@ -41,43 +43,69 @@ void Com::reset(){
 }
 
 void Com::doWaiting(){
-    if (getByte(&_byte) == false)  {return;             } 
-    if (_byte == COM_FRAME_START1) {_state=START_FRAME; } 
-}
-
-void Com::getStartOfFrame(){
-    if (getByte(&_byte) == false)  {return;             } 
-    if (_byte == COM_FRAME_START2) {
-        _endFound = false;
-        _field = "";
-        _state = MODULE;
+    u8_t buffer;
+    if (getByte(&buffer) == false)  {
+        return;             
+    }
+    
+    if (buffer == COM_FRAME_START1) {
+        _state=START_FRAME; 
     } else {
-        _state = WAIT;
+        _frame._rec = "";
     }
 }
 
+void Com::getStartOfFrame(){
+    u8_t buffer;
+    if (getByte(&buffer) == false)  {
+        return;            
+    } 
+    
+    if (buffer == COM_FRAME_START2) {
+        _endFound = false;
+        _field = "";
+        _state = MODULE;
+        return;
+    } 
+    reset();
+}
+
 void Com::getModule(){
-    char __buffer[2];
-    if (getBytes(2,(u8_t*)&__buffer)== false)   {return;}
-    if (__buffer[1] != COM_FRAME_SEP)           {reset(); return;   }      
-    _frame.module = __buffer[0];
+    u8_t buffer[2];
+    if (getBytes(2,buffer)== false)   {
+        return;
+    }
+    if (buffer[1] != COM_FRAME_SEP)   {
+        reset(); 
+        return;   
+    }      
+    _frame.module = buffer[0];
     _state = INDEX;
 }
 
 void Com::getIndex(){
-    char __buffer[2];
-    if (getBytes(3,(u8_t*)&__buffer)== false)   {return;}
-    if (__buffer[2] != COM_FRAME_SEP)           {reset(); return;   }
-    __buffer[2]=0;
-    _frame.index = String(__buffer).toInt();
+    u8_t buffer[3];
+    if (getBytes(3,buffer)== false)   {
+        return;
+    }
+    if (buffer[2] != COM_FRAME_SEP)   {
+        reset(); 
+        return;   
+    }
+
+    buffer[2]=0;
+    _frame.index = String((char*)buffer).toInt();
     _state = COMMAND;
 }
 
 
 
 void Com::getCommand(){
-    if (collectField() == false)    {return;            }
+    if (collectField() == false)    {
+        return;            
+    }
     _frame.command = _field;
+    _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -87,8 +115,11 @@ void Com::getCommand(){
 
 
 void Com::getPar1(){
-    if (collectField() == false)    {return;            }
+    if (collectField() == false)    {
+        return;            
+    }
     _frame.par1 = _field;
+    _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -97,8 +128,11 @@ void Com::getPar1(){
 }
 
 void Com::getPar2(){
-    if (collectField() == false)    {return;            }
+    if (collectField() == false)    {
+        return;            
+    }
     _frame.par2 = _field;
+    _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -107,8 +141,11 @@ void Com::getPar2(){
 }
 
 void Com::getPar3(){
-    if (collectField() == false)    {return;            }
+    if (collectField() == false)    {
+        return;            
+    }
     _frame.par3 = _field;
+    _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -117,8 +154,11 @@ void Com::getPar3(){
 }
 
 void Com::getPar4(){
-    if (collectField() == false)    {return;            }
+    if (collectField() == false)    {
+        return;            
+    }
     _frame.par4 = _field;
+    _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -127,7 +167,9 @@ void Com::getPar4(){
 }
 
 void Com::getLength(){
-    if (collectField() == false)    {return;            }
+    if (collectField() == false)    {
+        return;            
+    }
     _frame.length = _field.toInt();
     if (_endFound == true){
         reset();  // length without data???
@@ -149,6 +191,8 @@ void Com::getEndOfFrame(){
 
 
 void Com::frameDone(){
+    LOG("COM:Dispatch Frame:");
+    LOG(_frame.print());
     // frame ready for further processing
     _dispatcher.dispatchFrame(&_frame);
     // frame processed delete all data now
@@ -160,18 +204,23 @@ void Com::frameDone(){
 
 
 bool Com::getByte(u8_t * pBuffer){
+    u8_t value;
     if (_pPort->available() >= 1) {
-        *pBuffer= _pPort->read();
+        value = _pPort->read();
+        *pBuffer= value;
+        _frame.addRec(String((char)value)); 
         return true;
     }
     return false;    
 }
 
 bool Com::getBytes(u32_t count,u8_t * pBuffer){
+    u8_t value;
     if (_pPort->available() >= count) {
-        for(int i;i < count; i++){
-            *pBuffer= _pPort->read();
-            pBuffer++; 
+        for(int i=0;i < count; i++){
+            value = _pPort->read();
+            pBuffer[i] = value;
+            _frame.addRec(String((char)value)); 
         }
         return true;
     }
@@ -192,7 +241,7 @@ bool Com::collectField(){
         return true;
     }
 
-    _field += __byte;
+    _field += (char)__byte;
     if (_field.length() >= COM_FRAME_MAX_PAR_LENGTH) {reset();  return false;}
 
     return false;

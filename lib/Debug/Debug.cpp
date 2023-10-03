@@ -1,7 +1,8 @@
 #include "Debug.hpp"
 
 HardwareSerial * Debug::_pSerial = NULL;
-Debug debug;
+Mutex            Debug::_mutex;
+Debug                   debug;
 
 
 
@@ -18,17 +19,22 @@ void Debug::start()
 }
 
 void Debug::log(char * text){
-        String time(millis());
-        out((char*)"LOG(");
-        out((char *)time.c_str());
-        out((char*)")::");
-        out(text);
-        outEnd();
+    String time(millis());
+
+    _mutex.lock();
+    out((char*)"LOG(");
+    out((char *)time.c_str());
+    out((char*)")::");
+    out(text);
+    outEnd();
+    _mutex.unlock();
 }
 
 
 void Debug::log(char * file,int line,char * text){
     String time(millis());
+
+    _mutex.lock();
     out((char*)"LOG(");
     out((char *)time.c_str());
     out((char*)"):");
@@ -39,6 +45,7 @@ void Debug::log(char * file,int line,char * text){
     out((char*)"::");
     out(text);
     outEnd();
+    _mutex.unlock();
 }
 
 void Debug::assertTrue(bool cond ,char * text){
@@ -46,11 +53,14 @@ void Debug::assertTrue(bool cond ,char * text){
         return;
     } else {
         String time(millis());
+
+        _mutex.lock();
         out((char*)"ASSERT failed(");
         out((char *)time.c_str());
         out((char*)")::");
         out(text);
         outEnd();
+        _mutex.unlock();
     }
 }
 
@@ -59,6 +69,8 @@ void Debug::assertTrue(bool cond ,char * file,int line,char * text){
         return;
     } else {
         String time(millis());
+        
+        _mutex.lock();
         out((char*)"ASSERT failed(");
         out((char *)time.c_str());
         out((char*)"):");
@@ -69,26 +81,17 @@ void Debug::assertTrue(bool cond ,char * file,int line,char * text){
         out((char*)"::");
         out(text);
         outEnd();
-    }
-}
-
-
-void Debug::check(){
-    if (_pSerial == NULL){
-        _pSerial = &Serial1;
-        _pSerial->begin(115200);
+        _mutex.unlock();
     }
 }
 
 
 void Debug::out(char * text){
-    check();    
     // at the moment only simply dump to terminal
     _pSerial->print(text);
 }
 
 void Debug::outEnd(){
-    check();
     // at the moment only simply dump to terminal
     _pSerial->println("");
     _pSerial->flush();

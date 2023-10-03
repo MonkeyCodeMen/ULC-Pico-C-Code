@@ -1,5 +1,5 @@
 #include "RgbLedCtrl.hpp"
-#include "../Debug/Debug.hpp"
+#include "Debug.hpp"
 
 RgbLedCtrl::RgbLedCtrl(int pinR,int pinG,int pinB) : Ctrl()
 {
@@ -26,7 +26,7 @@ void RgbLedCtrl::loop(){
     ASSERT(_pCurrentAni != NULL,"");
     ASSERT(_pRgbLed != NULL,"");
  
-    takeSemaBlocking();
+    _mutex.lock();
     ((RgbLedAni*)_pCurrentAni)->loop(_pRgbLed);
-    freeSema();
+    _mutex.unlock();
 }

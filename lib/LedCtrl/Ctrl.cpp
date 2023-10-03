@@ -1,5 +1,5 @@
 #include "Ctrl.hpp"
-#include "../Debug/Debug.hpp"
+#include "Debug.hpp"
 
 Ctrl::Ctrl()
 {
@@ -8,7 +8,6 @@ Ctrl::Ctrl()
     _pRoot          = NULL;
     _aniNameList    = String("");
     _count = 0;
-    freeSema();
 }
 
 
@@ -94,7 +93,7 @@ void Ctrl::setup(int nr){
     reset();
 }
 
-void Ctrl::setup(String name){
+void Ctrl::setup(String& name){
     if (_pRoot == NULL)      return;
 
     // find matching entry or set all to NULL
@@ -116,7 +115,7 @@ void Ctrl::setup(int nr,u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * 
     setup(p1,p2,p3,p4,length,pData);
 }
 
-void Ctrl::setup(String name,u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData){
+void Ctrl::setup(String& name,u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData){
     setup(name);
     setup(p1,p2,p3,p4,length,pData);
 }
@@ -126,16 +125,16 @@ void Ctrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData){
     ASSERT(_pCurrentAni != NULL,"");
     if (_pCurrentAni == NULL)   return;
 
-    takeSemaBlocking();
+    _mutex.lock();
     _pCurrentAni->setup(p1,p2,p3,p4,length,pData);
-    freeSema();
+    _mutex.unlock();
 }
 
 void Ctrl::reset(){
     ASSERT(_pCurrentAni != NULL,"");
     if (_pCurrentAni == NULL)   return;
 
-    takeSemaBlocking();
+    _mutex.lock();
     _pCurrentAni->reset();
-    freeSema();
+    _mutex.unlock();
 }
