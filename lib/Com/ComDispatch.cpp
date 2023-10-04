@@ -31,13 +31,18 @@ void ComDispatch::dispatchLedFrame(ComFrame * pFrame)
             LOG("unknown index for Led module  .. skip frame");
             return;
     }
-    // this module accept only u32_t parameter
-    u32_t p1 = convertStrToInt(pFrame->par1.c_str());
-    u32_t p2 = convertStrToInt(pFrame->par2.c_str());
-    u32_t p3 = convertStrToInt(pFrame->par3.c_str());
-    u32_t p4 = convertStrToInt(pFrame->par4.c_str());
-    
-    pLedCtrl->setup(pFrame->command,p1,p2,p3,p4,pFrame->length,pFrame->pData);
+    if (pFrame->withPar == true){
+        // this module accept only u32_t parameter
+        u32_t p1 = convertStrToInt(pFrame->par1.c_str());
+        u32_t p2 = convertStrToInt(pFrame->par2.c_str());
+        u32_t p3 = convertStrToInt(pFrame->par3.c_str());
+        u32_t p4 = convertStrToInt(pFrame->par4.c_str());
+        
+        pLedCtrl->setup(pFrame->command);
+        pLedCtrl->setup(p1,p2,p3,p4,pFrame->length,pFrame->pData);
+    } else {
+        pLedCtrl->setup(pFrame->command);  // use default parameter for 
+    }
 }
 
 void ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
@@ -49,13 +54,19 @@ void ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
             LOG("unknown index for Led module  .. skip frame");
             return;
     }
-    // this module accept only u32_t parameter
-    u32_t p1 = convertStrToInt(pFrame->par1.c_str());
-    u32_t p2 = convertStrToInt(pFrame->par2.c_str());
-    u32_t p3 = convertStrToInt(pFrame->par3.c_str());
-    u32_t p4 = convertStrToInt(pFrame->par4.c_str());
-    
-    pRgbCtrl->setup(pFrame->command,p1,p2,p3,p4,pFrame->length,pFrame->pData);
+
+    if (pFrame->withPar == true){
+        // this module accept only u32_t parameter
+        u32_t p1 = convertStrToInt(pFrame->par1.c_str());
+        u32_t p2 = convertStrToInt(pFrame->par2.c_str());
+        u32_t p3 = convertStrToInt(pFrame->par3.c_str());
+        u32_t p4 = convertStrToInt(pFrame->par4.c_str());
+        
+        pRgbCtrl->setup(pFrame->command);
+        pRgbCtrl->setup(p1,p2,p3,p4,pFrame->length,pFrame->pData);
+    } else {
+        pRgbCtrl->setup(pFrame->command);  // use default parameter for 
+    }
 }
 
 void ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)

@@ -110,6 +110,7 @@ void Com::getCommand(){
         _state = FRAME_DONE;
     } else {
         _state = PAR1;
+        _frame.withPar=true;
     }
 }
 

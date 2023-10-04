@@ -29,7 +29,7 @@ Ctrl::~Ctrl()
     _aniNameList = String("");
 }
 
-void Ctrl::addAni(Ani * pAni){
+void Ctrl::_addAni(Ani * pAni){
     struct Node * pNewNode;
 
     pNewNode = new Node;
@@ -79,6 +79,7 @@ void Ctrl::setup(int nr){
     if (nr < 0 )             return;
     if (_pRoot == NULL)      return;
 
+    _mutexSetup.lock();
     // find matching entry or set all to NULL
     _pCurrentNode = _pRoot;
     while (_pCurrentNode->nr != nr){
@@ -90,12 +91,14 @@ void Ctrl::setup(int nr){
         _pCurrentNode = _pCurrentNode->pNext;
     }
     _pCurrentAni = _pCurrentNode->pAni;
-    reset();
+    _pCurrentAni->reset();
+    _mutexSetup.unlock();
 }
 
 void Ctrl::setup(String& name){
     if (_pRoot == NULL)      return;
 
+    _mutexSetup.lock();
     // find matching entry or set all to NULL
     _pCurrentNode = _pRoot;
     while (_pCurrentNode->name != name){
@@ -107,34 +110,19 @@ void Ctrl::setup(String& name){
         _pCurrentNode = _pCurrentNode->pNext;
     }
     _pCurrentAni = _pCurrentNode->pAni;
-    reset();
+    _pCurrentAni->reset();
+    _mutexSetup.unlock();
 }
 
-void Ctrl::setup(int nr,u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData){
-    setup(nr);
-    setup(p1,p2,p3,p4,length,pData);
-}
-
-void Ctrl::setup(String& name,u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData){
-    setup(name);
-    setup(p1,p2,p3,p4,length,pData);
-}
 
 
 void Ctrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData){
     ASSERT(_pCurrentAni != NULL,"");
     if (_pCurrentAni == NULL)   return;
 
-    _mutex.lock();
+    _mutexSetup.lock();
     _pCurrentAni->setup(p1,p2,p3,p4,length,pData);
-    _mutex.unlock();
+    _mutexSetup.unlock();
 }
 
-void Ctrl::reset(){
-    ASSERT(_pCurrentAni != NULL,"");
-    if (_pCurrentAni == NULL)   return;
 
-    _mutex.lock();
-    _pCurrentAni->reset();
-    _mutex.unlock();
-}

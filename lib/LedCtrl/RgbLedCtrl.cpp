@@ -6,10 +6,10 @@ RgbLedCtrl::RgbLedCtrl(int pinR,int pinG,int pinB) : Ctrl()
     // create LED object
     _pRgbLed = new RgbLed(pinR,pinG,pinB);
 
-    addAni(new RgbLedOffAni());
-    addAni(new RgbLedOnAni());
-    addAni(new RgbLedBlinkAni());
-    addAni(new RgbLedBreathAni());
+    _addAni(new RgbLedOffAni());
+    _addAni(new RgbLedOnAni());
+    _addAni(new RgbLedBlinkAni());
+    _addAni(new RgbLedBreathAni());
     
     // setup first
     setup(0);
@@ -26,7 +26,10 @@ void RgbLedCtrl::loop(){
     ASSERT(_pCurrentAni != NULL,"");
     ASSERT(_pRgbLed != NULL,"");
  
-    _mutex.lock();
+    if (_mutexSetup.isLocked()==true){
+        return;  // do not wait 
+    }
+    _mutexSetup.lock();
     ((RgbLedAni*)_pCurrentAni)->loop(_pRgbLed);
-    _mutex.unlock();
+    _mutexSetup.unlock();
 }

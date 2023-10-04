@@ -8,23 +8,31 @@ class RgbLedAni:public Ani
 		~RgbLedAni() = default;
 		
 		virtual void loop(RgbLed * pLed) {};
+
+    // base class
+        //String getName()		{return _name;};
+		//virtual void reset()  {};
+        //virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {};
+        // if nothing to do for this member functions you can stay with the default implentation from base class
+
 };
+
+
 
 
 class RgbLedOffAni : public RgbLedAni{
     public:
-        RgbLedOffAni()  : RgbLedAni(String("off"))  {};
-        void reset()                                {};
-        void loop(RgbLed * pLed)                  {pLed->set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);};
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {};
+        RgbLedOffAni():RgbLedAni(String("off"))     {};
+        void loop(RgbLed * pLed)                    {pLed->set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);};
 };
 
 class RgbLedOnAni : public RgbLedAni{
     public:
-        RgbLedOnAni()  : RgbLedAni(String("on"))  {_value = RgbLed::pack(RGB_LED_MAX,RGB_LED_MAX,RGB_LED_MAX);};
-        void reset()                                {};
-        void loop(RgbLed * pLed)                  {pLed->set(_value);};
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {_value = 0x00FFFFFF & p1;};
+        RgbLedOnAni()  : RgbLedAni(String("on"))    {};
+        void reset()                                {_value = RgbLed::pack(RGB_LED_MAX,RGB_LED_MAX,RGB_LED_MAX);};
+        void loop(RgbLed * pLed)                    {pLed->set(_value);};
+        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) 
+                                                    {_value = 0x00FFFFFF & p1;};
 	private:
 		u32_t _value;
 };
@@ -32,17 +40,15 @@ class RgbLedOnAni : public RgbLedAni{
 
 class RgbLedBlinkAni : public RgbLedAni{
     public:
-        RgbLedBlinkAni()  : RgbLedAni(String("blink")) {   
+        RgbLedBlinkAni()  : RgbLedAni(String("blink")) {};
+        
+        void reset() {
             _state=init;
             _onTime1_ms =250;
             _onTime2_ms = 250; 
             u8_t onValue = 25;
             _value1 = RgbLed::pack(onValue,onValue,onValue);
             _value2 = RgbLed::pack(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);
-        };
-        
-        void reset() {
-            _state=init;
         };
  
         void loop(RgbLed * pLed){
@@ -103,7 +109,9 @@ class RgbLedBreathAni : public RgbLedAni{
     #define BREATH_ACCURACY ((u32_t)(100*1000))
 
     public:
-        RgbLedBreathAni()  : RgbLedAni(String("breath")) {   
+        RgbLedBreathAni()  : RgbLedAni(String("breath")) {};
+        
+        void reset() {
             _state=init;
             _incPerMs = 10;
             _decPerMs = 10; 
@@ -112,11 +120,6 @@ class RgbLedBreathAni : public RgbLedAni{
             _targetB = 255;
             _upperLimit = 20000;
             _lowerLimit = 1000;
-            _dim = 0;
-        };
-        
-        void reset() {
-            _state=init;
             _dim = 0;
         };
  

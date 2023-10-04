@@ -25,6 +25,7 @@ void ComFrame::reset()
     if (pData != NULL)  delete pData;
     pData = NULL;
     _rec="";
+    withPar = false;
 }
 
 void ComFrame::addRec(String add){

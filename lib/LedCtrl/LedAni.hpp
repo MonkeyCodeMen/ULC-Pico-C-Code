@@ -2,6 +2,7 @@
 #include <Arduino.h>
 #include "Led.hpp"
 #include "Ani.hpp"
+#include "helper.hpp"
 
 class LedAni : public Ani
 {
@@ -10,36 +11,36 @@ class LedAni : public Ani
         ~LedAni() = default;
 
         virtual void loop(Led * pLed) {};
+
+    // base class
+        //String getName()		{return _name;};
+		//virtual void reset()  {};
+        //virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {};
+        // if nothing to do for this member functions you can stay with the default implentation from base class
+
 };
 
 
 class LedOffAni : public LedAni{
     public:
-        LedOffAni()  : LedAni(String("off"))  {};
-        void reset()                                {};
-        void loop(Led * pLed)                     {pLed->set(LED_OFF);};
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {};
+        LedOffAni()  : LedAni(String("off"))        {};
+        void loop(Led * pLed)                       {pLed->set(LED_OFF);};
 };
 
 class LedOnAni : public LedAni{
     public:
-        LedOnAni()  : LedAni(String("on"))  {};
-        void reset()                                {};
-        void loop(Led * pLed)                     {pLed->set(LED_MAX);};
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {};
+        LedOnAni()  : LedAni(String("on"))          {};
+        void loop(Led * pLed)                       {pLed->set(LED_MAX);};
 };
 
 
 class LedDimAni : public LedAni{
     public:
-        LedDimAni()  : LedAni(String("dim"))    {_dimValue = LED_OFF;};
+        LedDimAni()  : LedAni(String("dim"))        {};
         void reset()                                {_dimValue = LED_OFF;};
-        void loop(Led * pLed)                     {pLed->set(_dimValue);};
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  { 
-            if (p1 > LED_MAX) p1 = LED_MAX;
-            if (p1 < LED_OFF) p1 = LED_OFF;
-            _dimValue = p1 & 0xFF;
-        };
+        void loop(Led * pLed)                       {pLed->set(_dimValue);};
+        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  
+                                                    {_dimValue = clamp(LED_OFF,p1,LED_MAX);}; 
     private:
         u8_t _dimValue;
 };
@@ -47,15 +48,13 @@ class LedDimAni : public LedAni{
 
 class LedBlinkAni : public LedAni{
     public:
-        LedBlinkAni()  : LedAni(String("blink")) {   
+        LedBlinkAni()  : LedAni(String("blink"))    {};
+        
+        void reset() {
             _state=init;
             _onTime_ms = 250; 
             _offTime_ms = 250; 
             _dimValue = 50; 
-        };
-        
-        void reset() {
-            _state=init;
         };
 
         void loop(Led * pLed){
@@ -88,9 +87,7 @@ class LedBlinkAni : public LedAni{
         };
 
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  { 
-            if (p1 > LED_MAX) p1 = LED_MAX;
-            if (p1 < LED_OFF) p1 = LED_OFF;
-            _dimValue = p1;
+            _dimValue = clamp(LED_OFF,p1,LED_MAX);
             _onTime_ms = p2;
             _offTime_ms = p3;
             _state = init;

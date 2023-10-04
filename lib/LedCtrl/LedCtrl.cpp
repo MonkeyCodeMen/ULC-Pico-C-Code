@@ -6,10 +6,10 @@ LedCtrl::LedCtrl(int pin) : Ctrl(){
     _pLed = new Led(pin);
 
     // fill ani List
-    addAni(new LedOffAni());
-    addAni(new LedOnAni());
-    addAni(new LedDimAni());
-    addAni(new LedBlinkAni());
+    _addAni(new LedOffAni());
+    _addAni(new LedOnAni());
+    _addAni(new LedDimAni());
+    _addAni(new LedBlinkAni());
 
     // setup first
     setup(0);
@@ -24,8 +24,12 @@ LedCtrl::~LedCtrl(){
 void LedCtrl::loop(){
     ASSERT(_pCurrentAni != NULL,"");
     ASSERT(_pLed != NULL,"");
- 
-    _mutex.lock();
+
+    if (_mutexSetup.isLocked()==true){
+        return;  // do not wait 
+    }
+
+    _mutexSetup.lock();
     ((LedAni*)_pCurrentAni)->loop(_pLed);
-    _mutex.unlock();
+    _mutexSetup.unlock();
 }

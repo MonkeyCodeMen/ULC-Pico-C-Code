@@ -19,13 +19,10 @@ class Ctrl
         ~Ctrl();
 
         String getNameList();       // like :"0:xxx;1:yyy;..."
-        void setup(int nr);
-        void setup(String& name);
-        void setup(int nr,u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData);
-        void setup(String& name,u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData);
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData);
-        void reset();
-        virtual void update() {};
+        void setup(int nr);         // change programm
+        void setup(String& name);   // change programm
+        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData); // config program
+        virtual void update() {};   // update LED's (derived type)
         
 
     
@@ -41,9 +38,7 @@ class Ctrl
         // core 0 : communication & menue
         // core 1 : Led's  
         // so there must be an access control to local parameters to avoid race conditions
-        Mutex       _mutex;
+        Mutex       _mutexSetup;
 
-
-        void addAni(Ani * pAni);
-
+        void _addAni(Ani * pAni);
 };

@@ -42,6 +42,9 @@ examples:
     S:R,00,on,0x00FF00FF#
     garbage S:R,00,on,0x0000FF00#
     S:R,00,blink,0,0x000000FF,250,250#
+    S:R,00,breath,0x000000FF,10,10,0x04004000#
+    S:R,00,off#
+
 
 
 */
@@ -60,12 +63,15 @@ public:
     void addRec (String add);
     char* print();
 
-    char module;
-    u8_t index;
-    String command;
-    String par1,par2,par3,par4;
-    u32_t  length;
-    u8_t * pData;
-    String _rec;
+    char    module;
+    u8_t    index;
+    String  command;
+    String  par1,par2,par3,par4;
+    u32_t   length;
+    u8_t *  pData;
+
+    bool    withPar;
+    
+    String  _rec;
 };
 
