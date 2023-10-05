@@ -44,9 +44,8 @@ examples:
     S:R,00,blink,0,0x000000FF,250,250#
     S:R,00,breath,0x000000FF,10,10,0x04004000#
     S:R,00,off#
-
-
-
+    S:R,00,blink#
+    S:R,00,breath#
 */
 
 #define COM_FRAME_MAX_PAR_LENGTH   20
