@@ -19,9 +19,10 @@ class Ctrl
         ~Ctrl();
 
         String getNameList();       // like :"0:xxx;1:yyy;..."
-        void setup(int nr);         // change programm
-        void setup(String& name);   // change programm
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData); // config program
+        virtual String  getName(); 
+        virtual void setup(int nr);         // change programm
+        virtual void setup(String& name);   // change programm
+        virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData); // config program
         virtual void update() {};   // update LED's (derived type)
         
 

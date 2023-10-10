@@ -1,16 +1,4 @@
 #include <Arduino.h>
-
-
-
-
-/*
-
-
- Blaulicht Doppelblitz: 500ms, ~25ms An, ~75ms Aus, ~25ms An (Aus Diagramm oben abgelesen)
-
- 
- */
-
 #include <Debug.hpp>
 #include <SPI.h>
 
@@ -41,17 +29,26 @@ WS2812FX * pLedNeoStripe;
 
 #include <RgbLedCtrl.hpp>
 #include <LedCtrl.hpp>
+#include <NeoStripeCtrl.hpp>
 
 LedCtrl    * pLedCtrl1;
 LedCtrl    * pLedCtrl2;
 RgbLedCtrl * pRgbCtrl1;
+NeoStripeCtrl  * pNeoStripeCtrl1;
+NeoStripeCtrl  * pNeoStripeCtrl2;
 
 
-#define PIN_LED_SWITCH_1  7
-#define PIN_LED_SWITCH_2  6
-#define PIN_RGB1_LED_R     10
-#define PIN_RGB1_LED_G     11
-#define PIN_RGB1_LED_B     12
+
+#define PIN_LED_SWITCH_1  	7
+#define PIN_LED_SWITCH_2    6
+#define PIN_RGB1_LED_R      10
+#define PIN_RGB1_LED_G      11
+#define PIN_RGB1_LED_B      12
+#define PIN_STRIPE_1        18
+#define PIN_STRIPE_2        19
+#define COUNT_STRIPE_1      100
+#define COUNT_STRIPE_2      100
+
 
 
 #include "Com.hpp"
@@ -70,14 +67,9 @@ void setup() {
   //analogWriteFreq(3200);
   //analogWriteRange(255);
 
-  LOG("setup 0: ws2812fx");
-  pLedNeoStripe = new WS2812FX(LED_COUNT, PIN_LED_WS_1, NEO_GRB  + NEO_KHZ800);
-  pLedNeoStripe->init();
-  pLedNeoStripe->setBrightness(255);
-  pLedNeoStripe->setSpeed(1000);
-  pLedNeoStripe->setColor(0x007BFF);
-  pLedNeoStripe->setMode(FX_MODE_STATIC);
-  pLedNeoStripe->start();
+  LOG("setup 0: Neo Stripe");
+  pNeoStripeCtrl1 = new NeoStripeCtrl(COUNT_STRIPE_1, PIN_STRIPE_1 , NEO_GRB  + NEO_KHZ800);
+  pNeoStripeCtrl2 = new NeoStripeCtrl(COUNT_STRIPE_2, PIN_STRIPE_2 , NEO_GRB  + NEO_KHZ800);
 
   LOG("setup 0: LedSwitch");
   String mode;

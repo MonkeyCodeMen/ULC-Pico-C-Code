@@ -20,7 +20,6 @@ class LedAni : public Ani
 
 };
 
-
 class LedOffAni : public LedAni{
     public:
         LedOffAni()  : LedAni(String("off"))        {};
@@ -33,7 +32,6 @@ class LedOnAni : public LedAni{
         void loop(Led * pLed)                       {pLed->set(LED_MAX);};
 };
 
-
 class LedDimAni : public LedAni{
     public:
         LedDimAni()  : LedAni(String("dim"))        {};
@@ -44,7 +42,6 @@ class LedDimAni : public LedAni{
     private:
         u8_t _dimValue;
 };
-
 
 class LedBlinkAni : public LedAni{
     public:
@@ -100,5 +97,91 @@ class LedBlinkAni : public LedAni{
         u8_t _dimValue;
         u32_t _onTime_ms,_offTime_ms;
         u32_t _lastSwitchTime;
+};
+
+class LedMultiFlashAni : public LedAni{
+    public:
+        LedMultiFlashAni()  : LedAni(String("multi flash")) {};
+        
+        void reset() {
+            // Blaulicht Doppelblitz: 500ms, ~25ms An, ~75ms Aus, ~25ms An (Aus Diagramm oben abgelesen)
+            _state      = stop;
+            _dim        = LED_DIM_ACCURACY;
+            _count      = 0;
+            _flashCount = 2;
+            _onTime     = 25;
+            _offTime    = 75;
+            _pauseTime  = 500;
+            _state      = init;
+        };
+ 
+        void loop(Led * pLed){
+            u32_t diff,time,color;
+            time = millis();
+            switch (_state){
+                case stop:
+                    // do nothing parameters are loocked by other thread
+                    // the setup will move forward to state init
+                    break;
+
+                case init:
+                    _state = flashOn;
+                    _lastCallTime = time;
+                    pLed->set(_dim);
+                    break;
+                
+                case flashOn:
+                    diff = time - _lastCallTime;
+                    if (diff >= _onTime){
+                        _lastCallTime = time;
+                        pLed->set(0);
+                        _count++;
+                        if (_count >= _flashCount){
+                            _state = pause;
+                        } else {
+                            _state = flashOff;
+                        }
+                    }
+                    break;
+
+                case flashOff:
+                    diff = time - _lastCallTime;
+                    if (diff >= _offTime){
+                        _lastCallTime = time;
+                        pLed->set(_dim);
+                        _state = flashOn;
+                    }
+                    break;
+
+                case pause:
+                    diff = time - _lastCallTime;
+                    if (diff >= _pauseTime){
+                        _lastCallTime = time;
+                        pLed->set(_dim);
+                        _count = 0;
+                        _state = flashOn;
+                    }
+                    break;
+            }
+        };
+
+        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
+            _state      = stop;
+            _dim        = clamp(0,p1,LED_DIM_ACCURACY);
+            _onTime     = (p3 & 0xFFFF0000) >> 16;
+            _offTime    = p3 & 0x0000FFFF;
+            _flashCount = (p4 & 0xFFFF0000) >> 16;
+            _pauseTime  = p4 & 0x0000FFFF;
+            _state      = init;
+        };
+
+    private:
+        enum MultiFlashState {stop,init,flashOn,flashOff,pause};
+        volatile MultiFlashState _state;
+        u32_t _lastCallTime;
+        u8_t _dim;
+        u16_t _onTime,_offTime;
+        u16_t _pauseTime;
+        u16_t _flashCount,_count;
 };
 

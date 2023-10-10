@@ -1,5 +1,6 @@
 #include "RgbLed.hpp"
 #include "Debug.hpp"
+#include "helper.hpp"
 
 RgbLed::RgbLed(int pinRed,int pinGreen,int pinBlue)
 {
@@ -23,8 +24,26 @@ void RgbLed::set(u32_t value){
     set(r,g,b);
 }
 
+void RgbLed::set(u32_t value,u16_t dim){
+    u8_t r,g,b;
+    r = dimChannel(unpackR(value),dim);
+    g = dimChannel(unpackG(value),dim);
+    b = dimChannel(unpackB(value),dim);
+    set(r,g,b);
+}
+
+void RgbLed::set(u8_t r,u8_t g,u8_t b,u16_t dim){
+    r = dimChannel(r,dim);
+    g = dimChannel(g,dim);
+    b = dimChannel(b,dim);
+    set(r,g,b);
+}
+
+
 
 void RgbLed::set(u8_t r,u8_t g,u8_t b){
+    // all set methods should use this method as backend
+    // it handles invers etc.
     #if RGB_LED_PWM_RANGE == 255
         #if RGB_LED_LOGIC_INVERS == true
             analogWrite(_pinR, RGB_LED_PWM_RANGE-r);
@@ -75,6 +94,11 @@ u8_t RgbLed::unpackB(u32_t value) {
 }
 
 
+u8_t RgbLed::dimChannel(u8_t value,u16_t dim){
+    dim = clamp(0,value,RGB_DIM_ACCURACY);
+    return (value*dim)/RGB_DIM_ACCURACY;
+}
+
 u32_t RgbLed::getPackedColorWheel(u8_t pos){
     u8_t r,g,b;
     pos = 255 - pos;
@@ -98,27 +122,3 @@ u32_t RgbLed::getPackedColorWheel(u8_t pos){
     return res;
 }
 
-
-/*
-
-void PWM_RGB::setWheelColor(u8_t pos) {
-    pos = 255 - pos;
-    if(pos < 85) {
-        _r = 255 - pos * 3;
-        _g = 0;
-        _b = pos*3;
-    } else if(pos < 170) {
-        pos -= 85;
-        _r = 0;
-        _g = pos * 3;
-        _b = 255 - pos * 3;
-    } else {
-        pos -= 170;
-        _r = pos * 3;
-        _g = 255 - pos * 3;
-        _b = 0;
-    }
-    loop();
-}
-
-*/

@@ -10,6 +10,7 @@ LedCtrl::LedCtrl(int pin) : Ctrl(){
     _addAni(new LedOnAni());
     _addAni(new LedDimAni());
     _addAni(new LedBlinkAni());
+    _addAni(new LedMultiFlashAni());
 
     // setup first
     setup(0);
@@ -18,7 +19,7 @@ LedCtrl::LedCtrl(int pin) : Ctrl(){
 LedCtrl::~LedCtrl(){
     if (_pLed != NULL)   
         delete(_pLed);
- }
+}
 
 
 void LedCtrl::loop(){

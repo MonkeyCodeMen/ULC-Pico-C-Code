@@ -10,8 +10,11 @@ RgbLedCtrl::RgbLedCtrl(int pinR,int pinG,int pinB) : Ctrl()
     _addAni(new RgbLedOnAni());
     _addAni(new RgbLedBlinkAni());
     _addAni(new RgbLedBreathAni());
+    _addAni(new RgbLedRainbowAni());
+    _addAni(new RgbLedMultiFlashAni());
+
     
-    // setup first
+    // select first
     setup(0);
 }
 

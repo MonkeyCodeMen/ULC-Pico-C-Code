@@ -43,12 +43,10 @@ void Ctrl::_addAni(Ani * pAni){
         pNewNode->pNext= NULL;
 
         // update name list
-        if (pNewNode->nr > 0){
-            _aniNameList += ";";
-        }
         _aniNameList += String(pNewNode->nr);
         _aniNameList += ":";
         _aniNameList += pNewNode->name;
+        _aniNameList += ";";
 
         // add new element to list
         struct Node * pLast;
@@ -73,6 +71,12 @@ String Ctrl::getNameList(){
     return _aniNameList;
 }
 
+String Ctrl::getName(){
+    ASSERT(_pCurrentAni != NULL,"");
+    if (_pCurrentAni == NULL)   return String("");
+
+    return _pCurrentNode->name;
+}
 
 void Ctrl::setup(int nr){
     if (nr >= _count)        return;

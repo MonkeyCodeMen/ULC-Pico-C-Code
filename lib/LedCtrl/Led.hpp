@@ -9,6 +9,7 @@
 
 #define LED_LOGIC_INVERS    false
 #define LED_PWM_RANGE       255
+#define LED_DIM_ACCURACY    LED_PWM_RANGE
 
 
 class Led
