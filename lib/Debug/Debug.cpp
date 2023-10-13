@@ -22,9 +22,9 @@ void Debug::log(char * text){
     String time(millis());
 
     _mutex.lock();
-    out((char*)"LOG(");
+    out((char*)F("LOG("));
     out((char *)time.c_str());
-    out((char*)")::");
+    out((char*)F(")::"));
     out(text);
     outEnd();
     _mutex.unlock();
@@ -35,14 +35,14 @@ void Debug::log(char * file,int line,char * text){
     String time(millis());
 
     _mutex.lock();
-    out((char*)"LOG(");
+    out((char*)F("LOG("));
     out((char *)time.c_str());
-    out((char*)"):");
+    out((char*)F("):"));
     out(file);
-    out((char*)":");
+    out((char*)F(":"));
     String lineStr(line);
     out((char *)lineStr.c_str());
-    out((char*)"::");
+    out((char*)F("::"));
     out(text);
     outEnd();
     _mutex.unlock();
@@ -55,9 +55,9 @@ void Debug::assertTrue(bool cond ,char * text){
         String time(millis());
 
         _mutex.lock();
-        out((char*)"ASSERT failed(");
+        out((char*)F("ASSERT failed("));
         out((char *)time.c_str());
-        out((char*)")::");
+        out((char*)F(")::"));
         out(text);
         outEnd();
         _mutex.unlock();
@@ -71,14 +71,14 @@ void Debug::assertTrue(bool cond ,char * file,int line,char * text){
         String time(millis());
         
         _mutex.lock();
-        out((char*)"ASSERT failed(");
+        out((char*)F("ASSERT failed("));
         out((char *)time.c_str());
-        out((char*)"):");
+        out((char*)F("):"));
         out(file);
-        out((char*)":");
+        out((char*)F(":"));
         String lineStr(line);
         out((char *)lineStr.c_str());
-        out((char*)"::");
+        out((char*)F("::"));
         out(text);
         outEnd();
         _mutex.unlock();
@@ -93,6 +93,6 @@ void Debug::out(char * text){
 
 void Debug::outEnd(){
     // at the moment only simply dump to terminal
-    _pSerial->println("");
+    _pSerial->println(F(""));
     _pSerial->flush();
 }

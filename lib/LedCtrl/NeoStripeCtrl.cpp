@@ -5,7 +5,7 @@
 
 NeoStripeCtrl::NeoStripeCtrl(u16_t num_leds, u8_t pin, neoPixelType type) : Ctrl()
 {
-    LOG("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx");
+    LOG(F("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx"));
     _pNeoStripe = new WS2812FX(num_leds, pin, type);
     _pNeoStripe->init();
     _count = _pNeoStripe->getModeCount() - MAX_CUSTOM_MODES + 1;

@@ -1,4 +1,5 @@
 #include "Com.hpp"
+#include "helper.hpp"
 #include "Debug.hpp"
 
 Com::Com()
@@ -29,15 +30,15 @@ void Com::loop(){
         case FRAME_DONE:    frameDone();        break;
 
         default:
-            LOG("unknown decode state");           
+            LOG(F("unknown decode state"));           
     }
 }
 
 void Com::reset(){
-    LOG("COM:Reset frame so far:");
-    LOG(_frame.print());
+    LOG(F("COM:Reset frame skipped"));
     _endFound = false;
     _field = "";
+    _maxFieldLength = COM_FRAME_MAX_COMMAND_LENGTH;
     _frame.reset();
     _state = WAIT;
 }
@@ -50,9 +51,7 @@ void Com::doWaiting(){
     
     if (buffer == COM_FRAME_START1) {
         _state=START_FRAME; 
-    } else {
-        _frame._rec = "";
-    }
+    } 
 }
 
 void Com::getStartOfFrame(){
@@ -63,7 +62,6 @@ void Com::getStartOfFrame(){
     
     if (buffer == COM_FRAME_START2) {
         _endFound = false;
-        _field = "";
         _state = MODULE;
         return;
     } 
@@ -96,6 +94,8 @@ void Com::getIndex(){
     buffer[2]=0;
     _frame.index = String((char*)buffer).toInt();
     _state = COMMAND;
+    _field = "";
+    _maxFieldLength = COM_FRAME_MAX_COMMAND_LENGTH;
 }
 
 
@@ -105,12 +105,13 @@ void Com::getCommand(){
         return;            
     }
     _frame.command = _field;
-    _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
         _state = PAR1;
         _frame.withPar=true;
+        _field = "";
+        _maxFieldLength = COM_FRAME_MAX_PARAMETER_LENGTH;
     }
 }
 
@@ -119,12 +120,13 @@ void Com::getPar1(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.par1 = _field;
-    _field = "";
+    _frame.par1 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
         _state = PAR2;
+        _field = "";
+        _maxFieldLength = COM_FRAME_MAX_PARAMETER_LENGTH;
     }
 }
 
@@ -132,12 +134,13 @@ void Com::getPar2(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.par2 = _field;
-    _field = "";
+    _frame.par2 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
         _state = PAR3;
+        _field = "";
+        _maxFieldLength = COM_FRAME_MAX_PARAMETER_LENGTH;
     }
 }
 
@@ -145,12 +148,13 @@ void Com::getPar3(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.par3 = _field;
-    _field = "";
+    _frame.par3 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
         _state = PAR4;
+        _field = "";
+        _maxFieldLength = COM_FRAME_MAX_PARAMETER_LENGTH;
     }
 }
 
@@ -158,12 +162,15 @@ void Com::getPar4(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.par4 = _field;
+    _frame.par4 = convertStrToInt(_field);
     _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
-        _state = LENGTH;
+        _state = DATA;
+        _frame.length=0;
+        _field = "";
+        _frame.pData = (u8_t *) new String();
     }
 }
 
@@ -171,7 +178,7 @@ void Com::getLength(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.length = _field.toInt();
+    _frame.length = convertStrToInt(_field);
     if (_endFound == true){
         reset();  // length without data???
     } else {
@@ -180,20 +187,43 @@ void Com::getLength(){
 }
 
 void Com::getData(){
-    LOG("getData not implemented until now !!!");
-    reset();
+    u8_t buffer;
+    if (getByte(&buffer) == false)  {
+        return;            
+    }
+
+    if (buffer == 0){
+        // end of pData (ASCII mode string) reached
+        _frame.pData = (u8_t *)_frame.str.c_str();
+        _state = END_FRAME;
+        return;
+    }
+
+    // end not reached at char to pData (String)
+    _frame.str.concat((char)buffer);
 }
 
 
 void Com::getEndOfFrame(){
-    LOG("getEndOfFrame not implemented until now !!!");
-    reset();
+    u8_t buffer;
+    if (getByte(&buffer) == false)  {
+        return;            
+    }
+
+    if (buffer != COM_FRAME_END){
+        LOG(F("getEndOfFrame wrong end frame signature   .. frame skipped"));
+        reset();
+        return;
+    }
+
+    _state = FRAME_DONE;
+    _endFound = true;
+    _frame.length = 0;  // it is a string
 }
 
 
 void Com::frameDone(){
-    LOG("COM:Dispatch Frame:");
-    LOG(_frame.print());
+    LOG(F("COM:Dispatch Frame:"));
     // frame ready for further processing
     _dispatcher.dispatchFrame(&_frame);
     // frame processed delete all data now
@@ -209,7 +239,6 @@ bool Com::getByte(u8_t * pBuffer){
     if (_pPort->available() >= 1) {
         value = _pPort->read();
         *pBuffer= value;
-        _frame.addRec(String((char)value)); 
         return true;
     }
     return false;    
@@ -221,7 +250,6 @@ bool Com::getBytes(u32_t count,u8_t * pBuffer){
         for(int i=0;i < count; i++){
             value = _pPort->read();
             pBuffer[i] = value;
-            _frame.addRec(String((char)value)); 
         }
         return true;
     }
@@ -243,7 +271,7 @@ bool Com::collectField(){
     }
 
     _field += (char)__byte;
-    if (_field.length() >= COM_FRAME_MAX_PAR_LENGTH) {reset();  return false;}
+    if (_field.length() >= _maxFieldLength) {reset();  return false;}
 
     return false;
 }

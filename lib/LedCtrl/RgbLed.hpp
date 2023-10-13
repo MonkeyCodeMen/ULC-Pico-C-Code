@@ -30,7 +30,6 @@ class RgbLed
         static u8_t unpackG(u32_t value);
         static u8_t unpackB(u32_t value);
 
-        static u32_t getPackedColorWheel(u8_t pos);
         static u8_t  dimChannel(u8_t value,u16_t dim);
 
     private:

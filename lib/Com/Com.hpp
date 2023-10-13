@@ -39,6 +39,7 @@ private:
     
     u8_t    _byte;
     String  _field;
+    u32_t   _maxFieldLength;
     bool    _endFound;
 
     ComFrame _frame;

@@ -99,26 +99,4 @@ u8_t RgbLed::dimChannel(u8_t value,u16_t dim){
     return (value*dim)/RGB_DIM_ACCURACY;
 }
 
-u32_t RgbLed::getPackedColorWheel(u8_t pos){
-    u8_t r,g,b;
-    pos = 255 - pos;
-    if(pos < 85) {
-        r = 255 - pos * 3;
-        g = 0;
-        b = pos*3;
-    } else if(pos < 170) {
-        pos -= 85;
-        r = 0;
-        g = pos * 3;
-        b = 255 - pos * 3;
-    } else {
-        pos -= 170;
-        r = pos * 3;
-        g = 255 - pos * 3;
-        b = 0;
-    }
-
-    u32_t res = pack(r,g,b);
-    return res;
-}
 

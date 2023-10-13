@@ -210,7 +210,7 @@ class RgbLedRainbowAni : public RgbLedAni{
                     _state = run;
                     _lastCallTime = time;
                     _wheelIndex = 0;
-                    color = RgbLed::getPackedColorWheel(_wheelIndex);
+                    color = get888ColorWheel(_wheelIndex);
                     pLed->set(color,_dim);
                     break;
                 
@@ -220,7 +220,7 @@ class RgbLedRainbowAni : public RgbLedAni{
                         _lastCallTime = time;
                         _wheelIndex += _wheelInc;
                     }
-                    color = RgbLed::getPackedColorWheel(_wheelIndex);
+                    color = get888ColorWheel(_wheelIndex);
                     pLed->set(color,_dim);
                     break;
             }

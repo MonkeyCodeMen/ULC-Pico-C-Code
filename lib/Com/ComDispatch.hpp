@@ -1,18 +1,6 @@
 #pragma once
 #include "ComFrame.hpp"
 
-#include <RgbLedCtrl.hpp>
-#include <LedCtrl.hpp>
-#include <NeoStripeCtrl.hpp>
-
-extern LedCtrl    * pLedCtrl1;
-extern LedCtrl    * pLedCtrl2;
-extern RgbLedCtrl * pRgbCtrl1;
-extern NeoStripeCtrl  * pNeoStripeCtrl1;
-extern NeoStripeCtrl  * pNeoStripeCtrl2;
-
-
-
 class ComDispatch
 {
 public:

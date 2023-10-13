@@ -2,14 +2,16 @@
 #include "ComFrame.hpp"
 
 ComFrame::ComFrame():
-    module(0),index(0),command(""),par1(""),par2(""),par3(""),par4(""),length(0),pData(NULL)
-{
-    _rec = "";
-}
+    module(0),index(0),command(""),par1(0),par2(0),par3(0),par4(0),length(0),pData(NULL)
+{}
 
 ComFrame::~ComFrame()
 {
-    if (pData != NULL)  delete pData;
+    if ((pData != NULL) && (length != 0)){
+        delete pData;
+        pData = NULL;
+    }
+    str = "";   
 }
 
 void ComFrame::reset()
@@ -17,22 +19,18 @@ void ComFrame::reset()
     module = 0;
     index  = 0;
     command == "";
-    par1="";
-    par2="";
-    par3="";
-    par4="";
-    length=0;
-    if (pData != NULL)  delete pData;
-    pData = NULL;
-    _rec="";
+    par1=0;
+    par2=0;
+    par3=0;
+    par4=0;
+    if ((pData != NULL) && (length != 0)){
+        delete pData;
+        pData = NULL;
+    }   
+    length = 0;
+    str="";
     withPar = false;
 }
 
-void ComFrame::addRec(String add){
-    _rec += add;
-}
 
-char* ComFrame::print(){
-    return (char*)(_rec.c_str());
-}
 
