@@ -40,4 +40,4 @@ union u16_byteAcess {
 #define H_WORD(val)         (*(((u16_t*)&val)+1))   
 #define L_WORD(val)         (*(((u16_t*)&val)+0))   
 
-extern String emptyString;
+//extern String emptyString;

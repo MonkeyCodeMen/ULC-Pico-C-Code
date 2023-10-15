@@ -1,7 +1,7 @@
 #include "helper.hpp"
 #include "Debug.hpp"
 
-String emptyString(F(""));
+//String emptyString(F(""));
 
 u32_t convertHexStrToInt(const char * str,int len){
     int digitFound=0;  

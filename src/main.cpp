@@ -62,12 +62,17 @@ NeoMatrixCtrl  * pNeoMatrixCtrl2;
 Com * pCom;
 
 
-void NeoStripeLoop();
+void TestDebug();
 
 bool SetupDebugDone = false;
 /***********************************************************************************************************************************/
 void setup() {
   Debug::start();
+
+  LOG(F("setup 0: Test functions"));
+  TestDebug();
+
+
   LOG(F("setup 0:"));
   SetupDebugDone = true;
 
@@ -131,7 +136,6 @@ void setup1() {
   LOG(F("setup 1: cube"));
   pCube = new Cube(pTFT);
 
-
   LOG(F("setup 1: done"));
 }
 
@@ -159,24 +163,22 @@ void loop1(){
   sleep_ms(10);
 }
 
+void TestDebug(){
+  char list[]=",";
+  StringList object(list,',');
+  String res; 
+  
+  ASSERT(object.isEndReached() == false,"");
+  ASSERT(object.getNextListEntry() == String(F("")),"");
+  ASSERT(object.isEndReached() == false,"");
+  ASSERT(object.getNextListEntry() == String(F("")),"");
+  ASSERT(object.isEndReached() == true,"");
 
-void NeoStripeLoop(){
-  static u32_t last_change = 0;
-  u32_t now,diff;
-  #define TIMER_MS 5000
+  object.rewind();
 
-  now = millis();
-  diff = now-last_change;
-
-  // mode change ?
-  if(diff > TIMER_MS) {
-    pLedNeoStripe->setMode((pLedNeoStripe->getMode() + 1) % pLedNeoStripe->getModeCount());
-    last_change = now;
-    String name(pLedNeoStripe->getModeName(pLedNeoStripe->getMode()));
-    String line = "new mode :"+name;
-    LOG(line.c_str());
-  }
-
-  // loop 
-  pLedNeoStripe->service();
+  ASSERT(object.isEndReached() == false,"");
+  ASSERT(object.getNextListEntry() == String(F("")),"");
+  ASSERT(object.isEndReached() == false,"");
+  ASSERT(object.getNextListEntry() == String(F("")),"");
+  ASSERT(object.isEndReached() == true,"");
 }

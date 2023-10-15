@@ -15,6 +15,9 @@ NeoMatrixCtrl::NeoMatrixCtrl(int pin,int dimX,int dimY,int countX,int countY,int
     _addAni(new MatrixRainbowFlashAni());
     _addAni(new MatrixMultiFlashAni());
 
+    // select first
+    setup(0);
+
 }
 
 NeoMatrixCtrl::~NeoMatrixCtrl()
@@ -24,13 +27,13 @@ NeoMatrixCtrl::~NeoMatrixCtrl()
 
 
 void NeoMatrixCtrl::loop(){
-    ASSERT(_pCurrentAni != NULL,"");
-    ASSERT(_pMatrix != NULL,"");
- 
     if (_mutexSetup.isLocked()==true){
         return;  // do not wait 
     }
     _mutexSetup.lock();
+    ASSERT(_pCurrentAni != NULL,"");
+    ASSERT(_pMatrix != NULL,"");
+ 
     ((NeoMatrixAni*)_pCurrentAni)->loop(_pMatrix);
     _mutexSetup.unlock();
 }

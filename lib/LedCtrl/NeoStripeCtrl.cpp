@@ -43,13 +43,11 @@ String NeoStripeCtrl::getName(){
 }
 
 void NeoStripeCtrl::loop(){
-    ASSERT(_pCurrentAni != NULL,"");
-    ASSERT(_pNeoStripe != NULL,"");
- 
     if (_mutexSetup.isLocked()==true){
         return;  // do not wait 
     }
     _mutexSetup.lock();
+    ASSERT(_pNeoStripe != NULL,"");
     _pNeoStripe->service();;
     _mutexSetup.unlock();
 }
