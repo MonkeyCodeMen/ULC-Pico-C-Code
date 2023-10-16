@@ -8,6 +8,10 @@ NeoMatrixCtrl::NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix) : Ctrl()
     ASSERT(pMatrix != NULL,"pMatrix must not be NULL");
     _pMatrix = pMatrix;
     _pMatrix->begin();
+    // does not work to dim colors down and then UP (original color is not stored)
+    // the implement dimming by color recalculation
+    pMatrix->setBrightness(255);  
+
 
     _addAni(new MatrixOffAni());
     _addAni(new MatrixStaticAni());

@@ -142,12 +142,12 @@ u32_t clamp(u32_t lowEnd,u32_t value,u32_t highEnd){
 }
 
 
-u16_t color565(u8_t r,u8_t g,u8_t b)
+u16_t toColor565(u8_t r,u8_t g,u8_t b)
 {
   return ((r / 8) << 11) | ((g / 4) << 5) | (b / 8);
 }
 
-u16_t color565(u32_t c)
+u16_t toColor565(u32_t c)
 {
   return ((((c>>16) & 0xFF) / 8) << 11) | ((((c>>8)& 0xFF) / 4) << 5) | ((c & 0xFF) / 8);
 }
@@ -176,3 +176,35 @@ u32_t get888ColorWheel(u8_t pos){
     }
     return res;
 }
+
+u32_t dimRgb24ToRgb(u32_t color){
+    union u32_byteAcess value;
+    value.ival=color;
+    u8_t dim = value.bval.HHH;
+    value.bval.HH = dimColorChannel255(value.bval.HH,dim); // r
+    value.bval.H  = dimColorChannel255(value.bval.H ,dim); // g
+    value.bval.L  = dimColorChannel255(value.bval.L ,dim); // b
+    value.bval.HHH = 0;
+    return value.ival;
+}
+
+u32_t dimColor255(u32_t color,u8_t dim ){
+    union u32_byteAcess value;
+    value.ival=color;
+    value.bval.HH = dimColorChannel255(value.bval.HH,dim); // r
+    value.bval.H  = dimColorChannel255(value.bval.H ,dim); // g
+    value.bval.L  = dimColorChannel255(value.bval.L ,dim); // b
+    value.bval.HHH = 0;
+    return value.ival;
+}
+
+u32_t dimColor255(u8_t r,u8_t g,u8_t b,u8_t dim ){
+    union u32_byteAcess value;
+    value.bval.HH = dimColorChannel255(r,dim); // r
+    value.bval.H  = dimColorChannel255(g,dim); // g
+    value.bval.L  = dimColorChannel255(b,dim); // b
+    value.bval.HHH = 0;
+    return value.ival;
+
+}
+

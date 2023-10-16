@@ -1,7 +1,7 @@
 #include "StringList.hpp"
 #include "unity.h"
 
-void test_function_empytString(void) {
+void test_StringList_empytString(void) {
   char list[]="";
   StringList object(list,',');
   String res; 
@@ -18,7 +18,7 @@ void test_function_empytString(void) {
 
 }
 
-void test_function_emptyList(void) {
+void test_StringList_emptyList(void) {
   char list[]=",";
   StringList object(list,',');
   String res; 
@@ -39,7 +39,7 @@ void test_function_emptyList(void) {
 }
 
 
-void test_function_threeEntries(void) {
+void test_StringList_threeEntries(void) {
   char list[]="entry1,Entry-2,Entry  3";
   StringList object(list,',');
   String res; 
@@ -63,7 +63,7 @@ void test_function_threeEntries(void) {
   TEST_ASSERT_TRUE(object.isEndReached() == true);
 }
 
-void test_function_fourEntries(void) {
+void test_StringList_fourEntries(void) {
   char list[]="entry1,Entry-2,Entry  3,";
   StringList object(list,',');
   String res; 
@@ -79,7 +79,7 @@ void test_function_fourEntries(void) {
   TEST_ASSERT_TRUE(object.isEndReached() == true);
 }
 
-void test_function_fourEntries_X(void) {
+void test_StringList_fourEntries_X(void) {
   char list[]="entry1XEntry-2XEntry  3X";
   StringList object(list,'X');
   String res; 
@@ -97,9 +97,9 @@ void test_function_fourEntries_X(void) {
 
 // collect all tests of this file to one collection
 void test_collection_StringList(void) {
-  RUN_TEST(test_function_empytString);
-  RUN_TEST(test_function_emptyList);
-  RUN_TEST(test_function_threeEntries);
-  RUN_TEST(test_function_fourEntries);
-  RUN_TEST(test_function_fourEntries_X);
+  RUN_TEST(test_StringList_empytString);
+  RUN_TEST(test_StringList_emptyList);
+  RUN_TEST(test_StringList_threeEntries);
+  RUN_TEST(test_StringList_fourEntries);
+  RUN_TEST(test_StringList_fourEntries_X);
 }

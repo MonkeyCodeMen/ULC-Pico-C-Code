@@ -7,36 +7,69 @@ u32_t convertStrToInt(String str);
 
 u32_t clamp(u32_t lowEnd,u32_t value,u32_t highEnd);
 
-u16_t color565(u8_t r,u8_t g,u8_t b);
-u16_t color565(u32_t c);
+u16_t toColor565(u8_t r,u8_t g,u8_t b);
+u16_t toColor565(u32_t c);
 
 u32_t get888ColorWheel(u8_t pos);
-
-
-union u32_byteAcess {
-    u32_t ival;
-    struct {
-        u8_t L; // least significant byte
-        u8_t H;
-        u8_t HH;
-        u8_t HHH; // most significant byte
-    } bval;
-};
-
-
-union u16_byteAcess {
-    u16_t ival;
-    struct {
-        u8_t L; // least significant byte
-        u8_t H;
-    } bval;
-};
 
 */
 
 
-void test_function_HHH_BYTE(void) {
-  u32_t value = 0x44332211;
+void test_helper_u32_byteAcess(void) {
+    union u32_byteAcess obj;
+
+    obj.ival = 0x44332211;
+
+    TEST_ASSERT_TRUE(obj.bval.HHH  == 0x44);
+    TEST_ASSERT_TRUE(obj.bval.HH   == 0x33);
+    TEST_ASSERT_TRUE(obj.bval.H    == 0x22);
+    TEST_ASSERT_TRUE(obj.bval.L    == 0x11);
+
+    TEST_ASSERT_TRUE(obj.bval.HHH  == 0x44);
+    TEST_ASSERT_TRUE(obj.bval.HH   == 0x33);
+    TEST_ASSERT_TRUE(obj.bval.H    == 0x22);
+    TEST_ASSERT_TRUE(obj.bval.L    == 0x11);
+
+    TEST_ASSERT_TRUE(obj.ival == 0x44332211);
+
+    obj.bval.HHH = 0x55;
+    obj.bval.HH  = 0x66;
+    obj.bval.H   = 0x77;
+    obj.bval.L   = 0x88;
+
+    TEST_ASSERT_TRUE(obj.bval.HHH  == 0x55);
+    TEST_ASSERT_TRUE(obj.bval.HH   == 0x66);
+    TEST_ASSERT_TRUE(obj.bval.H    == 0x77);
+    TEST_ASSERT_TRUE(obj.bval.L    == 0x88);
+
+    TEST_ASSERT_TRUE(obj.ival == 0x55667788);
+}
+
+void test_helper_u16_byteAcess(void) {
+    union u16_byteAcess obj;
+
+    obj.ival = 0x2211;
+
+    TEST_ASSERT_TRUE(obj.bval.H    == 0x22);
+    TEST_ASSERT_TRUE(obj.bval.L    == 0x11);
+
+    TEST_ASSERT_TRUE(obj.bval.H    == 0x22);
+    TEST_ASSERT_TRUE(obj.bval.L    == 0x11);
+
+    TEST_ASSERT_TRUE(obj.ival == 0x2211);
+
+    obj.bval.H   = 0x77;
+    obj.bval.L   = 0x88;
+
+    TEST_ASSERT_TRUE(obj.bval.H    == 0x77);
+    TEST_ASSERT_TRUE(obj.bval.L    == 0x88);
+
+    TEST_ASSERT_TRUE(obj.ival == 0x7788);
+}
+
+
+void test_helper_HHH_BYTE(void) {
+    u32_t value = 0x44332211;
   
     TEST_ASSERT_TRUE(HHH_BYTE(value) == 0x44);
     TEST_ASSERT_TRUE(HH_BYTE(value)  == 0x33);
@@ -59,7 +92,7 @@ void test_function_HHH_BYTE(void) {
 }
 
 
-void test_function_H_WORD(void) {
+void test_helper_H_WORD(void) {
     u32_t value = 0x44332211;
   
     TEST_ASSERT_TRUE(H_WORD(value) == 0x4433);
@@ -86,6 +119,9 @@ void test_function_H_WORD(void) {
 
 // collect all tests of this file to one collection
 void test_collection_helper(void) {
-  RUN_TEST(test_function_HHH_BYTE);
-  RUN_TEST(test_function_H_WORD);
+  RUN_TEST(test_helper_HHH_BYTE);
+  RUN_TEST(test_helper_H_WORD);
+  RUN_TEST(test_helper_u32_byteAcess);
+  RUN_TEST(test_helper_u16_byteAcess);
+  
 }

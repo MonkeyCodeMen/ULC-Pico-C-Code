@@ -35,7 +35,7 @@ void Com::loop(){
 }
 
 void Com::reset(){
-    LOG(F("COM:Reset frame skipped"));
+    LOG(F("COM:Reset "));
     _endFound = false;
     _field = "";
     _maxFieldLength = COM_FRAME_MAX_COMMAND_LENGTH;

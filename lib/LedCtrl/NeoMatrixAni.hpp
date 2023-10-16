@@ -19,11 +19,10 @@ class NeoMatrixAni:public Ani
 class MatrixOffAni : public NeoMatrixAni{
     public:
         MatrixOffAni():NeoMatrixAni(String("off"))      {};
-        void reset() {_color = 0; _dim=0; _needUpdate = true;};
+        void reset() {_color = 0; _needUpdate = true;};
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
             if (_needUpdate == true){
                 pMatrix->fillScreen(_color);
-                pMatrix->setBrightness(_dim);
                 pMatrix->show();
                 _needUpdate = false;
             }
@@ -31,7 +30,6 @@ class MatrixOffAni : public NeoMatrixAni{
     private:
         bool    _needUpdate;
         u16_t   _color;
-        u8_t    _dim;
 
 };
 
@@ -68,8 +66,9 @@ class MatrixStaticAni : public NeoMatrixAni{
                     break;
 
                 case init:
-                    pMatrix->fillScreen(_color);
-                    pMatrix->setBrightness(_dim);
+                    u16_t color565;
+                    color565 = toColor565(dimRgb24ToRgb( _colorWithDim));
+                    pMatrix->fillScreen(color565);
                     pMatrix->show();
                     _state = run;
                     break;
@@ -82,14 +81,13 @@ class MatrixStaticAni : public NeoMatrixAni{
 
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {
             _state = stop;
-            _color = color565(p1);
-            _dim   = HHH_BYTE(p1);
+            _colorWithDim = p1;
             _state = init;
         };
     private:
         enum StaticState {stop,init,run};
         volatile StaticState _state;
-        u16_t   _color;
+        u32_t   _colorWithDim;
         u8_t    _dim;
 
 };
@@ -122,6 +120,8 @@ class MatrixBreathAni : public NeoMatrixAni{
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
             u32_t diff,color;
+            u32_t color24;
+            u16_t color565;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -131,8 +131,9 @@ class MatrixBreathAni : public NeoMatrixAni{
                 case init:
                     _lastSwitchTime = time;
                     _dimDiff = _dimMax-_dimMin;
-                    pMatrix->fillScreen(_color);
-                    pMatrix->setBrightness(_dimMin);
+                    color24 = dimColor255(_color24,_dimMin);
+                    color565 = toColor565(color24);
+                    pMatrix->fillScreen(color565);
                     pMatrix->show();
                     _state = inc;
                     break;
@@ -140,12 +141,16 @@ class MatrixBreathAni : public NeoMatrixAni{
                 case inc:
                     diff = time - _lastSwitchTime;
                     if (diff >= _incTime){
-                        pMatrix->setBrightness(_dimMax);
+                        color24 = dimColor255(_color24,_dimMax);
+                        color565 = toColor565(color24);
+                        pMatrix->fillScreen(color565);
                         pMatrix->show();
                         _lastSwitchTime = time;
                         _state = dec;
                     } else {
-                        pMatrix->setBrightness(_dimMin+((_dimDiff*diff)/_incTime));
+                        color24 = dimColor255(_color24,_dimMin+((_dimDiff*diff)/_incTime));
+                        color565 = toColor565(color24);
+                        pMatrix->fillScreen(color565);
                         pMatrix->show();
                     }
                     break;
@@ -153,12 +158,16 @@ class MatrixBreathAni : public NeoMatrixAni{
                 case dec:
                     diff = time - _lastSwitchTime;
                     if (diff >= _decTime){
-                        pMatrix->setBrightness(_dimMin);
+                        color24 = dimColor255(_color24,_dimMin);
+                        color565 = toColor565(color24);
+                        pMatrix->fillScreen(color565);
                         pMatrix->show();
                         _lastSwitchTime = time;
                         _state = inc;
                     } else {
-                        pMatrix->setBrightness(_dimMax-((_dimDiff*diff)/_decTime));
+                        color24 = dimColor255(_color24,_dimMax-((_dimDiff*diff)/_decTime));
+                        color565 = toColor565(color24);
+                        pMatrix->fillScreen(color565);
                         pMatrix->show();
                     }
                     break;
@@ -167,7 +176,7 @@ class MatrixBreathAni : public NeoMatrixAni{
 
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
             _state      = stop;
-            _color      = color565(p1 & 0x00FFFFFF);
+            _color24    = p1 & 0x00FFFFFF;
             _dimMin     = H_BYTE(p2);
             _dimMax     = L_BYTE(p2);
             _incTime    = H_WORD(p3);
@@ -181,7 +190,7 @@ class MatrixBreathAni : public NeoMatrixAni{
         u32_t _lastSwitchTime;
         u8_t _dimMin,_dimMax,_dimDiff;
         u16_t _incTime,_decTime;
-        u16_t _color;
+        u32_t _color24;
 
 };
 
@@ -277,19 +286,20 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
  
     protected:
         virtual void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
-            u16_t color;
+            u16_t color565;
+            u32_t color24;
             u8_t  dim;
             dim   = _dim;
-            color = color565( get888ColorWheel(_colorIndex) );
+            color24 = get888ColorWheel(_colorIndex);
+            color24 = dimColor255(color24,dim);
+            color565 = toColor565(color24);
             _colorIndex += _incStep;
-            pMatrix->fillScreen(color);
-            pMatrix->setBrightness(dim);
+            pMatrix->fillScreen(color565);
             pMatrix->show();
         };
 
         void _setMatrixOff(Adafruit_NeoMatrix * pMatrix){
             pMatrix->fillScreen(0);
-            pMatrix->setBrightness(0);
             pMatrix->show();
         }
 
@@ -355,14 +365,14 @@ class MatrixMultiFlashAni : public MatrixRainbowFlashAni{
 
     private:
         void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
-            u16_t color;
+            u16_t color565;
+            u32_t color24;
             u8_t  dim;
-            dim   = HHH_BYTE(_colorList[_colorIndex]);
-            color = color565( _colorList[_colorIndex] );
+            color24 = dimRgb24ToRgb(_colorList[_colorIndex]);
+            color565 = toColor565(color24);
             _colorIndex += _incStep;
             _colorIndex %= _colorCount;
-            pMatrix->fillScreen(color);
-            pMatrix->setBrightness(dim);
+            pMatrix->fillScreen(color565);
             pMatrix->show();
         };
 
@@ -409,7 +419,7 @@ class MatrixMultiFlashAni : public MatrixRainbowFlashAni{
 /*
             if (_rainbowMode == true){
                 dim   = _rainbowDim;
-                color = color565( get888ColorWheel(_colorIndex) ); 
+                color = toColor565( get888ColorWheel(_colorIndex) ); 
                 _colorIndex += _incStep;   // automatic wrap around u8_t     
             } else {
 */

@@ -1,5 +1,5 @@
 {
-    "cmake.sourceDirectory": "C:/Projects/ULC-Pico-C-Code/.pio/libdeps/cmsis-dap/Adafruit BusIO",
+    "cmake.sourceDirectory": "C:/Users/User/Documents/PlatformIO/Projects/ULC-Pico/.pio/libdeps/cmsis-dap/Adafruit BusIO",
     "files.associations": {
         "new": "cpp"
     }

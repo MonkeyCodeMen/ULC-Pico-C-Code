@@ -67,6 +67,8 @@ void TestDebug();
 bool SetupDebugDone = false;
 /***********************************************************************************************************************************/
 void setup() {
+  pinMode(LED_BUILTIN,OUTPUT);
+  digitalWrite(LED_BUILTIN, LOW);
   Debug::start();
 
   LOG(F("setup 0: Test functions"));
@@ -122,6 +124,7 @@ void setup() {
   pCom->setup();
 
   LOG(F("setup 0: done"));
+  digitalWrite(LED_BUILTIN, HIGH);
 }
 
 void setup1() {
@@ -146,19 +149,21 @@ void setup1() {
 
 /***********************************************************************************************************************************/
 void loop() {
-  static u32_t counter=0;
+  static u32_t counter=1;
   u32_t time = millis();
 
   pCom->loop();
   switch(counter){
-    case 0:   pLedCtrl1->loop(time);            break;
-    case 1:   pLedCtrl2->loop(time);            break;
-    case 2:   pRgbCtrl1->loop(time);            break;
-    case 3:   pNeoStripeCtrl1->loop(time);      break;
-    case 4:   pNeoStripeCtrl2->loop(time);      break;
-    case 5:   pNeoMatrixCtrl1->loop(time);      break;
-    case 6:   pNeoMatrixCtrl1->loop(time);      break;
-    default:  counter = -1;                     break;
+    case 1:   digitalWrite(LED_BUILTIN, LOW);   break;
+    case 2:   pLedCtrl1->loop(time);            break;
+    case 3:   pLedCtrl2->loop(time);            break;
+    case 4:   pRgbCtrl1->loop(time);            break;
+    case 5:   pNeoStripeCtrl1->loop(time);      break;
+    case 6:   pNeoStripeCtrl2->loop(time);      break;
+    case 7:   digitalWrite(LED_BUILTIN, HIGH);  break;
+    case 8:   pNeoMatrixCtrl1->loop(time);      break;
+    case 9:   pNeoMatrixCtrl2->loop(time);      break;
+    default:  counter = 0;                      break;
   }
   counter++;
 }
