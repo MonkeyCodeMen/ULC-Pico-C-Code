@@ -8,14 +8,14 @@
 class NeoStripeCtrl : public Ctrl
 {
     public:
-        NeoStripeCtrl(u16_t num_leds, u8_t pin, neoPixelType type);
+        NeoStripeCtrl(WS2812FX * pNeoStripe);
         ~NeoStripeCtrl() = default;
 
         // overwrite virtuals    
         void setup(int nr);         // change programm
         void setup(String& name);   // change programm
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData); // config program
-        void loop();
+        void loop(u32_t time);
 
         String getName();
     

@@ -5,10 +5,10 @@
 class NeoMatrixCtrl : public Ctrl
 {
     public:
-        NeoMatrixCtrl(int pin,int dimX,int dimY,int countX,int countY,int order,int type);
+        NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix);
         ~NeoMatrixCtrl();
 
-        void loop();
+        void loop(u32_t time);
     
     private:
         Adafruit_NeoMatrix * _pMatrix;

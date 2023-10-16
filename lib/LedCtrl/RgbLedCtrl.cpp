@@ -1,10 +1,11 @@
 #include "RgbLedCtrl.hpp"
 #include "Debug.hpp"
 
-RgbLedCtrl::RgbLedCtrl(int pinR,int pinG,int pinB) : Ctrl()
+RgbLedCtrl::RgbLedCtrl(RgbLed * pRgbLed) : Ctrl()
 {
     // create LED object
-    _pRgbLed = new RgbLed(pinR,pinG,pinB);
+    ASSERT(pRgbLed != NULL,"pRgbLed object could not be NULL");
+    _pRgbLed = pRgbLed;
 
     _addAni(new RgbLedOffAni());
     _addAni(new RgbLedOnAni());
@@ -25,7 +26,7 @@ RgbLedCtrl::~RgbLedCtrl()
 }
 
 
-void RgbLedCtrl::loop(){
+void RgbLedCtrl::loop(u32_t time){
     ASSERT(_pCurrentAni != NULL,"");
     ASSERT(_pRgbLed != NULL,"");
  
@@ -33,6 +34,6 @@ void RgbLedCtrl::loop(){
         return;  // do not wait 
     }
     _mutexSetup.lock();
-    ((RgbLedAni*)_pCurrentAni)->loop(_pRgbLed);
+    ((RgbLedAni*)_pCurrentAni)->loop(time,_pRgbLed);
     _mutexSetup.unlock();
 }

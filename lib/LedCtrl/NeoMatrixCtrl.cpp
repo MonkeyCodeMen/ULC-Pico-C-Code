@@ -3,10 +3,10 @@
 #include "NeoMatrixAni.hpp"
 
 
-NeoMatrixCtrl::NeoMatrixCtrl(int pin,int dimX,int dimY,int countX,int countY,int order,int type) : Ctrl()
+NeoMatrixCtrl::NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix) : Ctrl()
 {
-    _pMatrix = new Adafruit_NeoMatrix(dimX,dimY,countX,countY,pin,order,type);
-    ASSERT(_pMatrix != NULL,"could not create matrix object");
+    ASSERT(pMatrix != NULL,"pMatrix must not be NULL");
+    _pMatrix = pMatrix;
     _pMatrix->begin();
 
     _addAni(new MatrixOffAni());
@@ -26,8 +26,7 @@ NeoMatrixCtrl::~NeoMatrixCtrl()
 }
 
 
-void NeoMatrixCtrl::loop(){
-    u32_t time=millis();
+void NeoMatrixCtrl::loop(u32_t time){
     if (_mutexSetup.isLocked()==true){
         return;  // do not wait 
     }

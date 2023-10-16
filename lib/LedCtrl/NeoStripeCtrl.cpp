@@ -3,10 +3,11 @@
 #include "helper.hpp"
 
 
-NeoStripeCtrl::NeoStripeCtrl(u16_t num_leds, u8_t pin, neoPixelType type) : Ctrl()
+NeoStripeCtrl::NeoStripeCtrl(WS2812FX * pNeoStripe) : Ctrl()
 {
     LOG(F("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx"));
-    _pNeoStripe = new WS2812FX(num_leds, pin, type);
+    ASSERT(pNeoStripe != NULL,"pNeoStripe must not be NULL");
+    _pNeoStripe = pNeoStripe;
     _pNeoStripe->init();
     _count = _pNeoStripe->getModeCount() - MAX_CUSTOM_MODES + 1;
     _aniNameList = "0:off;";   // add off as number 0
@@ -42,7 +43,7 @@ String NeoStripeCtrl::getName(){
     return String(_pNeoStripe->getModeName(_current-1));
 }
 
-void NeoStripeCtrl::loop(){
+void NeoStripeCtrl::loop(u32_t time){
     if (_mutexSetup.isLocked()==true){
         return;  // do not wait 
     }

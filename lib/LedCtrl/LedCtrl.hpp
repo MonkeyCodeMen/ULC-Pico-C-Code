@@ -9,10 +9,10 @@
 class LedCtrl : public Ctrl
 {
     public:
-        LedCtrl(int pin);
+        LedCtrl(Led *pLed);
         ~LedCtrl();
 
-        void loop();
+        void loop(u32_t time);
     
     private:
         Led *   _pLed;

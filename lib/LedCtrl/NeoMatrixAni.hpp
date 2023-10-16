@@ -10,7 +10,7 @@ class NeoMatrixAni:public Ani
 		NeoMatrixAni(String name) : Ani(name) {};
 		~NeoMatrixAni() = default;
 		
-		virtual void loop(u32_t time,dafruit_NeoMatrix * pMatrix) {};
+		virtual void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {};
         virtual void reset()                            {};
         virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {};
 

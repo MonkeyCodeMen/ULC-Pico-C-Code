@@ -9,7 +9,7 @@ class RgbLedAni:public Ani
 		RgbLedAni(String name) : Ani(name) {};
 		~RgbLedAni() = default;
 		
-		virtual void loop(RgbLed * pLed) {};
+		virtual void loop(u32_t time,RgbLed * pLed) {};
 
     // base class
         //String getName()		{return _name;};
@@ -29,7 +29,7 @@ class RgbLedOnAni : public RgbLedAni{
     public:
         RgbLedOnAni()  : RgbLedAni(String("on"))    {};
         void reset()                                {_value = RgbLed::pack(RGB_LED_MAX,RGB_LED_MAX,RGB_LED_MAX);};
-        void loop(RgbLed * pLed)                    {pLed->set(_value);};
+        void loop(u32_t time,RgbLed * pLed)                    {pLed->set(_value);};
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) 
                                                     {_value = 0x00FFFFFF & p1;};
 	private:
@@ -49,7 +49,7 @@ class RgbLedBlinkAni : public RgbLedAni{
             _value2 = RgbLed::pack(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);
         };
  
-        void loop(RgbLed * pLed){
+        void loop(u32_t time,RgbLed * pLed){
             u32_t diff;
             switch (_state){
                 case stop:
@@ -60,24 +60,24 @@ class RgbLedBlinkAni : public RgbLedAni{
                 case init:
                     _state = state1;
                     pLed->set(_value1);   
-                    _lastSwitchTime = millis();
+                    _lastSwitchTime = time;
                     break;
                 
                 case state1:
-                    diff = millis()-_lastSwitchTime;
+                    diff = time-_lastSwitchTime;
                     if (diff > _onTime1_ms){
                         _state = state2;
                         pLed->set(_value2);   
-                        _lastSwitchTime = millis();
+                        _lastSwitchTime = time;
                     }
                     break;
                 
                 case state2:
-                    diff = millis()-_lastSwitchTime;
+                    diff = time-_lastSwitchTime;
                     if (diff > _onTime2_ms){
                         _state = state1;
                         pLed->set(_value1);   
-                        _lastSwitchTime = millis();
+                        _lastSwitchTime = time;
                     }
                     break;
             }
@@ -119,9 +119,8 @@ class RgbLedBreathAni : public RgbLedAni{
             _state=init;
         };
  
-        void loop(RgbLed * pLed){
-            u32_t diff,time;
-            time = millis();
+        void loop(u32_t time,RgbLed * pLed){
+            u32_t diff;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -197,9 +196,8 @@ class RgbLedRainbowAni : public RgbLedAni{
             _state      = init;
         };
  
-        void loop(RgbLed * pLed){
-            u32_t diff,time,color;
-            time = millis();
+        void loop(u32_t time,RgbLed * pLed){
+            u32_t diff,color;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -260,9 +258,8 @@ class RgbLedMultiFlashAni : public RgbLedAni{
             _state      = init;
         };
  
-        void loop(RgbLed * pLed){
-            u32_t diff,time,color;
-            time = millis();
+        void loop(u32_t time,RgbLed * pLed){
+            u32_t diff,color;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread

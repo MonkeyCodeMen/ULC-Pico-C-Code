@@ -80,35 +80,40 @@ void setup() {
   //analogWriteRange(255);
 
   LOG(F("setup 0: Neo matrix"));
-  pNeoMatrixCtrl1 = new NeoMatrixCtrl(PIN_MATRIX_1,
-  8, 8, 4,4, 
-  NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
-  NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
-  NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
-  NEO_GRB            + NEO_KHZ800);
+  pNeoMatrixCtrl1 = new NeoMatrixCtrl(
+    new Adafruit_NeoMatrix(PIN_MATRIX_1,
+      8, 8, 4,4, 
+      NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
+      NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
+      NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
+      NEO_GRB            + NEO_KHZ800)
+  );
 
-  pNeoMatrixCtrl2 = new NeoMatrixCtrl(PIN_MATRIX_2,8, 8, 4,4, 
-  NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
-  NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
-  NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
-  NEO_GRB            + NEO_KHZ800);
+  pNeoMatrixCtrl2 = new NeoMatrixCtrl(
+    new Adafruit_NeoMatrix(
+      PIN_MATRIX_2,8, 8, 4,4, 
+      NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
+      NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
+      NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
+      NEO_GRB            + NEO_KHZ800)
+  );
 
 
   LOG(F("setup 0: Neo stripe"));
-  pNeoStripeCtrl1 = new NeoStripeCtrl(COUNT_STRIPE_1, PIN_STRIPE_1 , NEO_GRB  + NEO_KHZ800);
-  pNeoStripeCtrl2 = new NeoStripeCtrl(COUNT_STRIPE_2, PIN_STRIPE_2 , NEO_GRB  + NEO_KHZ800);
+  pNeoStripeCtrl1 = new NeoStripeCtrl(new WS2812FX(COUNT_STRIPE_1, PIN_STRIPE_1 , NEO_GRB  + NEO_KHZ800));
+  pNeoStripeCtrl2 = new NeoStripeCtrl(new WS2812FX(COUNT_STRIPE_2, PIN_STRIPE_2 , NEO_GRB  + NEO_KHZ800));
 
   LOG(F("setup 0: LED switch"));
   String mode;
-  pLedCtrl1 = new LedCtrl(PIN_LED_SWITCH_1);
-  pLedCtrl2 = new LedCtrl(PIN_LED_SWITCH_2);
+  pLedCtrl1 = new LedCtrl(new Led(PIN_LED_SWITCH_1));
+  pLedCtrl2 = new LedCtrl(new Led(PIN_LED_SWITCH_2));
   mode="blink";
   pLedCtrl1->setup(mode);
   pLedCtrl2->setup(mode);
   
   
   LOG(F("setup 0: RGB LED"));
-  pRgbCtrl1 = new RgbLedCtrl(PIN_RGB1_LED_R,PIN_RGB1_LED_G,PIN_RGB1_LED_B);
+  pRgbCtrl1 = new RgbLedCtrl(new RgbLed(PIN_RGB1_LED_R,PIN_RGB1_LED_G,PIN_RGB1_LED_B));
   mode = "breath";
   pRgbCtrl1->setup(mode);  
 
@@ -141,18 +146,19 @@ void setup1() {
 
 /***********************************************************************************************************************************/
 void loop() {
-  static int counter=0;
+  static u32_t counter=0;
+  u32_t time = millis();
 
   pCom->loop();
   switch(counter){
-    case 0:   pLedCtrl1->loop();            break;
-    case 1:   pLedCtrl2->loop();            break;
-    case 2:   pRgbCtrl1->loop();            break;
-    case 3:   pNeoStripeCtrl1->loop();      break;
-    case 4:   pNeoStripeCtrl2->loop();      break;
-    case 5:   pNeoMatrixCtrl1->loop();      break;
-    case 6:   pNeoMatrixCtrl1->loop();      break;
-    default:  counter = -1;                 break;
+    case 0:   pLedCtrl1->loop(time);            break;
+    case 1:   pLedCtrl2->loop(time);            break;
+    case 2:   pRgbCtrl1->loop(time);            break;
+    case 3:   pNeoStripeCtrl1->loop(time);      break;
+    case 4:   pNeoStripeCtrl2->loop(time);      break;
+    case 5:   pNeoMatrixCtrl1->loop(time);      break;
+    case 6:   pNeoMatrixCtrl1->loop(time);      break;
+    default:  counter = -1;                     break;
   }
   counter++;
 }

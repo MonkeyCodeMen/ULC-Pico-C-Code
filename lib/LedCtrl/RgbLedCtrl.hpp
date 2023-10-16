@@ -9,10 +9,10 @@
 class RgbLedCtrl : public Ctrl
 {
     public:
-        RgbLedCtrl(int pinR,int pinG,int pinB);
+        RgbLedCtrl(RgbLed * pRgbLed);
         ~RgbLedCtrl();
 
-        void loop();
+        void loop(u32_t time);
     
     private:
         RgbLed *   _pRgbLed;

@@ -1,9 +1,10 @@
 #include "LedCtrl.hpp"
 #include "Debug.hpp"
 
-LedCtrl::LedCtrl(int pin) : Ctrl(){
+LedCtrl::LedCtrl(Led * pLed) : Ctrl(){
     // create LED object
-    _pLed = new Led(pin);
+    ASSERT(pLed != NULL,"pLed must not be NULL");
+    _pLed = pLed;
 
     // fill ani List
     _addAni(new LedOffAni());
@@ -22,7 +23,7 @@ LedCtrl::~LedCtrl(){
 }
 
 
-void LedCtrl::loop(){
+void LedCtrl::loop(u32_t time){
     ASSERT(_pCurrentAni != NULL,"");
     ASSERT(_pLed != NULL,"");
 
@@ -31,6 +32,6 @@ void LedCtrl::loop(){
     }
 
     _mutexSetup.lock();
-    ((LedAni*)_pCurrentAni)->loop(_pLed);
+    ((LedAni*)_pCurrentAni)->loop(time,_pLed);
     _mutexSetup.unlock();
 }
