@@ -22,7 +22,7 @@ class RgbLedAni:public Ani
 class RgbLedOffAni : public RgbLedAni{
     public:
         RgbLedOffAni():RgbLedAni(String("off"))     {};
-        void loop(RgbLed * pLed)                    {pLed->set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);};
+        void loop(u32_t time,RgbLed * pLed)                    {pLed->set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);};
 };
 
 class RgbLedOnAni : public RgbLedAni{

@@ -27,6 +27,7 @@ NeoMatrixCtrl::~NeoMatrixCtrl()
 
 
 void NeoMatrixCtrl::loop(){
+    u32_t time=millis();
     if (_mutexSetup.isLocked()==true){
         return;  // do not wait 
     }
@@ -34,7 +35,7 @@ void NeoMatrixCtrl::loop(){
     ASSERT(_pCurrentAni != NULL,"");
     ASSERT(_pMatrix != NULL,"");
  
-    ((NeoMatrixAni*)_pCurrentAni)->loop(_pMatrix);
+    ((NeoMatrixAni*)_pCurrentAni)->loop(time,_pMatrix);
     _mutexSetup.unlock();
 }
 

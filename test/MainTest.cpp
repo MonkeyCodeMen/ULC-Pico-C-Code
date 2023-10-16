@@ -1,6 +1,4 @@
 #include <Arduino.h>
-#include "unity.h"
-
 
 #include <Debug.hpp>
 #include <SPI.h>
@@ -14,7 +12,15 @@
 #include <NeoMatrixCtrl.hpp>
 #include "Com.hpp"
 
+
+#include "unity_config.h"
+#include <unity.h>
+
+
+
 // prototype here all external test collections 
+
+void test_collection_SimpleTest();
 void test_collection_StringList();
 
 
@@ -29,28 +35,11 @@ void tearDown(void) {
 }
 
 
-// in include files first define tests :
-void test_function_simpleTest1(void) {
-  TEST_ASSERT_TRUE(true == true);
-}
-void test_function_simpleTest2(void) {
-  TEST_ASSERT_TRUE(false == false);
-}
-void test_function_simpleTest3(void) {
-  TEST_ASSERT_FALSE(true == false);
-}
-
-// then a collection function:
-void test_collection_simple(void){
-  RUN_TEST(test_function_simpleTest1);
-  RUN_TEST(test_function_simpleTest2);
-  RUN_TEST(test_function_simpleTest3);
-}
 
 // now we call here all test collections
 int runAllCollections(void) {
   UNITY_BEGIN();
-  test_collection_simple();
+  test_collection_SimpleTest();
   test_collection_StringList();
   return UNITY_END();
 }
@@ -74,5 +63,15 @@ void setup() {
   
   
   runAllCollections();
+
+  pinMode(LED_BUILTIN,OUTPUT);
 }
-void loop() {}
+
+
+void loop() {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(250);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(250);
+
+}

@@ -10,7 +10,7 @@ class NeoMatrixAni:public Ani
 		NeoMatrixAni(String name) : Ani(name) {};
 		~NeoMatrixAni() = default;
 		
-		virtual void loop(Adafruit_NeoMatrix * pMatrix) {};
+		virtual void loop(u32_t time,dafruit_NeoMatrix * pMatrix) {};
         virtual void reset()                            {};
         virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {};
 
@@ -20,7 +20,7 @@ class MatrixOffAni : public NeoMatrixAni{
     public:
         MatrixOffAni():NeoMatrixAni(String("off"))      {};
         void reset() {_color = 0; _dim=0; _needUpdate = true;};
-        void loop(Adafruit_NeoMatrix * pMatrix) {
+        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
             if (_needUpdate == true){
                 pMatrix->fillScreen(_color);
                 pMatrix->setBrightness(_dim);
@@ -60,7 +60,7 @@ class MatrixStaticAni : public NeoMatrixAni{
         MatrixStaticAni():NeoMatrixAni(String("static"))      {};
         void reset() {  setup(0x500000FF,0,0,0,0,NULL); };
 
-        void loop(Adafruit_NeoMatrix * pMatrix) {
+        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -120,9 +120,8 @@ class MatrixBreathAni : public NeoMatrixAni{
         MatrixBreathAni():NeoMatrixAni(String("breath"))      {};
         void reset() { setup(0x000000FF,0x00000A50,0x0BBB0CCCC,0,0,NULL); };
 
-        void loop(Adafruit_NeoMatrix * pMatrix){
-            u32_t diff,time,color;
-            time = millis();
+        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
+            u32_t diff,color;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -225,9 +224,8 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
             _state      = init;
         };
 
-        void loop(Adafruit_NeoMatrix * pMatrix){
-            u32_t diff,time;
-            time = millis();
+        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
+            u32_t diff;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
