@@ -78,8 +78,8 @@ void setup() {
   LOG(F("setup 0:"));
   SetupDebugDone = true;
 
-  //analogWriteFreq(3200);
-  //analogWriteRange(255);
+  analogWriteFreq(3200);
+  analogWriteRange(255);
 
   LOG(F("setup 0: Neo matrix"));
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(
@@ -150,20 +150,28 @@ void setup1() {
 /***********************************************************************************************************************************/
 void loop() {
   static u32_t counter=1;
-  u32_t time = millis();
+  static u32_t lastCycle=0;
+  u32_t time;
+
+  time = millis();
+
+  if (time-lastCycle < 250) 
+    { digitalWrite(LED_BUILTIN, LOW);}
+  else if (time-lastCycle < 500) 
+    { digitalWrite(LED_BUILTIN, HIGH);  }
+  else 
+    { lastCycle = time;}
 
   pCom->loop();
   switch(counter){
-    case 1:   digitalWrite(LED_BUILTIN, LOW);   break;
-    case 2:   pLedCtrl1->loop(time);            break;
-    case 3:   pLedCtrl2->loop(time);            break;
-    case 4:   pRgbCtrl1->loop(time);            break;
-    case 5:   pNeoStripeCtrl1->loop(time);      break;
-    case 6:   pNeoStripeCtrl2->loop(time);      break;
-    case 7:   digitalWrite(LED_BUILTIN, HIGH);  break;
-    case 8:   pNeoMatrixCtrl1->loop(time);      break;
-    case 9:   pNeoMatrixCtrl2->loop(time);      break;
-    default:  counter = 0;                      break;
+    case 1:   pLedCtrl1->loop(time);            break;
+    case 2:   pLedCtrl2->loop(time);            break;
+    case 3:   pRgbCtrl1->loop(time);            break;
+    //case 4:   pNeoStripeCtrl1->loop(time);      break;
+    //case 5:   pNeoStripeCtrl2->loop(time);      break;
+    //case 6:   pNeoMatrixCtrl1->loop(time);      break;
+    //case 7:   pNeoMatrixCtrl2->loop(time);      break;
+    default:  sleep_ms(1); counter = 0;         break;
   }
   counter++;
 }

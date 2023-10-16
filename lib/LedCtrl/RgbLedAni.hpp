@@ -113,8 +113,8 @@ class RgbLedBreathAni : public RgbLedAni{
             _targetR = 0;
             _targetG = 0;
             _targetB = 255;
-            _upperLimit = 20000;
-            _lowerLimit = 1000;
+            _upperLimit = 200;
+            _lowerLimit = 10;
             _dim = 0;
             _state=init;
         };
@@ -129,26 +129,26 @@ class RgbLedBreathAni : public RgbLedAni{
 
                 case init:
                     _state = inc;
-                    _lastCallTime = time;
+                    _lastSwitchTime = time;
                     pLed->set(_targetR,_targetG,_targetB,_dim);
                     break;
                 
                 case inc:
-                    diff = time-_lastCallTime;
-                    _lastCallTime = time;
-                    _dim += diff * _incPerMs;
+                    diff = time-_lastSwitchTime;
+                    _dim = _lowerLimit + diff * _incPerMs;
                     if (_dim >= _upperLimit){
                         _dim = _upperLimit;
+                        _lastSwitchTime = time;
                         _state = dec;
                     }
                     pLed->set(_targetR,_targetG,_targetB,_dim);
                     break;
                 
                 case dec:
-                    diff = time-_lastCallTime;
-                    _lastCallTime = time;
-                    _dim -= diff * _decPerMs;
+                    diff = time-_lastSwitchTime;
+                    _dim = _upperLimit - diff * _decPerMs;
                     if (_dim <= _lowerLimit){
+                        _lastSwitchTime = time;
                         _dim = _lowerLimit;
                         _state = inc;
                     }
@@ -164,10 +164,8 @@ class RgbLedBreathAni : public RgbLedAni{
             _targetB = RgbLed::unpackB(p1);
             _incPerMs = p2;
             _decPerMs = p3;
-            _lowerLimit = (p4 & 0xFFFF0000) >> 16;
-            _upperLimit = p4 & 0x0000FFFF;
-            _upperLimit =  clamp(1,_upperLimit,RGB_DIM_ACCURACY);
-            _lowerLimit = clamp (0,_lowerLimit, _upperLimit);
+            _lowerLimit = H_BYTE(p4);
+            _upperLimit = L_BYTE(p4);
             _dim = 0;
             _state = init;
 
@@ -178,7 +176,7 @@ class RgbLedBreathAni : public RgbLedAni{
         volatile BreathState _state;
         u32_t _incPerMs,_decPerMs;
         u8_t _targetR,_targetG,_targetB;
-        u32_t _lastCallTime;
+        u32_t _lastSwitchTime;
         s32_t _dim;
         u32_t _upperLimit,_lowerLimit;
 };
@@ -189,7 +187,7 @@ class RgbLedRainbowAni : public RgbLedAni{
         
         void reset() {
             _state      = stop;
-            _dim        = RGB_DIM_ACCURACY/2;
+            _dim        = 128;
             _wheelIndex = 0;
             _wheelInc   = 1;
             _timeInc    = 100;
@@ -226,9 +224,9 @@ class RgbLedRainbowAni : public RgbLedAni{
 
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
             _state      = stop;
-            _dim        = clamp(0,p1,RGB_DIM_ACCURACY);
-            _wheelInc   = p2 & 0xFF;
-            _wheelIndex = (p2 & 0xFF00) >> 8;
+            _dim        = L_BYTE(p1);
+            _wheelInc   = L_BYTE(p2);
+            _wheelIndex = H_BYTE(p2);
             _timeInc    = clamp(1,p3,100000);
             _state      = init;
         };
@@ -248,7 +246,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
         void reset() {
             // Blaulicht Doppelblitz: 500ms, ~25ms An, ~75ms Aus, ~25ms An (Aus Diagramm oben abgelesen)
             _state      = stop;
-            _dim        = RGB_DIM_ACCURACY/2;
+            _dim        = 128;
             _color      = 0x000000FF;
             _count      = 0;
             _flashCount = 2;
@@ -311,12 +309,12 @@ class RgbLedMultiFlashAni : public RgbLedAni{
 
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
             _state      = stop;
-            _dim        = clamp(0,p1,RGB_DIM_ACCURACY);
+            _dim        = L_BYTE(p1);
             _color      = p2 & 0x00FFFFFF;
-            _onTime     = (p3 & 0xFFFF0000) >> 16;
-            _offTime    = p3 & 0x0000FFFF;
-            _flashCount = (p4 & 0xFFFF0000) >> 16;
-            _pauseTime  = p4 & 0x0000FFFF;
+            _onTime     = H_WORD(p3);
+            _offTime    = L_WORD(p3);
+            _flashCount = H_WORD(p4);
+            _pauseTime  = L_WORD(p4);
             _state      = init;
         };
 

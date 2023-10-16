@@ -24,7 +24,7 @@ void RgbLed::set(u32_t value){
     set(r,g,b);
 }
 
-void RgbLed::set(u32_t value,u16_t dim){
+void RgbLed::set(u32_t value,u8_t dim){
     u8_t r,g,b;
     r = dimChannel(unpackR(value),dim);
     g = dimChannel(unpackG(value),dim);
@@ -32,7 +32,7 @@ void RgbLed::set(u32_t value,u16_t dim){
     set(r,g,b);
 }
 
-void RgbLed::set(u8_t r,u8_t g,u8_t b,u16_t dim){
+void RgbLed::set(u8_t r,u8_t g,u8_t b,u8_t dim){
     r = dimChannel(r,dim);
     g = dimChannel(g,dim);
     b = dimChannel(b,dim);
@@ -44,29 +44,14 @@ void RgbLed::set(u8_t r,u8_t g,u8_t b,u16_t dim){
 void RgbLed::set(u8_t r,u8_t g,u8_t b){
     // all set methods should use this method as backend
     // it handles invers etc.
-    #if RGB_LED_PWM_RANGE == 255
-        #if RGB_LED_LOGIC_INVERS == true
-            analogWrite(_pinR, RGB_LED_PWM_RANGE-r);
-            analogWrite(_pinG, RGB_LED_PWM_RANGE-g);
-            analogWrite(_pinB, RGB_LED_PWM_RANGE-b);
-        #else
-            analogWrite(_pinR, r);
-            analogWrite(_pinG, g);
-            analogWrite(_pinB, b);
-        #endif
+    #if RGB_LED_LOGIC_INVERS == true
+        analogWrite(_pinR, 255-r);
+        analogWrite(_pinG, 255-g);
+        analogWrite(_pinB, 255-b);
     #else
-        u32_t tempR = ((u32_t)r * RGB_LED_PWM_RANGE) / 255;
-        u32_t tempG = ((u32_t)g * RGB_LED_PWM_RANGE) / 255;
-        u32_t tempB = ((u32_t)b * RGB_LED_PWM_RANGE) / 255;
-        #if RGB_LED_LOGIC_INVERS == true
-            analogWrite(_pinR, RGB_LED_PWM_RANGE-tempR);
-            analogWrite(_pinG, RGB_LED_PWM_RANGE-tempG);
-            analogWrite(_pinB, RGB_LED_PWM_RANGE-tempB);
-        #else
-            analogWrite(_pinR, tempR);
-            analogWrite(_pinG, tempG);
-            analogWrite(_pinB, tempB);
-        #endif
+        analogWrite(_pinR, r);
+        analogWrite(_pinG, g);
+        analogWrite(_pinB, b);
     #endif
 }
 
@@ -94,9 +79,8 @@ u8_t RgbLed::unpackB(u32_t value) {
 }
 
 
-u8_t RgbLed::dimChannel(u8_t value,u16_t dim){
-    dim = clamp(0,value,RGB_DIM_ACCURACY);
-    return (value*dim)/RGB_DIM_ACCURACY;
+u8_t RgbLed::dimChannel(u8_t value,u8_t dim){
+    return (value*dim)/255;
 }
 
 
