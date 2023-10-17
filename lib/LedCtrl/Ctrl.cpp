@@ -43,10 +43,13 @@ void Ctrl::_addAni(Ani * pAni){
         pNewNode->pNext= NULL;
 
         // update name list
+        if (_aniNameList.length() > 0){
+            _aniNameList += ',';
+        }
         _aniNameList += String(pNewNode->nr);
-        _aniNameList += ":";
+        _aniNameList += ':';
         _aniNameList += pNewNode->name;
-        _aniNameList += ";";
+        
 
         // add new element to list
         struct Node * pLast;

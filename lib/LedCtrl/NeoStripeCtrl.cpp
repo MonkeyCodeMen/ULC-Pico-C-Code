@@ -10,12 +10,14 @@ NeoStripeCtrl::NeoStripeCtrl(WS2812FX * pNeoStripe) : Ctrl()
     _pNeoStripe = pNeoStripe;
     _pNeoStripe->init();
     _count = _pNeoStripe->getModeCount() - MAX_CUSTOM_MODES + 1;
-    _aniNameList = "0:off;";   // add off as number 0
+    _aniNameList = "0:off,";   // add off as number 0
     for(int i=1; i < _count; i++){
         _aniNameList += String(i);
         _aniNameList += ':';
         _aniNameList += _pNeoStripe->getModeName(i-1);
-        _aniNameList += ";";
+        if (i < _count-1){
+            _aniNameList += ",";
+        }
     }
     _pNeoStripe->setMode(0);
     _current = 1;
