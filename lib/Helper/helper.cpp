@@ -150,19 +150,30 @@ u32_t clamp(u32_t lowEnd,u32_t value,u32_t highEnd){
 }
 
 
-u16_t toColor565(u8_t r,u8_t g,u8_t b)
-{
+u16_t toColor565(u8_t r,u8_t g,u8_t b,u8_t dim){
+    return toColor565( dimColorChannel255(r,dim),dimColorChannel255(g,dim),dimColorChannel255(b,dim) );
+}
+
+u16_t toColor565(u8_t r,u8_t g,u8_t b){
   return ((r / 8) << 11) | ((g / 4) << 5) | (b / 8);
 }
 
-u16_t toColor565(u32_t c)
-{
+u16_t toColor565(u32_t c){
   return ((((c>>16) & 0xFF) / 8) << 11) | ((((c>>8)& 0xFF) / 4) << 5) | ((c & 0xFF) / 8);
 }
 
+u16_t toColor565Dim(u32_t c){
+    c = dimRgb24ToRgb(c);
+    return toColor565(c);
+}
+
+u16_t getColorWheel565(u8_t pos){
+    u32_t res = getColorWheel24Bit(pos);
+    return toColor565(res);
+}
 
 
-u32_t get888ColorWheel(u8_t pos){
+u32_t getColorWheel24Bit(u8_t pos){
     u32_t res;
     HHH_BYTE(res) = 0;
 

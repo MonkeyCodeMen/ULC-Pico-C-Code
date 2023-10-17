@@ -3,14 +3,63 @@
 
 /*
 
+// color 565 format 
 u16_t toColor565(u8_t r,u8_t g,u8_t b);
+u16_t toColor565(u8_t r,u8_t g,u8_t b,u8_t dim);
 u16_t toColor565(u32_t c);
-u32_t get888ColorWheel(u8_t pos);
+u16_t toColor565Dim(u32_t c);
 
-u32_t dimRgb24ToRgb(u32_t value);
 
+// color wheel / rainbow
+u32_t getColorWheel24Bit(u8_t pos);
+u16_t getColorWheel565(u8_t pos);
 
 */
+
+
+void test_helper_color565_1(void){
+    TEST_ASSERT_EQUAL_UINT16( 0x0000 , toColor565(0x00,0x00,0x00));
+    TEST_ASSERT_EQUAL_UINT16( 0xF800 , toColor565(0xFF,0x00,0x00));
+    TEST_ASSERT_EQUAL_UINT16( 0x07E0 , toColor565(0x00,0xFF,0x00));
+    TEST_ASSERT_EQUAL_UINT16( 0x001F , toColor565(0x00,0x00,0xFF));
+    TEST_ASSERT_EQUAL_UINT16( 0xFFFF , toColor565(0xFF,0xFF,0xFF));
+    
+    TEST_ASSERT_EQUAL_UINT16( 0x632C , toColor565(0x64,0x64,0x64));
+    
+    TEST_ASSERT_EQUAL_UINT16( 0x07FF , toColor565(0x05,0xFF,0xFF));
+    TEST_ASSERT_EQUAL_UINT16( 0xF83F , toColor565(0xFF,0x05,0xFF));
+    TEST_ASSERT_EQUAL_UINT16( 0xFFE0 , toColor565(0xFF,0xFF,0x05));
+}
+
+void test_helper_color565_2(void){
+    TEST_ASSERT_EQUAL_UINT16( 0x0000 , toColor565(0x00000000));
+    TEST_ASSERT_EQUAL_UINT16( 0xF800 , toColor565(0x00FF0000));
+    TEST_ASSERT_EQUAL_UINT16( 0x07E0 , toColor565(0x0000FF00));
+    TEST_ASSERT_EQUAL_UINT16( 0x001F , toColor565(0x000000FF));
+    TEST_ASSERT_EQUAL_UINT16( 0xFFFF , toColor565(0x00FFFFFF));
+    
+    TEST_ASSERT_EQUAL_UINT16( 0x632C , toColor565(0x00646464));
+    
+    TEST_ASSERT_EQUAL_UINT16( 0x07FF , toColor565(0x0005FFFF));
+    TEST_ASSERT_EQUAL_UINT16( 0xF83F , toColor565(0x00FF05FF));
+    TEST_ASSERT_EQUAL_UINT16( 0xFFE0 , toColor565(0x00FFFF05));
+}
+
+void test_helper_color565_3(void){
+    TEST_ASSERT_EQUAL_UINT16( 0x0000 , toColor565(0x00,0x00,0x00,0xFF));
+    TEST_ASSERT_EQUAL_UINT16( 0xFFFF , toColor565(0xFF,0xFF,0xFF,0xFF));
+    TEST_ASSERT_EQUAL_UINT16( 0x0000 , toColor565(0xFF,0xFF,0xFF,0x00));
+    TEST_ASSERT_EQUAL_UINT16( 0x632C , toColor565(0xFF,0xFF,0xFF,0x64));
+}
+
+
+
+void test_helper_color565_4(void){
+    TEST_ASSERT_EQUAL_UINT16( 0x0000 , toColor565(0xFF000000));
+    TEST_ASSERT_EQUAL_UINT16( 0xFFFF , toColor565(0xFFFFFFFF));
+    TEST_ASSERT_EQUAL_UINT16( 0x0000 , toColor565(0x00FFFFFF));
+    TEST_ASSERT_EQUAL_UINT16( 0x632C , toColor565(0x64FFFFFF));
+}
 
 
 void test_helper_dimColor255_1(void){
@@ -243,5 +292,11 @@ void test_collection_helper(void) {
   RUN_TEST(test_helper_dimColor255_1);
   RUN_TEST(test_helper_dimColor255_2);
   RUN_TEST(test_helper_dimColor255_3);
+
+  RUN_TEST(test_helper_color565_1);
+  RUN_TEST(test_helper_color565_2);
+  RUN_TEST(test_helper_color565_3);
+  RUN_TEST(test_helper_color565_4);
+
 
 }

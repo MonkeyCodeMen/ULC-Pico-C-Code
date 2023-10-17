@@ -290,7 +290,7 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
             u32_t color24;
             u8_t  dim;
             dim   = _dim;
-            color24 = get888ColorWheel(_colorIndex);
+            color24 = getColorWheel24Bit(_colorIndex);
             color24 = dimColor255(color24,dim);
             color565 = toColor565(color24);
             _colorIndex += _incStep;
