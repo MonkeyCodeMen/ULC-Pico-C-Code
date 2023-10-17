@@ -17,21 +17,21 @@ void test_helper_dimColor255_1(void){
     TEST_ASSERT_EQUAL_UINT32( 0x00000000 , dimColor255(0x00000000,0x00) );
     TEST_ASSERT_EQUAL_UINT32( 0x00000000 , dimColor255(0x00FFFFFF,0x00) );
     TEST_ASSERT_EQUAL_UINT32( 0x00AABBCC , dimColor255(0x00AABBCC,0xFF) );
-    TEST_ASSERT_EQUAL_UINT32( 0x00556677 , dimColor255(0x00AACCDD,0x80) );
+    TEST_ASSERT_EQUAL_UINT32( 0x00556677 , dimColor255(0x00AACCEE,0x80) );
 }
 
 void test_helper_dimColor255_2(void){
     TEST_ASSERT_EQUAL_UINT32( 0x00000000 , dimColor255(0x00,0x00,0x00,0x00) );
     TEST_ASSERT_EQUAL_UINT32( 0x00000000 , dimColor255(0xFF,0xFF,0xFF,0x00) );
     TEST_ASSERT_EQUAL_UINT32( 0x00AABBCC , dimColor255(0xAA,0xBB,0xCC,0xFF) );
-    TEST_ASSERT_EQUAL_UINT32( 0x00556677 , dimColor255(0xAA,0xCC,0xDD,0x80) );
+    TEST_ASSERT_EQUAL_UINT32( 0x00556677 , dimColor255(0xAA,0xCC,0xEE,0x80) );
 }
 
 void test_helper_dimColor255_3(void){
     TEST_ASSERT_EQUAL_UINT32( 0x00000000 , dimRgb24ToRgb(0x00000000) );
     TEST_ASSERT_EQUAL_UINT32( 0x00000000 , dimRgb24ToRgb(0x00FFFFFF) );
     TEST_ASSERT_EQUAL_UINT32( 0x00AABBCC , dimRgb24ToRgb(0xFFAABBCC) );
-    TEST_ASSERT_EQUAL_UINT32( 0x00556677 , dimRgb24ToRgb(0x80AACCDD) );
+    TEST_ASSERT_EQUAL_UINT32( 0x00556677 , dimRgb24ToRgb(0x80AACCEE) );
 }
 
 
@@ -242,5 +242,6 @@ void test_collection_helper(void) {
   RUN_TEST(test_helper_dimSingleColor);
   RUN_TEST(test_helper_dimColor255_1);
   RUN_TEST(test_helper_dimColor255_2);
+  RUN_TEST(test_helper_dimColor255_3);
 
 }
