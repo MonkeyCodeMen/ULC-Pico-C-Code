@@ -6,15 +6,15 @@ void test_StringList_empytString(void) {
   StringList object(list,',');
   String res; 
   
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("")));
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
+  TEST_ASSERT_TRUE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
 
   object.rewind();
 
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("")));
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
+  TEST_ASSERT_TRUE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
 
 }
 
@@ -23,19 +23,19 @@ void test_StringList_emptyList(void) {
   StringList object(list,',');
   String res; 
   
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("")));
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
 
   object.rewind();
 
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("")));
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
 }
 
 
@@ -44,23 +44,27 @@ void test_StringList_threeEntries(void) {
   StringList object(list,',');
   String res; 
   
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("entry1" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("Entry-2" , object.getNextListEntry().c_str());
   TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("entry1")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("Entry-2")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("Entry  3")));
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
+  TEST_ASSERT_EQUAL_STRING("Entry  3" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
 
   object.rewind();
 
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("entry1" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("Entry-2" , object.getNextListEntry().c_str());
   TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("entry1")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("Entry-2")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("Entry  3")));
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
+  TEST_ASSERT_EQUAL_STRING("Entry  3" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
 }
 
 void test_StringList_fourEntries(void) {
@@ -68,15 +72,15 @@ void test_StringList_fourEntries(void) {
   StringList object(list,',');
   String res; 
   
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("entry1" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("Entry-2" , object.getNextListEntry().c_str());
   TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("entry1")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("Entry-2")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("Entry  3")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("")));
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
+  TEST_ASSERT_EQUAL_STRING("Entry  3" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
 }
 
 void test_StringList_fourEntries_X(void) {
@@ -84,15 +88,15 @@ void test_StringList_fourEntries_X(void) {
   StringList object(list,'X');
   String res; 
   
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("entry1" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("Entry-2" , object.getNextListEntry().c_str());
   TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("entry1")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("Entry-2")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("Entry  3")));
-  TEST_ASSERT_TRUE(object.isEndReached() == false);
-  TEST_ASSERT_TRUE(object.getNextListEntry() == String(F("")));
-  TEST_ASSERT_TRUE(object.isEndReached() == true);
+  TEST_ASSERT_EQUAL_STRING("Entry  3" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
 }
 
 // collect all tests of this file to one collection
