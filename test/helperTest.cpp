@@ -3,12 +3,6 @@
 
 /*
 
-// color 565 format 
-u16_t toColor565(u8_t r,u8_t g,u8_t b);
-u16_t toColor565(u8_t r,u8_t g,u8_t b,u8_t dim);
-u16_t toColor565(u32_t c);
-u16_t toColor565Dim(u32_t c);
-
 
 // color wheel / rainbow
 u32_t getColorWheel24Bit(u8_t pos);
