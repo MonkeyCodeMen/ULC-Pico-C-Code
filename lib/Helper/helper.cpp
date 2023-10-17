@@ -4,21 +4,21 @@
 //String emptyString(F(""));
 
 u32_t convertHexStrToInt(const char * str,int len){
-    int digitFound=0;  
+    int   digitFound=0;  
     u32_t sum = 0;
-    u32_t value;
-    int i = 0;
+    u8_t  value;
+    int   i = 0;
 
-    while (len > 0){
+    while (i < len){
         if (str[i] == ' '){
             i++;
-            len--;
         } else {
             sum = sum<<4;
             digitFound++;
             if (digitFound > 8){
-                LOG(F("convertHexStrToInt: hex convert string to long"));
-                return 0;     
+                //LOG(F("convertHexStrToInt: hex convert string to long"));
+                sum = 0;
+                return sum;     
             }
             switch(str[i]){
                 case '0':   value=0;    break;
@@ -44,42 +44,44 @@ u32_t convertHexStrToInt(const char * str,int len){
                 case 'f':   
                 case 'F':   value=15;   break;
                 default:    
-                    LOG(F("convertHexStrToInt: hex convert invalid digit found"));
-                    return 0;
+                    //LOG(F("convertHexStrToInt: hex convert invalid digit found"));
+                    sum = 0;
+                    return sum;
             }  
             sum+=value;
             i++;
-            len--;
         }
     }
     return sum;     // return sum for hex conversion
 }
 
 u32_t convertDecStrToInt(const char * str,int len){
-    int digitFound=0;  
+    int   digitFound=0;  
     u32_t sum = 0;
-    u32_t value;
-    char  i=0;
+    u8_t  value;
+    int   i=0;
     int   factor = 1;
 
     if ((str[0] == '-')){
         if (len == 1){
-            LOG(F("convertDecStrToInt: negative numbers string to short"));
-            return 0;
+            //LOG(F("convertDecStrToInt: negative numbers string to short"));
+            sum = 0;
+            return sum;
         }
+        i++;
         factor = -1;
     }
 
     while (i < len){
         if (str[i] == ' '){
             i++;
-            len--;
         } else {
             sum = sum*10;
             digitFound++;
             if (digitFound > 10){
-                LOG(F("convertDecStrToInt: dec convert string to long"));
-                return 0;     
+                //LOG(F("convertDecStrToInt: dec convert string to long"));
+                sum=0;
+                return sum;     
             }
             switch(str[i]){
                 case '0':   value=0;    break;
@@ -93,12 +95,12 @@ u32_t convertDecStrToInt(const char * str,int len){
                 case '8':   value=8;    break;
                 case '9':   value=9;    break;
                 default:    
-                    LOG(F("convertStrToInt: dez convert invalid digit found"));
-                    return 0;  
+                    //LOG(F("convertStrToInt: dez convert invalid digit found"));
+                    sum = 0;
+                    return sum;  // reuse sum for compiler optimization = avoid result copy  
             }
             sum+=value;
             i++;
-            len--;
         }
     }
     if (factor != 1){
@@ -110,24 +112,30 @@ u32_t convertDecStrToInt(const char * str,int len){
 
 
 u32_t convertStrToInt(const char * str){
-    int len = strlen(str);
-    int i = 0;
+    int   len = strlen(str);
+    int   i = 0;
+    u32_t res = 0;
     
     if (len == 0){
-        return 0;  // on empty string
+        return res;  // on empty string
     }
 
     // skip leading spaces
     while (str[i] == ' '){
         i++;
         len--;
+        if (len == 0){
+            return res;
+        }
     }
 
     if ((len >2) && (str[i] == '0') && ((str[i+1] == 'x') || (str[i+1]=='X'))){
-        return convertHexStrToInt(&str[i+2],len-2);     // looks like HEX string
-    } 
+        res = convertHexStrToInt(&str[i+2],len-2);      // looks like HEX string
+    } else {
+        res = convertDecStrToInt(&str[i],len);          // looks like DEC string;
+    }
     
-    return convertDecStrToInt(&str[i],len); // looks like DEC string
+    return res; 
 }
 
 
