@@ -6,7 +6,7 @@
 class RgbLedAni:public Ani
 {
 	public:
-		RgbLedAni(String name) : Ani(name) {};
+		RgbLedAni(const char * pName) : Ani(pName) {};
 		~RgbLedAni() = default;
 		
 		virtual void loop(u32_t time,RgbLed * pLed) {};
@@ -21,13 +21,13 @@ class RgbLedAni:public Ani
 
 class RgbLedOffAni : public RgbLedAni{
     public:
-        RgbLedOffAni():RgbLedAni(String("off"))     {};
+        RgbLedOffAni():RgbLedAni((const char *)F("off"))     {};
         void loop(u32_t time,RgbLed * pLed)                    {pLed->set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);};
 };
 
 class RgbLedOnAni : public RgbLedAni{
     public:
-        RgbLedOnAni()  : RgbLedAni(String("on"))    {};
+        RgbLedOnAni()  : RgbLedAni((const char *)F("on"))    {};
         void reset()                                {_value = RgbLed::pack(RGB_LED_MAX,RGB_LED_MAX,RGB_LED_MAX);};
         void loop(u32_t time,RgbLed * pLed)                    {pLed->set(_value);};
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) 
@@ -38,7 +38,7 @@ class RgbLedOnAni : public RgbLedAni{
 
 class RgbLedBlinkAni : public RgbLedAni{
     public:
-        RgbLedBlinkAni()  : RgbLedAni(String("blink")) {};
+        RgbLedBlinkAni()  : RgbLedAni((const char *)F("blink")) {};
         
         void reset() {
             _state=init;
@@ -104,7 +104,7 @@ class RgbLedBlinkAni : public RgbLedAni{
 
 class RgbLedBreathAni : public RgbLedAni{
     public:
-        RgbLedBreathAni()  : RgbLedAni(String("breath")) {};
+        RgbLedBreathAni()  : RgbLedAni((const char *)F("breath")) {};
         
         void reset() {
             _state=stop;
@@ -183,7 +183,7 @@ class RgbLedBreathAni : public RgbLedAni{
 
 class RgbLedRainbowAni : public RgbLedAni{
     public:
-        RgbLedRainbowAni()  : RgbLedAni(String("rainbow")) {};
+        RgbLedRainbowAni()  : RgbLedAni((const char *)F("rainbow")) {};
         
         void reset() {
             _state      = stop;
@@ -241,7 +241,7 @@ class RgbLedRainbowAni : public RgbLedAni{
 
 class RgbLedMultiFlashAni : public RgbLedAni{
     public:
-        RgbLedMultiFlashAni()  : RgbLedAni(String("multi flash")) {};
+        RgbLedMultiFlashAni()  : RgbLedAni((const char *)F("multi flash")) {};
         
         void reset() {
             // Blaulicht Doppelblitz: 500ms, ~25ms An, ~75ms Aus, ~25ms An (Aus Diagramm oben abgelesen)

@@ -5,7 +5,7 @@ class StringList
 {
     public:
         StringList(const char * pList, char sep);
-        StringList(String& in,char sep)  {StringList((const char *)in.c_str(),sep);};
+        //StringList(String& in,char sep)  {StringList((const char *)in.c_str(),sep);};
         ~StringList() = default;
 
         void   rewind();

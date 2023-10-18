@@ -38,10 +38,10 @@ void ComDispatch::dispatchLedFrame(ComFrame * pFrame)
             return;
     }
     if (pFrame->withPar == true){
-        pLedCtrl->setup(pFrame->command);
+        pLedCtrl->setup(pFrame->command.c_str());
         pLedCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->length,pFrame->pData);
     } else {
-        pLedCtrl->setup(pFrame->command);  // use default parameter for 
+        pLedCtrl->setup(pFrame->command.c_str());  // use default parameter for 
     }
 }
 
@@ -56,10 +56,10 @@ void ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
     }
 
     if (pFrame->withPar == true){
-        pRgbCtrl->setup(pFrame->command);
+        pRgbCtrl->setup(pFrame->command.c_str());
         pRgbCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->length,pFrame->pData);
     } else {
-        pRgbCtrl->setup(pFrame->command);  // use default parameter for 
+        pRgbCtrl->setup(pFrame->command.c_str());  // use default parameter for 
     }
 }
 
@@ -74,10 +74,10 @@ void ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)
             return;
     }
     if (pFrame->withPar == true){
-        pStripeCtrl->setup(pFrame->command);
+        pStripeCtrl->setup(pFrame->command.c_str());
         pStripeCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->length,pFrame->pData);
     } else {
-        pStripeCtrl->setup(pFrame->command);  // use default parameter for 
+        pStripeCtrl->setup(pFrame->command.c_str());  // use default parameter for 
     }
 
 }
@@ -93,10 +93,10 @@ void ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame)
             return;
     }
     if (pFrame->withPar == true){
-        pMatrixCtrl->setup(pFrame->command);
+        pMatrixCtrl->setup(pFrame->command.c_str());
         pMatrixCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->length,pFrame->pData);
     } else {
-        pMatrixCtrl->setup(pFrame->command);  // use default parameter for 
+        pMatrixCtrl->setup(pFrame->command.c_str());  // use default parameter for 
     }
 
 }

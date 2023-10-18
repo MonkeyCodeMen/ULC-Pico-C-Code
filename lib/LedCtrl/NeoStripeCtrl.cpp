@@ -69,16 +69,16 @@ void NeoStripeCtrl::setup(int nr){
     _mutexSetup.unlock();
 }
 
-void NeoStripeCtrl::setup(String& name){
+void NeoStripeCtrl::setup(const char *pName){
     _mutexSetup.lock();
     // find matching entry or set all to NULL
-    if (name == "off"){
+    if (strcmp(pName , "off") == 0){
         setOff();
         _current = 0;
         _mutexSetup.unlock();
     }
     for(int i=1;i < _count;i++){
-        if (name == _pNeoStripe->getModeName(i-1)){
+        if (strcmp(pName, (const char *)_pNeoStripe->getModeName(i-1)) == 0){
             _pNeoStripe->setMode(i-1);
             setStdParameter();
             _current = i;

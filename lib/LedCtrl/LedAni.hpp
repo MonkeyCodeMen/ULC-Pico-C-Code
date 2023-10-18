@@ -8,7 +8,7 @@ class LedAni : public Ani
 {
     
     public:
-        LedAni(String name) : Ani(name) {};
+        LedAni(const char * pName) : Ani(pName) {};
         ~LedAni() = default;
 
         virtual void loop(u32_t time,Led * pLed) {};
@@ -39,7 +39,7 @@ class LedOffAni : public LedAni{
                |               |    N/A        
     */
     public:
-        LedOffAni()  : LedAni(String("off"))        {};
+        LedOffAni()  : LedAni((const char *) F("off"))        {};
         void loop(u32_t time,Led * pLed)                       {pLed->set(LED_OFF);};
 };
 
@@ -61,7 +61,7 @@ class LedOnAni : public LedAni{
                |               |    N/A        
     */
     public:
-        LedOnAni()  : LedAni(String("on"))          {};
+        LedOnAni()  : LedAni((const char *) F("on"))          {};
         void loop(u32_t time,Led * pLed)                       {pLed->set(LED_MAX);};
 };
 
@@ -85,7 +85,7 @@ class LedDimAni : public LedAni{
     */
 
     public:
-        LedDimAni()  : LedAni(String("dim"))        {};
+        LedDimAni()  : LedAni((const char *) F("dim"))        {};
         void reset()                                {setup(0x80,0,0,0,0,NULL);};
         void loop(u32_t time,Led * pLed)            {pLed->set(_dimValue);};
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  
@@ -113,7 +113,7 @@ class LedBlinkAni : public LedAni{
                |               |    N/A        
     */
     public:
-        LedBlinkAni()  : LedAni(String("blink"))    {};
+        LedBlinkAni()  : LedAni((const char *) F("blink"))    {};
         
         void reset() {  setup(50,250,250,0,0,NULL); };
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  { 
@@ -165,7 +165,7 @@ class LedBlinkAni : public LedAni{
 
 class LedMultiFlashAni : public LedAni{
     public:
-        LedMultiFlashAni()  : LedAni(String("multi flash")) {};
+        LedMultiFlashAni()  : LedAni((const char *) F("multi flash")) {};
         
         void reset() {
             // Blaulicht Doppelblitz: 500ms, ~25ms An, ~75ms Aus, ~25ms An (Aus Diagramm oben abgelesen)

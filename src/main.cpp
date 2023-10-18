@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include <Debug.hpp>
+#include <helper.hpp>
 #include <SPI.h>
 #include <Adafruit_NeoMatrix.h>
 
@@ -27,6 +28,32 @@ Cube * pCube;
 //   NEO_RGB     Pixels are wired for RGB bitstream (v1 FLORA pixels, not v2)
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 WS2812FX * pLedNeoStripe; 
+
+
+#define LED_MAX 255
+#define LED_OFF 0
+#define LED_MIN 0
+
+
+#define LED_LOGIC_INVERS    false
+#define LED_PWM_RANGE       255
+#define LED_DIM_ACCURACY    LED_PWM_RANGE
+
+
+class Led
+{
+    public:
+        Led(int pin)                   {_value = 0;};
+        ~Led() = default;
+
+        void set(u8_t value)    {_value = value;};
+        u8_t get()              {return _value;};
+    private:
+        u8_t    _value;
+};
+
+#define LED_H  // avoid definition of standard LED class
+
 
 
 #include <RgbLedCtrl.hpp>
@@ -106,18 +133,15 @@ void setup() {
   pNeoStripeCtrl2 = new NeoStripeCtrl(new WS2812FX(COUNT_STRIPE_2, PIN_STRIPE_2 , NEO_GRB  + NEO_KHZ800));
 
   LOG(F("setup 0: LED switch"));
-  String mode;
   pLedCtrl1 = new LedCtrl(new Led(PIN_LED_SWITCH_1));
   pLedCtrl2 = new LedCtrl(new Led(PIN_LED_SWITCH_2));
-  mode="blink";
-  pLedCtrl1->setup(mode);
-  pLedCtrl2->setup(mode);
+  pLedCtrl1->setup((const char *)F("blink"));
+  pLedCtrl2->setup((const char *)F("blink"));
   
   
   LOG(F("setup 0: RGB LED"));
   pRgbCtrl1 = new RgbLedCtrl(new RgbLed(PIN_RGB1_LED_R,PIN_RGB1_LED_G,PIN_RGB1_LED_B));
-  mode = "breath";
-  pRgbCtrl1->setup(mode);  
+  pRgbCtrl1->setup((const char *)F("breath"));  
 
   LOG(F("setup 0: COM interface"));
   pCom = new Com();
@@ -183,21 +207,32 @@ void loop1(){
 }
 
 void TestDebug(){
-  char list[]=",";
-  StringList object(list,',');
-  String res; 
+  Led simLed(-1);
+  LedCtrl object(&simLed);
+
+  // check sim mode & value
+  String name = object.getName();
+  u8_t value = simLed.get();
+
+
+  // check ani List
+  String aniList = object.getNameList();
+  int len = aniList.length();
+  StringList list(aniList.c_str(),',');
+  int count=0;
   
-  ASSERT(object.isEndReached() == false,"");
-  ASSERT(object.getNextListEntry() == String(F("")),"");
-  ASSERT(object.isEndReached() == false,"");
-  ASSERT(object.getNextListEntry() == String(F("")),"");
-  ASSERT(object.isEndReached() == true,"");
+  while (list.isEndReached() == false){
+    String aniName = list.getNextListEntry();
+    StringList split(aniName.c_str(),':');
 
-  object.rewind();
-
-  ASSERT(object.isEndReached() == false,"");
-  ASSERT(object.getNextListEntry() == String(F("")),"");
-  ASSERT(object.isEndReached() == false,"");
-  ASSERT(object.getNextListEntry() == String(F("")),"");
-  ASSERT(object.isEndReached() == true,"");
+  
+    String number=split.getNextListEntry();
+    String name=split.getNextListEntry();
+  
+    u32_t nr = convertStrToInt(number);
+    String out= String(count) + "Nr:" + String(nr) + "/" + number + "   Name:"+name;
+    LOG(out.c_str());
+    
+    count++;
+  }
 }

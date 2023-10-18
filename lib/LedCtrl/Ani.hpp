@@ -4,13 +4,13 @@
 class Ani
 {
 	public:
-		Ani(String name)  		{_name = name;  reset();	};
+		Ani(const char * pName)  		{_pName = pName;  reset();	};
 		~Ani() = default;
-        String getName()		{return _name;};
+        const char * getName()		{return _pName;};
 		virtual void reset()  	{};
         virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {};
 		virtual void trigger() 	{};
 
 	private:
-		String _name;
+		const char * _pName;
 };

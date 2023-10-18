@@ -6,7 +6,7 @@ Ctrl::Ctrl()
     _pCurrentAni    = NULL;
     _pCurrentNode   = NULL;
     _pRoot          = NULL;
-    _aniNameList    = String("");
+    _aniNameList    = "";
     _count = 0;
 }
 
@@ -39,7 +39,7 @@ void Ctrl::_addAni(Ani * pAni){
         pNewNode->pAni = pAni;
         pNewNode->nr   = _count;
         _count++;
-        pNewNode->name = pAni->getName();
+        pNewNode->pName = pAni->getName();
         pNewNode->pNext= NULL;
 
         // update name list
@@ -48,7 +48,7 @@ void Ctrl::_addAni(Ani * pAni){
         }
         _aniNameList += String(pNewNode->nr);
         _aniNameList += ':';
-        _aniNameList += pNewNode->name;
+        _aniNameList += pNewNode->pName;
         
 
         // add new element to list
@@ -78,7 +78,7 @@ String Ctrl::getName(){
     ASSERT(_pCurrentAni != NULL,"");
     if (_pCurrentAni == NULL)   return String("");
 
-    return _pCurrentNode->name;
+    return _pCurrentNode->pName;
 }
 
 void Ctrl::setup(int nr){
@@ -102,13 +102,13 @@ void Ctrl::setup(int nr){
     _mutexSetup.unlock();
 }
 
-void Ctrl::setup(String& name){
+void Ctrl::setup(const char * pName){
     if (_pRoot == NULL)      return;
 
     _mutexSetup.lock();
     // find matching entry or set all to NULL
     _pCurrentNode = _pRoot;
-    while (_pCurrentNode->name != name){
+    while (strcmp(_pCurrentNode->pName,pName) != 0 ){
         if (_pCurrentNode->pNext == NULL){
             _pCurrentAni = NULL;
             _pCurrentNode= NULL;

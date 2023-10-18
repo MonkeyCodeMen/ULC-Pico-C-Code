@@ -7,7 +7,7 @@
 class NeoMatrixAni:public Ani
 {
 	public:
-		NeoMatrixAni(String name) : Ani(name) {};
+		NeoMatrixAni(const char * pName) : Ani(pName) {};
 		~NeoMatrixAni() = default;
 		
 		virtual void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {};
@@ -18,7 +18,7 @@ class NeoMatrixAni:public Ani
 
 class MatrixOffAni : public NeoMatrixAni{
     public:
-        MatrixOffAni():NeoMatrixAni(String("off"))      {};
+        MatrixOffAni():NeoMatrixAni((const char *)F("off"))      {};
         void reset() {_color = 0; _needUpdate = true;};
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
             if (_needUpdate == true){
@@ -55,7 +55,7 @@ class MatrixStaticAni : public NeoMatrixAni{
                |               |    N/A        
     */
    public:
-        MatrixStaticAni():NeoMatrixAni(String("static"))      {};
+        MatrixStaticAni():NeoMatrixAni((const char *)F("static"))      {};
         void reset() {  setup(0x500000FF,0,0,0,0,NULL); };
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
@@ -115,7 +115,7 @@ class MatrixBreathAni : public NeoMatrixAni{
                |               |    N/A        
     */
     public:
-        MatrixBreathAni():NeoMatrixAni(String("breath"))      {};
+        MatrixBreathAni():NeoMatrixAni((const char *)F("breath"))      {};
         void reset() { setup(0x000000FF,0x00000A50,0x0BBB0CCCC,0,0,NULL); };
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
@@ -218,7 +218,7 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
     */
     #define COLOR_LIST_LENGTH 16
     public:
-        MatrixRainbowFlashAni():NeoMatrixAni(String("rainbow flash"))      {};
+        MatrixRainbowFlashAni():NeoMatrixAni((const char *)F("rainbow flash"))      {};
 
         void reset() { setup(0x0019004A,0x00080800,0x00005008,0,0,NULL); };
        
@@ -342,7 +342,7 @@ class MatrixMultiFlashAni : public MatrixRainbowFlashAni{
     public:
         MatrixMultiFlashAni()      {
             MatrixRainbowFlashAni();
-            NeoMatrixAni(String("multi flash"));
+            NeoMatrixAni((const char *)F("multi flash"));
             for(int i=0;i < COLOR_LIST_LENGTH;i++){
                 _colorList[i]=0;
             }
