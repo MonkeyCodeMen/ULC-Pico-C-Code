@@ -6,6 +6,7 @@
 
 class LedAni : public Ani
 {
+    
     public:
         LedAni(String name) : Ani(name) {};
         ~LedAni() = default;
@@ -21,33 +22,108 @@ class LedAni : public Ani
 };
 
 class LedOffAni : public LedAni{
+      /*  
+        ref    | default value |  layout
+        =======+===============+===========================
+        name:  |               |  off
+        -------+---------------+---------------------------
+        p1:    | N/A           |  N/A  
+        -------+---------------+---------------------------
+        p2:    | N/A           |  N/A     
+        -------+---------------+---------------------------
+        p3:    | N/A           |  N/A
+        -------+---------------+---------------------------
+        p4:    |               |  N/A
+        -------+---------------+---------------------------
+        pData: | N/A           |  length(0):
+               |               |    N/A        
+    */
     public:
         LedOffAni()  : LedAni(String("off"))        {};
         void loop(u32_t time,Led * pLed)                       {pLed->set(LED_OFF);};
 };
 
 class LedOnAni : public LedAni{
+    /*  
+        ref    | default value |  layout
+        =======+===============+===========================
+        name:  |               |  on
+        -------+---------------+---------------------------
+        p1:    | N/A           |  N/A  
+        -------+---------------+---------------------------
+        p2:    | N/A           |  N/A     
+        -------+---------------+---------------------------
+        p3:    | N/A           |  N/A
+        -------+---------------+---------------------------
+        p4:    |               |  N/A
+        -------+---------------+---------------------------
+        pData: | N/A           |  length(0):
+               |               |    N/A        
+    */
     public:
         LedOnAni()  : LedAni(String("on"))          {};
         void loop(u32_t time,Led * pLed)                       {pLed->set(LED_MAX);};
 };
 
 class LedDimAni : public LedAni{
+      /*  
+        ref    | default value |  layout
+        =======+===============+===========================
+        name:  |               |  dim
+        -------+---------------+---------------------------
+        p1:    | 0x0000 0080   |  0x0000 00DD
+               |               |  D: dim value  
+        -------+---------------+---------------------------
+        p2:    | N/A           |  N/A     
+        -------+---------------+---------------------------
+        p3:    | N/A           |  N/A
+        -------+---------------+---------------------------
+        p4:    |               |  N/A
+        -------+---------------+---------------------------
+        pData: | N/A           |  length(0):
+               |               |    N/A        
+    */
+
     public:
         LedDimAni()  : LedAni(String("dim"))        {};
-        void reset()                                {_dimValue = LED_OFF;};
+        void reset()                                {setup(0x80,0,0,0,0,NULL);};
         void loop(u32_t time,Led * pLed)            {pLed->set(_dimValue);};
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  
-                                                    {_dimValue = clamp(LED_OFF,p1,LED_MAX);}; 
+                                                    {_dimValue = L_BYTE(p1);}; 
     private:
         u8_t _dimValue;
 };
 
 class LedBlinkAni : public LedAni{
+      /*  
+        ref    | default value |  layout
+        =======+===============+===========================
+        name:  |               |  blink
+        -------+---------------+---------------------------
+        p1:    | 0x0000 0080   |  0x0000 00DD
+               |               |  D: dim value  
+        -------+---------------+---------------------------
+        p2:    | 250           |  on time in ms     
+        -------+---------------+---------------------------
+        p3:    | 250           |  off time in ms
+        -------+---------------+---------------------------
+        p4:    |               |  N/A
+        -------+---------------+---------------------------
+        pData: | N/A           |  length(0):
+               |               |    N/A        
+    */
     public:
         LedBlinkAni()  : LedAni(String("blink"))    {};
         
         void reset() {  setup(50,250,250,0,0,NULL); };
+        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  { 
+            _state = stop;
+            _dimValue = L_BYTE(p1);
+            _onTime_ms = p2;
+            _offTime_ms = p3;
+            _state = init;
+        };
+
 
         void loop(u32_t time,Led * pLed){
             u32_t diff;
@@ -77,14 +153,6 @@ class LedBlinkAni : public LedAni{
                     }
                     break;
             }
-        };
-
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  { 
-            _state = stop;
-            _dimValue = clamp(LED_OFF,p1,LED_MAX);
-            _onTime_ms = p2;
-            _offTime_ms = p3;
-            _state = init;
         };
 
     private:

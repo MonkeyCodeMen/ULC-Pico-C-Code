@@ -2,7 +2,7 @@
 #include "Ani.hpp"
 #include <Adafruit_NeoMatrix.h>
 #include "helper.hpp"
-#include "ComFrame.hpp"
+
 
 class NeoMatrixAni:public Ani
 {
@@ -377,7 +377,7 @@ class MatrixMultiFlashAni : public MatrixRainbowFlashAni{
         };
 
         void _decodeAsciiColorList(const char * listText){
-            StringList list(listText,COM_FRAME_PARAMETER_SEP);
+            StringList list(listText,',');
             _colorCount = 0;
             for(int i=0;i < COLOR_LIST_LENGTH;i++){
                 _colorList[i]=0;
@@ -415,14 +415,6 @@ class MatrixMultiFlashAni : public MatrixRainbowFlashAni{
         u8_t  _colorIndex,_colorCount;
 
 };
-
-/*
-            if (_rainbowMode == true){
-                dim   = _rainbowDim;
-                color = toColor565( get888ColorWheel(_colorIndex) ); 
-                _colorIndex += _incStep;   // automatic wrap around u8_t     
-            } else {
-*/
     /*  
         ref    | default value |  layout
         =======+===============+===========================

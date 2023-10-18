@@ -22,6 +22,7 @@ class Ctrl
         virtual String  getName(); 
         virtual void setup(int nr);         // change programm
         virtual void setup(String& name);   // change programm
+        virtual void setup(const char * name)   {String str(name); setup(str);};
         virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData); // config program
         virtual void loop(u32_t time) {};           // update LED's (derived type)
         

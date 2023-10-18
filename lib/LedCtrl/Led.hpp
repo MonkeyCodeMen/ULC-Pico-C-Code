@@ -1,4 +1,5 @@
-#pragma once
+#ifndef LED_H
+#define LED_H
 
 #include <Arduino.h>
 
@@ -19,7 +20,14 @@ class Led
         ~Led() = default;
 
         void set(u8_t value);
+        u8_t get()              {return _value;};
+        bool isSimMode()        {return _sim;};
 
     private:
-        int _pin;
+        int     _pin;
+        bool    _sim;
+        u8_t    _value;
 };
+
+
+#endif /* LED_H*/
