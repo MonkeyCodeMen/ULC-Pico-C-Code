@@ -1,5 +1,6 @@
 #include "Ctrl.hpp"
 #include "Debug.hpp"
+#include "helper.hpp"
 
 Ctrl::Ctrl()
 {
@@ -26,7 +27,7 @@ Ctrl::~Ctrl()
     }
 
     // clear Name List
-    _aniNameList = String("");
+    _aniNameList = "";
 }
 
 void Ctrl::addAni(Ani * pAni){
@@ -71,9 +72,9 @@ void Ctrl::addAni(Ani * pAni){
 }
 
 
-String Ctrl::getName(){
+const char * Ctrl::getName(){
     ASSERT(_pCurrentAni != NULL,"");
-    if (_pCurrentAni == NULL)   return String("");
+    if (_pCurrentAni == NULL)   return F_CONST("");
 
     return _pCurrentNode->pName;
 }

@@ -135,13 +135,13 @@ void setup() {
   LOG(F("setup 0: LED switch"));
   pLedCtrl1 = new LedCtrl(new Led(PIN_LED_SWITCH_1));
   pLedCtrl2 = new LedCtrl(new Led(PIN_LED_SWITCH_2));
-  pLedCtrl1->setup((const char *)F("blink"));
-  pLedCtrl2->setup((const char *)F("blink"));
+  pLedCtrl1->setup(F_CONST("blink"));
+  pLedCtrl2->setup(F_CONST("blink"));
   
   
   LOG(F("setup 0: RGB LED"));
   pRgbCtrl1 = new RgbLedCtrl(new RgbLed(PIN_RGB1_LED_R,PIN_RGB1_LED_G,PIN_RGB1_LED_B));
-  pRgbCtrl1->setup((const char *)F("breath"));  
+  pRgbCtrl1->setup(F_CONST("breath"));  
 
   LOG(F("setup 0: COM interface"));
   pCom = new Com();
