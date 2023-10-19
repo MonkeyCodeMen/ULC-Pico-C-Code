@@ -7,12 +7,12 @@ RgbLedCtrl::RgbLedCtrl(RgbLed * pRgbLed) : Ctrl()
     ASSERT(pRgbLed != NULL,"pRgbLed object could not be NULL");
     _pRgbLed = pRgbLed;
 
-    _addAni(new RgbLedOffAni());
-    _addAni(new RgbLedOnAni());
-    _addAni(new RgbLedBlinkAni());
-    _addAni(new RgbLedBreathAni());
-    _addAni(new RgbLedRainbowAni());
-    _addAni(new RgbLedMultiFlashAni());
+    addAni(new RgbLedOffAni());
+    addAni(new RgbLedOnAni());
+    addAni(new RgbLedBlinkAni());
+    addAni(new RgbLedBreathAni());
+    addAni(new RgbLedRainbowAni());
+    addAni(new RgbLedMultiFlashAni());
 
     
     // select first

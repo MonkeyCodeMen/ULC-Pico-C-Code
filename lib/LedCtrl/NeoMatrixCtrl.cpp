@@ -13,11 +13,11 @@ NeoMatrixCtrl::NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix) : Ctrl()
     pMatrix->setBrightness(255);  
 
 
-    _addAni(new MatrixOffAni());
-    _addAni(new MatrixStaticAni());
-    _addAni(new MatrixBreathAni());
-    _addAni(new MatrixRainbowFlashAni());
-    _addAni(new MatrixMultiFlashAni());
+    addAni(new MatrixOffAni());
+    addAni(new MatrixStaticAni());
+    addAni(new MatrixBreathAni());
+    addAni(new MatrixRainbowFlashAni());
+    addAni(new MatrixMultiFlashAni());
 
     // select first
     setup(0);

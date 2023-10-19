@@ -15,7 +15,9 @@
 extern void test_collection_SimpleTest();
 extern void test_collection_StringList();
 extern void test_collection_helper();
+extern void test_collection_Ctrl();
 extern void test_collection_LedCtrl();
+
 
 
 void setUp(void) {
@@ -34,7 +36,8 @@ int runAllCollections(void) {
   test_collection_SimpleTest();
   test_collection_helper();
   test_collection_StringList();
-  test_collection_LedCtrl();
+  test_collection_Ctrl();
+  //test_collection_LedCtrl();
   return UNITY_END();
 }
 

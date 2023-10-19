@@ -7,11 +7,11 @@ LedCtrl::LedCtrl(Led * pLed) : Ctrl(){
     _pLed = pLed;
 
     // fill ani List
-    _addAni(new LedOffAni());
-    _addAni(new LedOnAni());
-    _addAni(new LedDimAni());
-    _addAni(new LedBlinkAni());
-    _addAni(new LedMultiFlashAni());
+    addAni(new LedOffAni());
+    addAni(new LedOnAni());
+    addAni(new LedDimAni());
+    addAni(new LedBlinkAni());
+    addAni(new LedMultiFlashAni());
 
     // setup first
     setup(0);

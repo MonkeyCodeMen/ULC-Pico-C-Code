@@ -29,9 +29,10 @@ Ctrl::~Ctrl()
     _aniNameList = String("");
 }
 
-void Ctrl::_addAni(Ani * pAni){
+void Ctrl::addAni(Ani * pAni){
     struct Node * pNewNode;
-
+    ASSERT(pAni != NULL,"");
+    if (pAni == NULL) return;
     pNewNode = new Node;
     ASSERT(pNewNode != NULL,"");
     if (pNewNode != NULL){
@@ -69,10 +70,6 @@ void Ctrl::_addAni(Ani * pAni){
     }
 }
 
-
-String Ctrl::getNameList(){
-    return _aniNameList;
-}
 
 String Ctrl::getName(){
     ASSERT(_pCurrentAni != NULL,"");
