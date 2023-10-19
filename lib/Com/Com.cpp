@@ -4,7 +4,7 @@
 
 Com::Com()
 {
-    _pPort = &Serial1;
+    _pPort = &Serial;
 }
 
 void Com::setup(){

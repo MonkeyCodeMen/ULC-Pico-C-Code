@@ -22,7 +22,7 @@ RgbLedCtrl::RgbLedCtrl(RgbLed * pRgbLed) : Ctrl()
 
 RgbLedCtrl::~RgbLedCtrl()
 {
-    if (_pRgbLed != NULL)   delete(_pRgbLed);
+
 }
 
 

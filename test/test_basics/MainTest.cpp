@@ -5,7 +5,6 @@
 #include <Adafruit_NeoMatrix.h>
 #include <TFT_eSPI.h> // Hardware-specific library
 
-#include "unity_config.h"
 #include <unity.h>
 
 
@@ -15,8 +14,6 @@
 extern void test_collection_SimpleTest();
 extern void test_collection_StringList();
 extern void test_collection_helper();
-extern void test_collection_Ctrl();
-extern void test_collection_LedCtrl();
 
 
 
@@ -36,8 +33,6 @@ int runAllCollections(void) {
   test_collection_SimpleTest();
   test_collection_helper();
   test_collection_StringList();
-  test_collection_Ctrl();
-  //test_collection_LedCtrl();
   return UNITY_END();
 }
 
@@ -51,14 +46,6 @@ void setup() {
   // establishes connection with a board Serial interface
   delay(2000);
 
-  /*  
-  in case of issues with test results (outputs) 
-  try the next commands to catch on a simple ternminal
-  Serial1.begin(115200);
-  Serial1.println(" serial 1 begin 115200 ");
-  */
-  
-  
   runAllCollections();
 
   pinMode(LED_BUILTIN,OUTPUT);

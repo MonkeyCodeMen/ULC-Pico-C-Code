@@ -17,7 +17,7 @@ class NeoStripeCtrl : public Ctrl
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData); // config program
         void loop(u32_t time);
 
-        String getName();
+        const char * getName();
     
     private:
         WS2812FX *  _pNeoStripe;

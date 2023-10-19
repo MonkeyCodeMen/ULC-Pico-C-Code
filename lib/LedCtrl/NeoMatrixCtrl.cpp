@@ -26,7 +26,7 @@ NeoMatrixCtrl::NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix) : Ctrl()
 
 NeoMatrixCtrl::~NeoMatrixCtrl()
 {
-    if (_pMatrix != NULL)   delete(_pMatrix);
+
 }
 
 

@@ -38,11 +38,11 @@ void NeoStripeCtrl::setOff(){
     _current = 0;
 }
 
-String NeoStripeCtrl::getName(){
+const char * NeoStripeCtrl::getName(){
     if (_current == 0){
-        return String("off");
+        return F_CONST("off");
     } 
-    return String(_pNeoStripe->getModeName(_current-1));
+    return (const char *)_pNeoStripe->getModeName(_current-1);
 }
 
 void NeoStripeCtrl::loop(u32_t time){

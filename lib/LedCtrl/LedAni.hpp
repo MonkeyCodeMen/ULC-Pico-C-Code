@@ -137,7 +137,7 @@ class LedBlinkAni : public LedAni{
                 
                 case off:
                     diff = time-_lastSwitchTime;
-                    if (diff > _offTime_ms){
+                    if (diff >= _offTime_ms){
                         _state = on;
                         pLed->set(_dimValue);   
                         _lastSwitchTime = time;
@@ -146,7 +146,7 @@ class LedBlinkAni : public LedAni{
                 
                 case on:
                     diff = time-_lastSwitchTime;
-                    if (diff > _onTime_ms){
+                    if (diff >= _onTime_ms){
                         _state = off;
                         pLed->set(LED_OFF);   
                         _lastSwitchTime = time;
@@ -170,7 +170,7 @@ class LedMultiFlashAni : public LedAni{
         void reset() {
             // Blaulicht Doppelblitz: 500ms, ~25ms An, ~75ms Aus, ~25ms An (Aus Diagramm oben abgelesen)
             _state      = stop;
-            _dim        = LED_DIM_ACCURACY;
+            _dim        = LED_MAX;
             _count      = 0;
             _flashCount = 2;
             _onTime     = 25;
@@ -230,11 +230,11 @@ class LedMultiFlashAni : public LedAni{
 
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
             _state      = stop;
-            _dim        = clamp(0,p1,LED_DIM_ACCURACY);
-            _onTime     = (p3 & 0xFFFF0000) >> 16;
-            _offTime    = p3 & 0x0000FFFF;
-            _flashCount = (p4 & 0xFFFF0000) >> 16;
-            _pauseTime  = p4 & 0x0000FFFF;
+            _dim        = L_BYTE(p1);
+            _onTime     = H_WORD(p3);
+            _offTime    = L_WORD(p3);
+            _flashCount = H_WORD(p4);
+            _pauseTime  = L_WORD(p4);
             _state      = init;
         };
 

@@ -29,47 +29,10 @@ Cube * pCube;
 //   NEO_RGBW    Pixels are wired for RGBW bitstream (NeoPixel RGBW products)
 WS2812FX * pLedNeoStripe; 
 
-
-#define LED_MAX 255
-#define LED_OFF 0
-#define LED_MIN 0
-
-
-#define LED_LOGIC_INVERS    false
-#define LED_PWM_RANGE       255
-#define LED_DIM_ACCURACY    LED_PWM_RANGE
-
-
-class Led
-{
-    public:
-        Led(int pin)                   {_value = 0;};
-        ~Led() = default;
-
-        void set(u8_t value)    {_value = value;};
-        u8_t get()              {return _value;};
-    private:
-        u8_t    _value;
-};
-
-#define LED_H  // avoid definition of standard LED class
-
-
-
 #include <RgbLedCtrl.hpp>
 #include <LedCtrl.hpp>
 #include <NeoStripeCtrl.hpp>
 #include <NeoMatrixCtrl.hpp>
-
-LedCtrl    * pLedCtrl1;
-LedCtrl    * pLedCtrl2;
-RgbLedCtrl * pRgbCtrl1;
-NeoStripeCtrl  * pNeoStripeCtrl1;
-NeoStripeCtrl  * pNeoStripeCtrl2;
-NeoMatrixCtrl  * pNeoMatrixCtrl1;
-NeoMatrixCtrl  * pNeoMatrixCtrl2;
-
-
 
 #define PIN_LED_SWITCH_1  	7
 #define PIN_LED_SWITCH_2    6
@@ -84,6 +47,39 @@ NeoMatrixCtrl  * pNeoMatrixCtrl2;
 #define PIN_MATRIX_2        21
 
 
+Led     ledStripe1(PIN_LED_SWITCH_1);
+Led     ledStripe2(PIN_LED_SWITCH_2);
+RgbLed  rgbLedStrip1(PIN_RGB1_LED_R,PIN_RGB1_LED_G,PIN_RGB1_LED_B);
+WS2812FX ws2812strip1(COUNT_STRIPE_1, PIN_STRIPE_1 , NEO_GRB  + NEO_KHZ800);
+WS2812FX ws2812strip2(COUNT_STRIPE_2, PIN_STRIPE_1 , NEO_GRB  + NEO_KHZ800);
+Adafruit_NeoMatrix neoMatrix1(
+      PIN_MATRIX_1,8, 8, 4,4, 
+      NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
+      NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
+      NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
+      NEO_GRB            + NEO_KHZ800);
+Adafruit_NeoMatrix neoMatrix2(
+      PIN_MATRIX_2,8, 8, 4,4, 
+      NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
+      NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
+      NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
+      NEO_GRB            + NEO_KHZ800);
+
+
+
+
+LedCtrl    * pLedCtrl1;
+LedCtrl    * pLedCtrl2;
+RgbLedCtrl * pRgbCtrl1;
+NeoStripeCtrl  * pNeoStripeCtrl1;
+NeoStripeCtrl  * pNeoStripeCtrl2;
+NeoMatrixCtrl  * pNeoMatrixCtrl1;
+NeoMatrixCtrl  * pNeoMatrixCtrl2;
+
+
+
+
+
 
 #include "Com.hpp"
 Com * pCom;
@@ -91,68 +87,54 @@ Com * pCom;
 
 void TestDebug();
 
-bool SetupDebugDone = false;
+volatile bool setupStartsecondCore = false;
+//bool setupStarted   = false;
 /***********************************************************************************************************************************/
 void setup() {
+  //setupStarted = true;
   pinMode(LED_BUILTIN,OUTPUT);
-  digitalWrite(LED_BUILTIN, LOW);
-  Debug::start();
+  digitalWrite(LED_BUILTIN, HIGH);
+  LOG(F("setup 0:"));
+  //analogWriteFreq(3200);
+  //analogWriteRange(255);
 
   LOG(F("setup 0: Test functions"));
   TestDebug();
 
-
-  LOG(F("setup 0:"));
-  SetupDebugDone = true;
-
-  analogWriteFreq(3200);
-  analogWriteRange(255);
-
-  LOG(F("setup 0: Neo matrix"));
-  pNeoMatrixCtrl1 = new NeoMatrixCtrl(
-    new Adafruit_NeoMatrix(PIN_MATRIX_1,
-      8, 8, 4,4, 
-      NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
-      NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
-      NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
-      NEO_GRB            + NEO_KHZ800)
-  );
-
-  pNeoMatrixCtrl2 = new NeoMatrixCtrl(
-    new Adafruit_NeoMatrix(
-      PIN_MATRIX_2,8, 8, 4,4, 
-      NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
-      NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
-      NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
-      NEO_GRB            + NEO_KHZ800)
-  );
-
-
-  LOG(F("setup 0: Neo stripe"));
-  pNeoStripeCtrl1 = new NeoStripeCtrl(new WS2812FX(COUNT_STRIPE_1, PIN_STRIPE_1 , NEO_GRB  + NEO_KHZ800));
-  pNeoStripeCtrl2 = new NeoStripeCtrl(new WS2812FX(COUNT_STRIPE_2, PIN_STRIPE_2 , NEO_GRB  + NEO_KHZ800));
-
   LOG(F("setup 0: LED switch"));
-  pLedCtrl1 = new LedCtrl(new Led(PIN_LED_SWITCH_1));
-  pLedCtrl2 = new LedCtrl(new Led(PIN_LED_SWITCH_2));
+  pLedCtrl1 = new LedCtrl(&ledStripe1);
+  pLedCtrl2 = new LedCtrl(&ledStripe2);
   pLedCtrl1->setup(F_CONST("blink"));
   pLedCtrl2->setup(F_CONST("blink"));
   
   
   LOG(F("setup 0: RGB LED"));
-  pRgbCtrl1 = new RgbLedCtrl(new RgbLed(PIN_RGB1_LED_R,PIN_RGB1_LED_G,PIN_RGB1_LED_B));
+  pRgbCtrl1 = new RgbLedCtrl(&rgbLedStrip1);
   pRgbCtrl1->setup(F_CONST("breath"));  
+
+  LOG(F("setup 0: Neo stripe"));
+  pNeoStripeCtrl1 = new NeoStripeCtrl(&ws2812strip1);
+  pNeoStripeCtrl2 = new NeoStripeCtrl(&ws2812strip2);
+
+
+  LOG(F("setup 0: Neo matrix"));
+  pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
+  pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
+  
+  setupStartsecondCore = true;
 
   LOG(F("setup 0: COM interface"));
   pCom = new Com();
   pCom->setup();
 
   LOG(F("setup 0: done"));
-  digitalWrite(LED_BUILTIN, HIGH);
+  digitalWrite(LED_BUILTIN, LOW);
 }
 
 void setup1() {
-  while(SetupDebugDone == false);
+  while(setupStartsecondCore == false){
+
+  }
 
   LOG(F("setup 1:"));
 
@@ -190,12 +172,12 @@ void loop() {
   switch(counter){
     case 1:   pLedCtrl1->loop(time);            break;
     case 2:   pLedCtrl2->loop(time);            break;
-    case 3:   pRgbCtrl1->loop(time);            break;
+    //case 3:   pRgbCtrl1->loop(time);            break;
     //case 4:   pNeoStripeCtrl1->loop(time);      break;
     //case 5:   pNeoStripeCtrl2->loop(time);      break;
     //case 6:   pNeoMatrixCtrl1->loop(time);      break;
     //case 7:   pNeoMatrixCtrl2->loop(time);      break;
-    default:  sleep_ms(1); counter = 0;         break;
+    default:  counter = 0;                      break;
   }
   counter++;
 }
@@ -207,32 +189,15 @@ void loop1(){
 }
 
 void TestDebug(){
-  Led simLed(-1);
-  LedCtrl object(&simLed);
+  ledStripe1.set(0);
+  ledStripe1.set(128);
+  ledStripe1.set(255);
+  ledStripe1.set(0);
 
-  // check sim mode & value
-  String name = object.getName();
-  u8_t value = simLed.get();
-
-
-  // check ani List
-  String aniList = object.getNameList();
-  int len = aniList.length();
-  StringList list(aniList.c_str(),',');
-  int count=0;
+  ledStripe2.set(0);
+  ledStripe2.set(128);
+  ledStripe2.set(255);
+  ledStripe2.set(0);
   
-  while (list.isEndReached() == false){
-    String aniName = list.getNextListEntry();
-    StringList split(aniName.c_str(),':');
 
-  
-    String number=split.getNextListEntry();
-    String name=split.getNextListEntry();
-  
-    u32_t nr = convertStrToInt(number);
-    String out= String(count) + "Nr:" + String(nr) + "/" + number + "   Name:"+name;
-    LOG(out.c_str());
-    
-    count++;
-  }
 }

@@ -19,13 +19,12 @@ class Ctrl
         ~Ctrl();
 
         virtual const char * getName(); 
-        virtual void setup(int nr);         // change programm
-        virtual void setup(const char * pName);
+        virtual void setup(int nr);                 // change program / animation
+        virtual void setup(const char * pName);     // change program / animation
         virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData); // config program
-        virtual void loop(u32_t time) {};           // update LED's (derived type)
         void addAni(Ani * pAni);
-        u32_t getAniCount()         {return _count;};
-        const char * getNameList()        {return (const char *)_aniNameList.c_str();};       // like :"0:xxx;1:yyy;..."
+        u32_t getAniCount()                     {return _count;};
+        const char * getNameList()              {return (const char *)_aniNameList.c_str();};       // like :"0:xxx;1:yyy;..."
     
     protected:
         struct Node * _pRoot;

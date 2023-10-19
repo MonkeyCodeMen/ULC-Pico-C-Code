@@ -18,8 +18,7 @@ LedCtrl::LedCtrl(Led * pLed) : Ctrl(){
 }
 
 LedCtrl::~LedCtrl(){
-    if (_pLed != NULL)   
-        delete(_pLed);
+
 }
 
 
