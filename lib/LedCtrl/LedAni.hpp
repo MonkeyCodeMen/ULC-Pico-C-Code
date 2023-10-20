@@ -115,7 +115,7 @@ class LedBlinkAni : public LedAni{
     public:
         LedBlinkAni()  : LedAni((const char *) F("blink"))    {};
         
-        void reset() {  setup(50,250,250,0,0,NULL); };
+        void reset() {  setup(0x80,250,250,0,0,NULL); };
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  { 
             _state = stop;
             _dimValue = L_BYTE(p1);

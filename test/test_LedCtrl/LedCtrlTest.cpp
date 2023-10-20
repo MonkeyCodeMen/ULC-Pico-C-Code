@@ -182,45 +182,55 @@ void test_LedCtrl_blink(void){
   TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
 
   object.loop(1);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
   object.loop(3);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
   object.loop(3);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
   object.loop(10);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
   object.loop(100);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
   object.loop(249);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
   object.loop(250);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
 
   object.loop(251);
-  TEST_ASSERT_EQUAL_UINT8( 0x00 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
   object.loop(300);
-  TEST_ASSERT_EQUAL_UINT8( 0x00 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
   object.loop(500);
-  TEST_ASSERT_EQUAL_UINT8( 0x00 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
 
   object.loop(501);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
   object.loop(750);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
 
   object.loop(751);
-  TEST_ASSERT_EQUAL_UINT8( 0x00 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
   object.loop(1000);
-  TEST_ASSERT_EQUAL_UINT8( 0x00 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
 
   object.loop(1001);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
 
   object.setup(123,100,100,100,100,NULL);
-  TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
+  TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
 
   object.loop(1002);
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
+  object.loop(1101);
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
+
+  object.loop(1102);
   TEST_ASSERT_EQUAL_UINT8( 123 , simLed.get());
+  object.loop(1201);
+  TEST_ASSERT_EQUAL_UINT8( 123 , simLed.get());
+
+  object.loop(1202);
+  TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
 
 }
 
@@ -245,8 +255,8 @@ int runAllCollections(void) {
   RUN_TEST(test_LedCtrl_aniList);
   RUN_TEST(test_LedCtrl_off);
   RUN_TEST(test_LedCtrl_on);
-  //RUN_TEST(test_LedCtrl_dim);
-  //RUN_TEST(test_LedCtrl_blink);
+  RUN_TEST(test_LedCtrl_dim);
+  RUN_TEST(test_LedCtrl_blink);
   return UNITY_END();
 }
 

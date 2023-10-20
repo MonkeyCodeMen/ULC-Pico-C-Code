@@ -101,6 +101,8 @@ void setup() {
   LOG(F("setup 0: Test functions"));
   TestDebug();
 
+  setupStartsecondCore = true;
+
   LOG(F("setup 0: LED switch"));
   pLedCtrl1 = new LedCtrl(&ledStripe1);
   pLedCtrl2 = new LedCtrl(&ledStripe2);
@@ -121,8 +123,6 @@ void setup() {
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
   
-  setupStartsecondCore = true;
-
   LOG(F("setup 0: COM interface"));
   pCom = new Com();
   pCom->setup();
@@ -198,6 +198,4 @@ void TestDebug(){
   ledStripe2.set(128);
   ledStripe2.set(255);
   ledStripe2.set(0);
-  
-
 }
