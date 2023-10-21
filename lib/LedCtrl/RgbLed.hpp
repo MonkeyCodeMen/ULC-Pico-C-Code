@@ -1,6 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include "Led.hpp"
+#include <helper.hpp>
 
 #define RGB_LED_MAX 255
 #define RGB_LED_OFF 0
@@ -14,6 +15,7 @@ class RgbLed
         ~RgbLed() = default;
 
         void set(u8_t r,u8_t g,u8_t b);
+        void set(u8_t r,u8_t g,u8_t b,u8_t dim) {set(dimColorChannel255(r,dim),dimColorChannel255(g,dim),dimColorChannel255(b,dim));};
         u8_t getR()     {return _r;};
         u8_t getG()     {return _g;};
         u8_t getB()     {return _b;};

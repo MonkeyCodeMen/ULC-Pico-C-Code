@@ -41,8 +41,8 @@ WS2812FX * pLedNeoStripe;
 #define PIN_RGB1_LED_B      12
 #define PIN_STRIPE_1        18
 #define PIN_STRIPE_2        19
-#define COUNT_STRIPE_1      100
-#define COUNT_STRIPE_2      100
+#define COUNT_STRIPE_1      250
+#define COUNT_STRIPE_2      250
 #define PIN_MATRIX_1        20
 #define PIN_MATRIX_2        21
 
@@ -51,7 +51,7 @@ Led     ledStripe1(PIN_LED_SWITCH_1);
 Led     ledStripe2(PIN_LED_SWITCH_2);
 RgbLed  rgbLedStrip1(PIN_RGB1_LED_R,PIN_RGB1_LED_G,PIN_RGB1_LED_B);
 WS2812FX ws2812strip1(COUNT_STRIPE_1, PIN_STRIPE_1 , NEO_GRB  + NEO_KHZ800);
-WS2812FX ws2812strip2(COUNT_STRIPE_2, PIN_STRIPE_1 , NEO_GRB  + NEO_KHZ800);
+WS2812FX ws2812strip2(COUNT_STRIPE_2, PIN_STRIPE_2 , NEO_GRB  + NEO_KHZ800);
 Adafruit_NeoMatrix neoMatrix1(
       PIN_MATRIX_1,8, 8, 4,4, 
       NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
@@ -112,11 +112,13 @@ void setup() {
   
   LOG(F("setup 0: RGB LED"));
   pRgbCtrl1 = new RgbLedCtrl(&rgbLedStrip1);
-  pRgbCtrl1->setup(F_CONST("breath"));  
+  pRgbCtrl1->setup(F_CONST("rainbow"));  
 
   LOG(F("setup 0: Neo stripe"));
   pNeoStripeCtrl1 = new NeoStripeCtrl(&ws2812strip1);
   pNeoStripeCtrl2 = new NeoStripeCtrl(&ws2812strip2);
+  pNeoStripeCtrl1->setup(13);  
+  pNeoStripeCtrl1->setup(13);  
 
 
   LOG(F("setup 0: Neo matrix"));
@@ -172,9 +174,9 @@ void loop() {
   switch(counter){
     case 1:   pLedCtrl1->loop(time);            break;
     case 2:   pLedCtrl2->loop(time);            break;
-    //case 3:   pRgbCtrl1->loop(time);            break;
-    //case 4:   pNeoStripeCtrl1->loop(time);      break;
-    //case 5:   pNeoStripeCtrl2->loop(time);      break;
+    case 3:   pRgbCtrl1->loop(time);            break;
+    case 4:   pNeoStripeCtrl1->loop(time);      break;
+    case 5:   pNeoStripeCtrl2->loop(time);      break;
     //case 6:   pNeoMatrixCtrl1->loop(time);      break;
     //case 7:   pNeoMatrixCtrl2->loop(time);      break;
     default:  counter = 0;                      break;

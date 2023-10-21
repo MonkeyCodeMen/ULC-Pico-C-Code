@@ -19,15 +19,18 @@ NeoStripeCtrl::NeoStripeCtrl(WS2812FX * pNeoStripe) : Ctrl()
             _aniNameList += ",";
         }
     }
+    _pNeoStripe->init();
     _pNeoStripe->setMode(0);
     _current = 1;
     setStdParameter();
+    _pNeoStripe->start();
 }
 
+
 void NeoStripeCtrl::setStdParameter(){
-    _pNeoStripe->setColor(BLUE);
-    _pNeoStripe->setBrightness(255);
+    _pNeoStripe->setBrightness(0x20);
     _pNeoStripe->setSpeed(1000);
+    _pNeoStripe->setColor(0x007BFF);
 }
 
 void NeoStripeCtrl::setOff(){

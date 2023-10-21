@@ -61,14 +61,19 @@ class RgbLedBlinkAni : public RgbLedAni{
         =======+===============+===========================
         name:  |               |  blink
         -------+---------------+---------------------------
-        p1:    | 0x0000 0080   |  0x0000 00DD
-               |               |  D: dim value  
+        p1:    | 0x0000 0000   |  0x00RR GGBB
+               |               |  R: red value 1 
+               |               |  G: green value 1 
+               |               |  B: blue value 1
         -------+---------------+---------------------------
-        p2:    | 250           |  on time in ms     
+        p2:    | 0x00FF FFFF   |  0x00RR GGBB
+               |               |  R: red value 2 
+               |               |  G: green value 2 
+               |               |  B: blue value 2
         -------+---------------+---------------------------
-        p3:    | 250           |  off time in ms
+        p3:    | 250           |  on time 1 in ms
         -------+---------------+---------------------------
-        p4:    |               |  N/A
+        p4:    | 250           |  on time 2 in ms
         -------+---------------+---------------------------
         pData: | N/A           |  length(0):
                |               |    N/A        
@@ -147,8 +152,7 @@ class RgbLedBreathAni : public RgbLedAni{
         -------+---------------+---------------------------
         p2:    | 0x0000 0130   |  inc time in ms
         -------+---------------+---------------------------
-        p2:    | 0x0000 0130   |  dec time in ms
-        -------+---------------+---------------------------
+        p3:    | 0x0000 0130   |  dec time in ms
         -------+---------------+---------------------------
         p4:    | 0x0000 FF10   |  0x0000 UULL
                |               |  U: upper dim limit
@@ -193,7 +197,7 @@ class RgbLedBreathAni : public RgbLedAni{
                     _lastSwitchTime = time;
                     dim = _lowerLimit;
                     _dimDiff = _upperLimit-_lowerLimit;
-                    pLed->set(dimColorChannel255(_r,dim),dimColorChannel255(_g,dim),dimColorChannel255(_b,dim));
+                    pLed->set(_r,_g,_b,dim);
                     break;
                 
                 case inc:
@@ -205,7 +209,7 @@ class RgbLedBreathAni : public RgbLedAni{
                     } else {
                         dim = _lowerLimit + (diff * _dimDiff) / _incTimeMs;
                     }
-                    pLed->set(dimColorChannel255(_r,dim),dimColorChannel255(_g,dim),dimColorChannel255(_b,dim));
+                    pLed->set(_r,_g,_b,dim);
                     break;
                 
                 case dec:
@@ -217,7 +221,7 @@ class RgbLedBreathAni : public RgbLedAni{
                     } else {
                         dim = _upperLimit - (diff * _dimDiff) / _decTimeMs;
                     }
-                    pLed->set(dimColorChannel255(_r,dim),dimColorChannel255(_g,dim),dimColorChannel255(_b,dim));
+                    pLed->set(_r,_g,_b,dim);
                     break;
             }
         };
@@ -240,36 +244,36 @@ class RgbLedRainbowAni : public RgbLedAni{
         =======+===============+===========================
         name:  |               |  dim
         -------+---------------+---------------------------
-        p1:    | 0x0000 00FF   |  0x00RR GGBB
-               |               |  R: red value  
-               |               |  G: green value  
-               |               |  B: blue value  
+        p1:    | 0x0000 0080   |  0x0000 00DD
+               |               |  D: dim value for all color  
         -------+---------------+---------------------------
-        p2:    | 0x0000 0130   |  inc time in ms
+        p2:    | 0x0000 0001   |  0x0000 SSII
+               |               |  S: color wheel start index
+               |               |  I: inc per step for color wheel 
         -------+---------------+---------------------------
-        p2:    | 0x0000 0130   |  dec time in ms
+        p3:    | 0x0000 000A   |  step time in ms
         -------+---------------+---------------------------
-        -------+---------------+---------------------------
-        p4:    | 0x0000 FF10   |  0x0000 UULL
-               |               |  U: upper dim limit
-               |               |  B: lower dim limit
+        p4:    | N/A           |  N/A
         -------+---------------+---------------------------
         pData: | N/A           |  length(0):
                |               |    N/A        
-    */    public:
+    */    
+    public:
         RgbLedRainbowAni()  : RgbLedAni((const char *)F("rainbow")) {};
         
-        void reset() {
+        void reset() {  setup(0x80,1,0x000A,0,0,NULL); };
+        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
             _state      = stop;
-            _dim        = 128;
-            _wheelIndex = 0;
-            _wheelInc   = 1;
-            _timeInc    = 100;
+            _dim        = L_BYTE(p1);
+            _wheelInc   = L_BYTE(p2);
+            _wheelIndex = H_BYTE(p2);
+            _timeInc    = clamp(1,p3,100000);
             _state      = init;
         };
  
         void loop(u32_t time,RgbLed * pLed){
             u32_t diff,color;
+            u8_t r,g,b;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -281,7 +285,8 @@ class RgbLedRainbowAni : public RgbLedAni{
                     _lastCallTime = time;
                     _wheelIndex = 0;
                     color = getColorWheel24Bit(_wheelIndex);
-                    pLed->set(dimColorChannel255(_r,_dim),dimColorChannel255(_g,_dim),dimColorChannel255(_b,_dim));
+                    r=HH_BYTE(color); g=H_BYTE(color); b=L_BYTE(color);
+                    pLed->set(r,g,b,_dim);
                     break;
                 
                 case run:
@@ -291,19 +296,12 @@ class RgbLedRainbowAni : public RgbLedAni{
                         _wheelIndex += _wheelInc;
                     }
                     color = getColorWheel24Bit(_wheelIndex);
-                    pLed->set(color,_dim);
+                    r=HH_BYTE(color); g=H_BYTE(color); b=L_BYTE(color);
+                    pLed->set(r,g,b,_dim);
                     break;
             }
         };
 
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
-            _state      = stop;
-            _dim        = L_BYTE(p1);
-            _wheelInc   = L_BYTE(p2);
-            _wheelIndex = H_BYTE(p2);
-            _timeInc    = clamp(1,p3,100000);
-            _state      = init;
-        };
 
     private:
         enum RainbowState {stop,init,run};
@@ -314,19 +312,44 @@ class RgbLedRainbowAni : public RgbLedAni{
 };
 
 class RgbLedMultiFlashAni : public RgbLedAni{
+    /*  
+        ref    | default value |  layout
+        =======+===============+===========================
+        name:  |               |  dim
+        -------+---------------+---------------------------
+        p1:    | 0x0000 0080   |  0x0000 00DD
+               |               |  D: dim value for all color  
+        -------+---------------+---------------------------
+        p2:    | 0x0000 00FF   |  0x00RR GGBB
+               |               |  R: red value  
+               |               |  G: green value  
+               |               |  B: blue value   
+        -------+---------------+---------------------------
+        p3:    | 0x0020 0060   |  0xAAAA BBBB
+               |               |  A: on Time in ms       
+               |               |  B: off Time in ms       
+        -------+---------------+---------------------------
+        p4:    | 0x0002 01F4   |  0xAAAA BBBB
+               |               |  A: count of flash group
+               |               |  B: pause time between flash group      
+        -------+---------------+---------------------------
+        pData: | N/A           |  length(0):
+               |               |    N/A        
+    */    
     public:
         RgbLedMultiFlashAni()  : RgbLedAni((const char *)F("multi flash")) {};
         
-        void reset() {
-            // Blaulicht Doppelblitz: 500ms, ~25ms An, ~75ms Aus, ~25ms An (Aus Diagramm oben abgelesen)
+        void reset() { setup(0x80,0xFF,0x00200060,0x000201F4,0,NULL);};
+        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
             _state      = stop;
-            _dim        = 128;
-            _color      = 0x000000FF;
-            _count      = 0;
-            _flashCount = 2;
-            _onTime     = 25;
-            _offTime    = 75;
-            _pauseTime  = 500;
+            _dim        = L_BYTE(p1);
+            _r          = HH_BYTE(p2); 
+            _g          = H_BYTE(p2); 
+            _b          = L_BYTE(p2); 
+            _onTime     = H_WORD(p3);
+            _offTime    = L_WORD(p3);
+            _flashCount = H_WORD(p4);
+            _pauseTime  = L_WORD(p4);
             _state      = init;
         };
  
@@ -341,7 +364,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
                 case init:
                     _state = flashOn;
                     _lastCallTime = time;
-                    pLed->set(_color,_dim);
+                    pLed->set(_r,_g,_b,_dim);
                     break;
                 
                 case flashOn:
@@ -362,7 +385,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
                     diff = time - _lastCallTime;
                     if (diff >= _offTime){
                         _lastCallTime = time;
-                        pLed->set(_color,_dim);
+                        pLed->set(_r,_g,_b,_dim);
                         _state = flashOn;
                     }
                     break;
@@ -371,36 +394,23 @@ class RgbLedMultiFlashAni : public RgbLedAni{
                     diff = time - _lastCallTime;
                     if (diff >= _pauseTime){
                         _lastCallTime = time;
-                        pLed->set(_color,_dim);
+                        pLed->set(_r,_g,_b,_dim);
                         _count = 0;
                         _state = flashOn;
                     }
                     break;
-
-
             }
         };
 
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
-            _state      = stop;
-            _dim        = L_BYTE(p1);
-            _color      = p2 & 0x00FFFFFF;
-            _onTime     = H_WORD(p3);
-            _offTime    = L_WORD(p3);
-            _flashCount = H_WORD(p4);
-            _pauseTime  = L_WORD(p4);
-            _state      = init;
-        };
 
     private:
         enum MultiFlashState {stop,init,flashOn,flashOff,pause};
         volatile MultiFlashState _state;
         u32_t _lastCallTime;
-        u16_t _dim;
         u16_t _onTime,_offTime;
         u16_t _pauseTime;
         u16_t _flashCount,_count;
-        u32_t _color;
+        u8_t  _r,_g,_b,_dim;
 
 };
 
