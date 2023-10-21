@@ -164,18 +164,38 @@ class LedBlinkAni : public LedAni{
 };
 
 class LedMultiFlashAni : public LedAni{
+      /*  
+        ref    | default value |  layout
+        =======+===============+===========================
+        name:  |               |  dim
+        -------+---------------+---------------------------
+        p1:    | 0x0000 00FF   |  0x0000 00DD
+               |               |  D: dim value  
+        -------+---------------+---------------------------
+        p2:    | 0x0           |  N/A
+        -------+---------------+---------------------------
+        p3:    | 0x0020 0060   |  0xAAAA BBBB
+               |               |  A: on Time in ms       
+               |               |  B: off Time in ms       
+        -------+---------------+---------------------------
+        p4:    | 0x0002 01F4   |  0xAAAA BBBB
+               |               |  A: count of flash group
+               |               |  B: pause time between flash group      
+        -------+---------------+---------------------------
+        pData: | N/A           |  length(0):
+               |               |    N/A        
+    */
     public:
         LedMultiFlashAni()  : LedAni((const char *) F("multi flash")) {};
         
-        void reset() {
-            // Blaulicht Doppelblitz: 500ms, ~25ms An, ~75ms Aus, ~25ms An (Aus Diagramm oben abgelesen)
+        void reset() {  setup(0xFF,0,0x00200060,0x000201F4,0,NULL); };
+        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
             _state      = stop;
-            _dim        = LED_MAX;
-            _count      = 0;
-            _flashCount = 2;
-            _onTime     = 25;
-            _offTime    = 75;
-            _pauseTime  = 500;
+            _dim        = L_BYTE(p1);
+            _onTime     = H_WORD(p3);
+            _offTime    = L_WORD(p3);
+            _flashCount = H_WORD(p4);
+            _pauseTime  = L_WORD(p4);
             _state      = init;
         };
  
@@ -228,15 +248,6 @@ class LedMultiFlashAni : public LedAni{
             }
         };
 
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
-            _state      = stop;
-            _dim        = L_BYTE(p1);
-            _onTime     = H_WORD(p3);
-            _offTime    = L_WORD(p3);
-            _flashCount = H_WORD(p4);
-            _pauseTime  = L_WORD(p4);
-            _state      = init;
-        };
 
     private:
         enum MultiFlashState {stop,init,flashOn,flashOff,pause};

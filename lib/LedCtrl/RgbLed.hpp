@@ -10,23 +10,16 @@
 class RgbLed
 {
     public:
-        RgbLed(int pinRed,int pinGreen,int pinBlue);
+        RgbLed(int pinRed,int pinGreen,int pinBlue,bool invers=false);
         ~RgbLed() = default;
 
         void set(u8_t r,u8_t g,u8_t b);
-        void set(u32_t value);
-
-        void set(u8_t r,u8_t g,u8_t b,u8_t dimm);
-        void set(u32_t value,u8_t dim);
-
-
-        static u32_t pack(u8_t r,u8_t g, u8_t b);
-        static u8_t unpackR(u32_t value);
-        static u8_t unpackG(u32_t value);
-        static u8_t unpackB(u32_t value);
-
-        static u8_t  dimChannel(u8_t value,u8_t dim);
-
+        u8_t getR()     {return _r;};
+        u8_t getG()     {return _g;};
+        u8_t getB()     {return _b;};
+        
     private:
         int     _pinR,_pinG,_pinB;
+        u8_t    _r,_g,_b;
+        bool    _invers;
 };

@@ -14,7 +14,7 @@
 void test_LedCtrl_constructor(void) {
   // create Sim LED object and test it
   Led *pSimLed;
-  pSimLed = new Led(LED_BUILTIN);
+  pSimLed = new Led();
   TEST_ASSERT_TRUE( pSimLed != NULL);
   TEST_ASSERT_EQUAL_UINT8( 0 , pSimLed->get());
 
@@ -31,7 +31,7 @@ void test_LedCtrl_constructor(void) {
 void test_LedCtrl_init(void) {
   // create Sim LED object and test it
   Led *pSimLed;
-  pSimLed = new Led(LED_BUILTIN);
+  pSimLed = new Led();
   TEST_ASSERT_TRUE( pSimLed != NULL);
   TEST_ASSERT_EQUAL_UINT8( 0 , pSimLed->get());
 
@@ -49,7 +49,7 @@ void test_LedCtrl_init(void) {
 void test_LedCtrl_aniList(void) {
   // create Sim LED object and test it
   Led *pSimLed;
-  pSimLed = new Led(LED_BUILTIN);
+  pSimLed = new Led(LED_BUILTIN,true);
   TEST_ASSERT_TRUE( pSimLed != NULL);
   TEST_ASSERT_EQUAL_UINT8( 0 , pSimLed->get());
 

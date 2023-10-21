@@ -1,17 +1,18 @@
 #include "Led.hpp"
 
-Led::Led(int pin)
+Led::Led(int pin,bool invers)
 {
     _pin = pin; 
+    _invers = invers;
     pinMode(_pin, OUTPUT);
     set(LED_OFF);
 }
 
 void Led::set(u8_t value){
-    #if LED_LOGIC_INVERS == true
+    if(_invers == true){
         analogWrite(_pin, 255-value);
-    #else
+    } else {
         analogWrite(_pin, value);
-    #endif
+    }
     _value = value;
 }

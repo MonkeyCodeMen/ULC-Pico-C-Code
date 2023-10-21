@@ -11,7 +11,7 @@
 class Led
 {
     public:
-        Led(int pin);
+        Led(int pin=LED_BUILTIN,bool invers=false);
         ~Led() = default;
 
         void set(u8_t value);
@@ -21,4 +21,5 @@ class Led
     private:
         int     _pin;
         u8_t    _value;
+        bool    _invers;
 };
