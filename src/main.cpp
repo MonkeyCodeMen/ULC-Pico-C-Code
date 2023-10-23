@@ -84,6 +84,12 @@ NeoMatrixCtrl  * pNeoMatrixCtrl2;
 #include "Com.hpp"
 Com * pCom;
 
+#include <SD.h>
+SDFile root;
+#define PIN_SD_CS 16
+void printDirectory(SDFile dir, int numTabs);
+
+
 
 void TestDebug();
 
@@ -94,16 +100,16 @@ void setup() {
   //setupStarted = true;
   pinMode(LED_BUILTIN,OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
-  LOG(F("setup 0:"));
+  LOG(F_CONST("setup 0:"));
   //analogWriteFreq(3200);
   //analogWriteRange(255);
 
-  LOG(F("setup 0: Test functions"));
+  LOG(F_CONST("setup 0: Test functions"));
   TestDebug();
 
-  setupStartsecondCore = true;
 
-  LOG(F("setup 0: LED switch"));
+
+  LOG(F_CONST("setup 0: LED switch"));
   pLedCtrl1 = new LedCtrl(&ledStripe1);
   pLedCtrl2 = new LedCtrl(&ledStripe2);
   pLedCtrl1->setup(F_CONST("blink"));
@@ -112,27 +118,29 @@ void setup() {
   pLedCtrl2->setup(0xFF,250,250,0,0,NULL);
   
   
-  LOG(F("setup 0: RGB LED"));
+  LOG(F_CONST("setup 0: RGB LED"));
   pRgbCtrl1 = new RgbLedCtrl(&rgbLedStrip1);
   pRgbCtrl1->setup(F_CONST("multi flash"));  
 
-  LOG(F("setup 0: Neo stripe"));
+  LOG(F_CONST("setup 0: Neo stripe"));
   pNeoStripeCtrl1 = new NeoStripeCtrl(&ws2812strip1);
   pNeoStripeCtrl2 = new NeoStripeCtrl(&ws2812strip2);
   pNeoStripeCtrl1->setup(13);  
   pNeoStripeCtrl1->setup(13);  
 
 
-  LOG(F("setup 0: Neo matrix"));
+  LOG(F_CONST("setup 0: Neo matrix"));
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
   
-  LOG(F("setup 0: COM interface"));
+  LOG(F_CONST("setup 0: COM interface"));
   pCom = new Com();
   pCom->setup();
 
-  LOG(F("setup 0: done"));
+  LOG(F_CONST("setup 0: done"));
   digitalWrite(LED_BUILTIN, LOW);
+
+  setupStartsecondCore = true;
 }
 
 void setup1() {
@@ -140,10 +148,10 @@ void setup1() {
 
   }
 
-  LOG(F("setup 1:"));
+  LOG(F_CONST("setup 1:"));
 
 
-  LOG(F("setup 1: TFT"));
+  LOG(F_CONST("setup 1: TFT"));
   pTFT = new TFT_eSPI();
   pTFT->init();
   pTFT->setRotation(1);
@@ -151,9 +159,20 @@ void setup1() {
   pinMode(PIN_TFT_LED, OUTPUT);
   analogWrite(PIN_TFT_LED,TFT_DIM);
 
-  LOG(F("setup 1: cube"));
+  LOG(F_CONST("setup 1: cube"));
   pCube = new Cube(pTFT);
 
+/*
+  LOG(F_CONST("setup 1: Initializing SD card..."));
+  if (!SD.begin(4)) {
+    LOG(F_CONST("setup 1: initialization failed!"));
+    while (1);
+  }
+  LOG(F_CONST("setup 1: initialization done."));
+  root = SD.open("/");
+  printDirectory(root, 0);
+*/
+ 
   LOG(F("setup 1: done"));
 }
 
@@ -193,13 +212,33 @@ void loop1(){
 }
 
 void TestDebug(){
-  ledStripe1.set(0);
-  ledStripe1.set(128);
-  ledStripe1.set(255);
-  ledStripe1.set(0);
 
-  ledStripe2.set(0);
-  ledStripe2.set(128);
-  ledStripe2.set(255);
-  ledStripe2.set(0);
+}
+
+
+ 
+
+
+void printDirectory(SDFile dir, int numTabs) {
+  while (true) {
+
+    SDFile entry =  dir.openNextFile();
+    if (! entry) {
+      // no more files
+      break;
+    }
+    for (uint8_t i = 0; i < numTabs; i++) {
+      Serial.print('\t');
+    }
+    LOG(entry.name());
+    if (entry.isDirectory()) {
+      LOG("/");
+      printDirectory(entry, numTabs + 1);
+    } else {
+      // files have sizes, directories do not
+      LOG("\t\t");
+      LOG(String(entry.size()).c_str());
+    }
+    entry.close();
+  }
 }
