@@ -107,12 +107,14 @@ void setup() {
   pLedCtrl1 = new LedCtrl(&ledStripe1);
   pLedCtrl2 = new LedCtrl(&ledStripe2);
   pLedCtrl1->setup(F_CONST("blink"));
+  pLedCtrl1->setup(0xFF,250,250,0,0,NULL);
   pLedCtrl2->setup(F_CONST("blink"));
+  pLedCtrl2->setup(0xFF,250,250,0,0,NULL);
   
   
   LOG(F("setup 0: RGB LED"));
   pRgbCtrl1 = new RgbLedCtrl(&rgbLedStrip1);
-  pRgbCtrl1->setup(F_CONST("rainbow"));  
+  pRgbCtrl1->setup(F_CONST("multi flash"));  
 
   LOG(F("setup 0: Neo stripe"));
   pNeoStripeCtrl1 = new NeoStripeCtrl(&ws2812strip1);
