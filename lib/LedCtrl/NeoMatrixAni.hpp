@@ -198,7 +198,7 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
     /*  
         ref    | default value |  layout
         =======+===============+===========================
-        name:  |               |  multi flash
+        name:  |               |  rainbow flash
         -------+---------------+---------------------------
         p1:    | 0x0019 004A   |  0xIIII DDDD
                |               |  I:on time
@@ -415,6 +415,201 @@ class MatrixMultiFlashAni : public MatrixRainbowFlashAni{
         u8_t  _colorIndex,_colorCount;
 
 };
+  
+class MatrixRunningRectAni : public NeoMatrixAni{
+    /*  
+        ref    | default value |  layout
+        =======+===============+===========================
+        name:  |               |  running rect
+        -------+---------------+---------------------------
+        p1:    | 0x000A 5008   |  0xSSSS DDII
+               |               |  S:step time in ms
+               |               |  I:inc step for color wheel (full wheel 255)
+               |               |  D:dim value for color
+        -------+---------------+---------------------------
+        p2:    | 0x0000 0001   |  0x0000 00TT
+               |               |  T: rect border width
+        -------+---------------+---------------------------
+        p3:    | N/A           |  N/A
+        -------+---------------+---------------------------
+        p4:    | N/A           |  N/A
+        -------+---------------+---------------------------
+        pData: | N/A           |  N/A 
+
+        currently only with rainbow colors
+        ToDo: color from color list 
+    */
+    #define COLOR_LIST_LENGTH 16
+    public:
+        MatrixRunningRectAni():NeoMatrixAni((const char *)F("running rect"))      {};
+
+        void reset() { setup(0x000A5008,0,0,0,0,NULL); };
+       
+        virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
+            _state      = stop;
+            _incTime    = H_WORD(p1);
+            _incStep    = L_BYTE(p1);
+            _dim        = H_BYTE(p1);
+            _border     = L_BYTE(p2);
+            _state      = init;
+        };
+
+        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
+            u32_t diff;
+            switch (_state){
+                case stop:
+                    // do nothing parameters are loocked by other thread
+                    // the setup will move forward to state init
+                    break;
+
+                case init:
+                    _lastCallTime = time;
+                    _colorIndex = 0;
+                    _sizeX = pMatrix->width();
+                    _sizeY = pMatrix->height();
+                    _setNextColor(pMatrix);
+                    _state = run;
+                    break;
+                
+                case run:
+                    diff = time - _lastCallTime;
+                    if (diff >= _incTime){
+                        _lastCallTime = time;
+                        _setNextColor(pMatrix);
+                    }
+                    break;
+            }
+        };
+
+ 
+    protected:
+        virtual void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
+            u16_t color565;
+            u32_t color24;
+            u8_t  borderLine = 0;
+            u8_t  colorIndex = _colorIndex;
+            u16_t steps,x,y;
+            s32_t h,w;
+            
+
+            steps = _sizeX/2;
+            if (_sizeY/2 < steps){
+                steps = _sizeY/2;
+            }
+
+            for(int i=0; i < steps; i++){
+                x=0+i;
+                y=0+i;
+                h = _sizeY - (2*i);
+                w = _sizeX - (2*i);
+
+                if ((h>0) && (w>0)){
+                    // get color from color wheel
+                    color24 = getColorWheel24Bit(colorIndex);
+                    color24 = dimColor255(color24,_dim);
+                    color565 = toColor565(color24);
+                    
+                    // draw 4 lines (rect)
+                    pMatrix->drawRect(x,y,w,h,color565 );
+
+                    // change color or repeat color 
+                    borderLine++;
+                    if(borderLine >= _border){
+                        colorIndex += _incStep;
+                        borderLine = 0;
+                    }
+                }
+            }
+            pMatrix->show();
+
+            // next time start one color step later 
+            _colorIndex += _incStep;
+        };
+
+        enum RunningRectState {stop,init,run};
+        volatile RunningRectState _state;
+        u32_t _lastCallTime;
+        u16_t _incTime;
+        u8_t  _dim,_incStep,_colorIndex,_border;
+        u32_t _sizeX,_sizeY;
+        s32_t _startX,_startY;
+
+};
+ 
+class MatrixRunningCircleAni : public MatrixRunningRectAni{
+    /*  
+        ref    | default value |  layout
+        =======+===============+===========================
+        name:  |               |  running circle
+        -------+---------------+---------------------------
+        p1:    | 0x000A 5008   |  0xSSSS DDII
+               |               |  S:step time in ms
+               |               |  I:inc step for color wheel (full wheel 255)
+               |               |  D:dim value for color
+        -------+---------------+---------------------------
+        p2:    | 0x0000 0001   |  0x0000 00TT
+               |               |  T: circle border width
+        -------+---------------+---------------------------
+        p3:    | N/A           |  N/A
+        -------+---------------+---------------------------
+        p4:    | N/A           |  N/A
+        -------+---------------+---------------------------
+        pData: | N/A           |  N/A 
+
+        currently only with rainbow colors
+        ToDo: color from color list 
+    */
+    #define COLOR_LIST_LENGTH 16
+    public:
+        MatrixRunningCircleAni() {
+            MatrixRunningRectAni();
+            NeoMatrixAni((const char *)F("running circle"));
+        };
+
+
+ 
+    protected:
+        virtual void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
+            u16_t color565;
+            u32_t color24;
+            u8_t  borderLine = 0;
+            u8_t  colorIndex = _colorIndex;
+            u16_t steps,x,y;
+            s32_t h,w;
+            
+
+            steps = _sizeX/2;
+            if (_sizeY/2 < steps){
+                steps = _sizeY/2;
+            }
+
+            for(int i=0; i < steps; i++){
+                if ((h>0) && (w>0)){
+                    // get color from color wheel
+                    color24 = getColorWheel24Bit(colorIndex);
+                    color24 = dimColor255(color24,_dim);
+                    color565 = toColor565(color24);
+                    
+                    // rect with rounded corner
+                    pMatrix->drawRect(i,i,w,h,color565 );
+
+                    // change color or repeat color 
+                    borderLine++;
+                    if(borderLine >= _border){
+                        colorIndex += _incStep;
+                        borderLine = 0;
+                    }
+                }
+            }
+            pMatrix->show();
+
+            // next time start one color step later 
+            _colorIndex += _incStep;
+        };
+
+
+};  
+  
     /*  
         ref    | default value |  layout
         =======+===============+===========================

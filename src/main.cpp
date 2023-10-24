@@ -5,13 +5,20 @@
 #include <Adafruit_NeoMatrix.h>
 
 
-#include <TFT_eSPI.h> // Hardware-specific library
-TFT_eSPI * pTFT;       // Invoke custom library
-#define PIN_TFT_LED 17
-#define TFT_DIM     int(255*1.0)
+//#define WITH_DISPLAY
+//#define WITH_SD_CARD
 
-#include <cube.hpp>
-Cube * pCube;
+#ifdef WITH_DISPLAY
+  #include <TFT_eSPI.h> // Hardware-specific library
+  TFT_eSPI * pTFT;       // Invoke custom library
+  #define PIN_TFT_LED 17
+  #define TFT_DIM     int(255*1.0)
+
+  #include <cube.hpp>
+  Cube * pCube;
+#endif
+
+
 
 #include <WS2812FX.h>
 #define LED_COUNT 30
@@ -47,13 +54,19 @@ WS2812FX * pLedNeoStripe;
 #define PIN_MATRIX_2        21
 
 
+// LED objects
+
+// LED Switch
 Led     ledStripe1(PIN_LED_SWITCH_1);
 Led     ledStripe2(PIN_LED_SWITCH_2);
+// RGB LED
 RgbLed  rgbLedStrip1(PIN_RGB1_LED_R,PIN_RGB1_LED_G,PIN_RGB1_LED_B);
+// WS2812 LED stripe
 WS2812FX ws2812strip1(COUNT_STRIPE_1, PIN_STRIPE_1 , NEO_GRB  + NEO_KHZ800);
 WS2812FX ws2812strip2(COUNT_STRIPE_2, PIN_STRIPE_2 , NEO_GRB  + NEO_KHZ800);
+// WS 2812 LED matrix
 Adafruit_NeoMatrix neoMatrix1(
-      PIN_MATRIX_1,8, 8, 4,4, 
+      PIN_MATRIX_1,8, 8, 1,1, 
       NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
       NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
       NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
@@ -65,9 +78,7 @@ Adafruit_NeoMatrix neoMatrix2(
       NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
       NEO_GRB            + NEO_KHZ800);
 
-
-
-
+// control objects for LED's 
 LedCtrl    * pLedCtrl1;
 LedCtrl    * pLedCtrl2;
 RgbLedCtrl * pRgbCtrl1;
@@ -76,24 +87,22 @@ NeoStripeCtrl  * pNeoStripeCtrl2;
 NeoMatrixCtrl  * pNeoMatrixCtrl1;
 NeoMatrixCtrl  * pNeoMatrixCtrl2;
 
-
-
-
-
-
 #include "Com.hpp"
 Com * pCom;
 
-#include <SD.h>
-SDFile root;
-#define PIN_SD_CS 16
-void printDirectory(SDFile dir, int numTabs);
 
+#ifdef WITH_SD_CARD
+  #include <SD.h>
+  SDFile root;
+  #define PIN_SD_CS 16
+  void printDirectory(SDFile dir, int numTabs);
+#endif
 
 
 void TestDebug();
 
 volatile bool setupStartsecondCore = false;
+volatile bool waitForsecondCore    = true;
 //bool setupStarted   = false;
 /***********************************************************************************************************************************/
 void setup() {
@@ -133,112 +142,137 @@ void setup() {
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
   
-  LOG(F_CONST("setup 0: COM interface"));
-  pCom = new Com();
-  pCom->setup();
+
+
+  setupStartsecondCore = true;
+  while(waitForsecondCore == true){
+  }
 
   LOG(F_CONST("setup 0: done"));
   digitalWrite(LED_BUILTIN, LOW);
-
-  setupStartsecondCore = true;
 }
 
 void setup1() {
   while(setupStartsecondCore == false){
-
   }
 
   LOG(F_CONST("setup 1:"));
 
+  LOG(F_CONST("setup 1: COM interface"));
+  pCom = new Com();
+  pCom->setup();
 
-  LOG(F_CONST("setup 1: TFT"));
-  pTFT = new TFT_eSPI();
-  pTFT->init();
-  pTFT->setRotation(1);
-  pTFT->fillScreen(TFT_BLACK);
-  pinMode(PIN_TFT_LED, OUTPUT);
-  analogWrite(PIN_TFT_LED,TFT_DIM);
+  #ifdef WITH_DISPLAY
+    LOG(F_CONST("setup 1: TFT"));
+    pTFT = new TFT_eSPI();
+    pTFT->init();
+    pTFT->setRotation(1);
+    pTFT->fillScreen(TFT_BLACK);
+    pinMode(PIN_TFT_LED, OUTPUT);
+    analogWrite(PIN_TFT_LED,TFT_DIM);
 
-  LOG(F_CONST("setup 1: cube"));
-  pCube = new Cube(pTFT);
+    LOG(F_CONST("setup 1: cube"));
+    pCube = new Cube(pTFT);
+  #endif
 
-/*
-  LOG(F_CONST("setup 1: Initializing SD card..."));
-  if (!SD.begin(4)) {
-    LOG(F_CONST("setup 1: initialization failed!"));
-    while (1);
-  }
-  LOG(F_CONST("setup 1: initialization done."));
-  root = SD.open("/");
-  printDirectory(root, 0);
-*/
+  #ifdef WITH_SD_CARD
+    LOG(F_CONST("setup 1: Initializing SD card..."));
+    if (!SD.begin(4)) {
+      LOG(F_CONST("setup 1: SD card initialization failed!"));
+      while (1);
+    }
+    LOG(F_CONST("setup 1: SD card initialization done."));
+    root = SD.open("/");
+    printDirectory(root, 0);
+  #endif
  
-  LOG(F("setup 1: done"));
+  LOG(F_CONST("setup 1: done"));
 }
 
 /***********************************************************************************************************************************/
 void loop() {
-  static u32_t counter=1;
-  static u32_t lastCycle=0;
-  u32_t time;
+  static u8_t prgState=1;
+  static u8_t ledState=0;
+  static u32_t lastSwitch=0;
+  u32_t now = millis();
+  u32_t diff = now-lastSwitch;
 
-  time = millis();
-
-  if (time-lastCycle < 250) 
-    { digitalWrite(LED_BUILTIN, LOW);}
-  else if (time-lastCycle < 500) 
-    { digitalWrite(LED_BUILTIN, HIGH);  }
-  else 
-    { lastCycle = time;}
-
-  pCom->loop();
-  switch(counter){
-    case 1:   pLedCtrl1->loop(time);            break;
-    case 2:   pLedCtrl2->loop(time);            break;
-    case 3:   pRgbCtrl1->loop(time);            break;
-    case 4:   pNeoStripeCtrl1->loop(time);      break;
-    case 5:   pNeoStripeCtrl2->loop(time);      break;
-    //case 6:   pNeoMatrixCtrl1->loop(time);      break;
-    //case 7:   pNeoMatrixCtrl2->loop(time);      break;
-    default:  counter = 0;                      break;
+  switch(ledState){
+    case 0:   if (diff >= 250){
+                  digitalWrite(LED_BUILTIN, HIGH);
+                  lastSwitch = now;
+                  ledState = 1;
+                  }
+              break;
+    case 1:   if (diff >= 250){
+                  digitalWrite(LED_BUILTIN, LOW);
+                  lastSwitch = now;
+                  ledState = 0;
+                  }
+              break;
+    default:  LOG(F_CONST("loop 0 unknown ledState"));
+              digitalWrite(LED_BUILTIN, LOW);
+              lastSwitch = now;
+              ledState = 0;
+              break;
   }
-  counter++;
+
+
+  switch(prgState){
+    case 1:   pLedCtrl1->loop(now);            break;
+    case 2:   pLedCtrl2->loop(now);            break;
+    case 3:   pRgbCtrl1->loop(now);            break;
+    case 4:   pNeoStripeCtrl1->loop(now);      break;
+    case 5:   pNeoStripeCtrl2->loop(now);      break;
+    case 6:   pNeoMatrixCtrl1->loop(now);      break;
+    case 7:   pNeoMatrixCtrl2->loop(now);      break;
+    default:  prgState = 0;                      break;
+  }
+  prgState++;
 }
 
 void loop1(){
-  pCube->Render();
-  pCube->moveView();
-  sleep_ms(10);
+  static u32_t lastCycle=0;
+  u32_t now = millis();
+
+  if (now-lastCycle > 25){
+    #ifdef WITH_DISPLAY
+      pCube->Render();
+      pCube->moveView();
+    #endif
+    lastCycle = now;
+  }
+  pCom->loop();
 }
 
 void TestDebug(){
-
+  // place code to debug here (single core before startup)
 }
 
 
  
+#ifdef WITH_SD_CARD
+  void printDirectory(SDFile dir, int numTabs) {
+    while (true) {
 
-
-void printDirectory(SDFile dir, int numTabs) {
-  while (true) {
-
-    SDFile entry =  dir.openNextFile();
-    if (! entry) {
-      // no more files
-      break;
+      SDFile entry =  dir.openNextFile();
+      if (! entry) {
+        // no more files
+        break;
+      }
+      for (uint8_t i = 0; i < numTabs; i++) {
+        Serial.print('\t');
+      }
+      LOG(entry.name());
+      if (entry.isDirectory()) {
+        LOG("/");
+        printDirectory(entry, numTabs + 1);
+      } else {
+        // files have sizes, directories do not
+        LOG("\t\t");
+        LOG(String(entry.size()).c_str());
+      }
+      entry.close();
     }
-    for (uint8_t i = 0; i < numTabs; i++) {
-      Serial.print('\t');
-    }
-    LOG(entry.name());
-    if (entry.isDirectory()) {
-      LOG("/");
-      printDirectory(entry, numTabs + 1);
-    } else {
-      // files have sizes, directories do not
-      LOG("\t\t");
-      LOG(String(entry.size()).c_str());
-    }
-    entry.close();
   }
-}
+#endif
