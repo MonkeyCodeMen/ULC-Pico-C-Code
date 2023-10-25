@@ -2,6 +2,7 @@
 #include "Ani.hpp"
 #include <Adafruit_NeoMatrix.h>
 #include "helper.hpp"
+#include "Debug.hpp"
 
 
 class NeoMatrixAni:public Ani
@@ -116,7 +117,7 @@ class MatrixBreathAni : public NeoMatrixAni{
     */
     public:
         MatrixBreathAni():NeoMatrixAni((const char *)F("breath"))      {};
-        void reset() { setup(0x000000FF,0x00000A50,0x0BBB0CCCC,0,0,NULL); };
+        void reset() { setup(0x000000FF,0x00000A50,0x0BBB0CCC,0,0,NULL); };
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
             u32_t diff,color;
@@ -422,7 +423,7 @@ class MatrixRunningRectAni : public NeoMatrixAni{
         =======+===============+===========================
         name:  |               |  running rect
         -------+---------------+---------------------------
-        p1:    | 0x000A 5008   |  0xSSSS DDII
+        p1:    | 0x01F4 5008   |  0xSSSS DDII
                |               |  S:step time in ms
                |               |  I:inc step for color wheel (full wheel 255)
                |               |  D:dim value for color
@@ -443,7 +444,7 @@ class MatrixRunningRectAni : public NeoMatrixAni{
     public:
         MatrixRunningRectAni():NeoMatrixAni((const char *)F("running rect"))      {};
 
-        void reset() { setup(0x000A5008,0,0,0,0,NULL); };
+        void reset() { setup(0x01005040,0,0,0,0,NULL); };
        
         virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
             _state      = stop;
@@ -451,6 +452,7 @@ class MatrixRunningRectAni : public NeoMatrixAni{
             _incStep    = L_BYTE(p1);
             _dim        = H_BYTE(p1);
             _border     = L_BYTE(p2);
+            LOG(F_CONST("RGB matrix running rect selected"));
             _state      = init;
         };
 
