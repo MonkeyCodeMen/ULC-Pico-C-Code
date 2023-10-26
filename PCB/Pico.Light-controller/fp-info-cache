@@ -1,4 +1,4 @@
-20590119323146874
+20595163577292452
 Audio_Module
 Reverb_BTDR-1H
 Digital Reverberation Unit, http://www.belton.co.kr/inc/downfile.php?seq=17&file=pdf (footprint from http://www.uk-electronic.de/PDF/BTDR-1.pdf)
@@ -1179,6 +1179,13 @@ Button_Switch_SMD
 SW_DPDT_CK_JS202011JCQN
 Sub-miniature slide switch, vertical, SMT J bend https://dznh3ojzb2azq.cloudfront.net/products/Slide/JS/documents/datasheet.pdf
 switch DPDT SMT
+0
+6
+6
+Button_Switch_SMD
+SW_JOYSTick 10x10x9
+C&K Switches 1P1T SMD PTS125 Series 12mm Tact Switch with Pegs, https://www.ckswitches.com/media/1462/pts125.pdf
+Button Tactile Switch SPST 1P1T
 0
 6
 6
@@ -58253,13 +58260,6 @@ ESP8266 WiFi microcontroller
 0
 16
 16
-Modules_User
-RPi_Pico_SMD_TH
-Through hole straight pin header, 2x20, 2.54mm pitch, double rows
-Through hole pin header THT 2x20 2.54mm double row
-0
-86
-43
 Motors
 Vybronics_VZ30C1T8219732L
 Vibration motor, 2.3-3.2V, 14000rpm, 0.7G, https://www.vybronics.com/wp-content/uploads/datasheet-files/Vybronics-VZ30C1T8219732L-datasheet.pdf
@@ -75494,6 +75494,34 @@ TO-264-5 Vertical RM 3.81mm
 0
 5
 5
+Pico
+Crystal_SMD_HC49-US
+SMD Crystal HC-49-SD http://cdn-reichelt.de/documents/datenblatt/B400/xxx-HC49-SMD.pdf, 11.4x4.7mm^2 package
+SMD SMT crystal
+0
+2
+2
+Pico
+RP2040-QFN-56
+QFN, 56 Pin (http://www.cypress.com/file/416486/download#page=40), generated with kicad-footprint-generator ipc_dfn_qfn_generator.py
+QFN DFN_QFN
+0
+70
+57
+Pico
+RPi_Pico_SMD_TH
+Through hole straight pin header, 2x20, 2.54mm pitch, double rows
+Through hole pin header THT 2x20 2.54mm double row
+0
+86
+43
+Pico
+RPi_Pico_SMD_TH_copy
+Through hole straight pin header, 2x20, 2.54mm pitch, double rows
+Through hole pin header THT 2x20 2.54mm double row
+0
+80
+40
 Potentiometer_SMD
 Potentiometer_ACP_CA6-VSMD_Vertical
 Potentiometer, vertical, ACP CA6-VSMD, http://www.acptechnologies.com/wp-content/uploads/2017/06/01-ACP-CA6.pdf
@@ -76418,13 +76446,6 @@ Potentiometer vertical Vishay T73YP
 0
 3
 3
-Power_Protection_User
-Nexperia-SOD323-09_04_2018-0-0
-
-
-0
-4
-2
 RF
 Skyworks_SKY13575_639LF
 http://www.skyworksinc.com/uploads/documents/SKY13575_639LF_203270D.pdf

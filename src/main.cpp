@@ -7,8 +7,11 @@
 #include <helper.hpp>
 
 #include <globalObjects.hpp>
+#include <LoopStats.hpp>
 
 void TestDebug();
+
+
 
 volatile bool setupStartsecondCore = false;
 volatile bool waitForsecondCore    = true;
@@ -24,6 +27,18 @@ void setup() {
   LOG(F_CONST("setup 0:"));
   //analogWriteFreq(3200);
   //analogWriteRange(255);
+
+  #undef SS
+  #undef MOSI
+  #undef 
+
+  static const uint8_t SS = PIN_SPI0_SS;
+  static const uint8_t MOSI = PIN_SPI0_MOSI;
+  static const uint8_t MISO = PIN_SPI0_MISO;
+  static const uint8_t SCK = PIN_SPI0_SCK;
+
+  static const uint8_t SDA = PIN_WIRE0_SDA;
+  static const uint8_t SCL = PIN_WIRE0_SCL;
 
   LOG(F_CONST("setup 0: Test functions"));
   TestDebug();
@@ -98,30 +113,6 @@ void setup1() {
   waitForsecondCore = false;
 }
 
-void loopStats(u32_t now){
-  static u32_t lastLoop=0;
-  static u32_t lastReport=0;
-  static u32_t occurence[]={0,0,0,0,0, 0,0,0,0,0, 0};
-  static u32_t factor = 10;
-  
-  u32_t diff = (now-lastLoop) / factor;
-  lastLoop = now;
-  diff = clamp(0,diff,10);
-  occurence[diff]++;
-  
-  if (now-lastReport >= 5000){
-    String out = "\n\n";
-    for(int i=0;i < 10; i++){
-      out += "duration "+String(i*factor)+" to "+String((i+1)*factor)+" ms: "+String(occurence[i])+"times \n";
-      occurence[i]=0;
-    }
-    out += "duration more than "+String(10*factor)+" ms: "+String(occurence[10])+"times \n";
-    occurence[10]=0;
-    LOG(out.c_str());
-    lastReport = now;
-  }
-
-}
 
 /***********************************************************************************************************************************/
 
@@ -129,19 +120,21 @@ void loop() {
   static u8_t prgState=1;
   static u8_t ledState=0;
   static u32_t lastSwitch=0;
+  static u32_t lastStatReport = 0;
+  static LoopStats stats(20,10);
+  
+  
   u32_t now = millis();
-  loopStats(now);
-
-  u32_t diff = now-lastSwitch;
+  stats.measure(now);
 
   switch(ledState){
-    case 0:   if (diff >= 250){
+    case 0:   if (now-lastSwitch >= 250){
                   digitalWrite(LED_BUILTIN, HIGH);
                   lastSwitch = now;
                   ledState = 1;
                   }
               break;
-    case 1:   if (diff >= 250){
+    case 1:   if (now-lastSwitch >= 250){
                   digitalWrite(LED_BUILTIN, LOW);
                   lastSwitch = now;
                   ledState = 0;
@@ -154,6 +147,11 @@ void loop() {
               break;
   }
 
+  if (now - lastStatReport > 5000){
+    String out = stats.print();
+    LOG(out.c_str());
+    lastStatReport = now;
+  }
 
   switch(prgState){
 

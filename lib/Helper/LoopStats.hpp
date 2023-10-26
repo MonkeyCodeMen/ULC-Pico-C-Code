@@ -10,12 +10,16 @@ class LoopStats
 
         void measure(u32_t now);
         void reset();
-        void print();
+        String print();
+        u16_t getSampleCount()          {return _sampleCount;};
+        void limitSamples(u16_t count)  {_sampleTarget = count;};
+        bool sampleDone()               { return _sampleCount >= _sampleTarget ? true : false;};
+
     
     private:
-        u16_t **    _pOccurence;
-        u16_t       _measures;
-        u32_t       _min,_max,_mean;
+        u16_t *     _pBuffer;
+        u16_t       _sampleCount,_sampleTarget;
+        u32_t       _min,_max,_sum;
         u32_t       _bands;
         u32_t       _factor_ms;
         
