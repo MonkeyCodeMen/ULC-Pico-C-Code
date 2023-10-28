@@ -28,17 +28,6 @@ void setup() {
   //analogWriteFreq(3200);
   //analogWriteRange(255);
 
-  #undef SS
-  #undef MOSI
-  #undef 
-
-  static const uint8_t SS = PIN_SPI0_SS;
-  static const uint8_t MOSI = PIN_SPI0_MOSI;
-  static const uint8_t MISO = PIN_SPI0_MISO;
-  static const uint8_t SCK = PIN_SPI0_SCK;
-
-  static const uint8_t SDA = PIN_WIRE0_SDA;
-  static const uint8_t SCL = PIN_WIRE0_SCL;
 
   LOG(F_CONST("setup 0: Test functions"));
   TestDebug();
@@ -100,13 +89,14 @@ void setup1() {
 
   #ifdef WITH_SD_CARD
     LOG(F_CONST("setup 1: Initializing SD card..."));
-    if (!SD.begin(4)) {
+    if (!SD.begin(PIN_SPI0_CS_SD)) {
       LOG(F_CONST("setup 1: SD card initialization failed!"));
-      //while (1);
     }
     LOG(F_CONST("setup 1: SD card initialization done."));
     root = SD.open("/");
-    printDirectory(root, 0);
+    String dir = printDirectory(root, 0);
+    dir = "setup 1: directory of SD card:\n\n" + dir +"\n\n";
+    LOG(dir.c_str());
   #endif
  
   LOG(F_CONST("setup 1: done"));
@@ -147,11 +137,13 @@ void loop() {
               break;
   }
 
-  if (now - lastStatReport > 5000){
-    String out = stats.print();
-    LOG(out.c_str());
-    lastStatReport = now;
-  }
+  #ifdef PRINT_LOOP_STATS
+    if (now - lastStatReport > 5000){
+      String out = stats.print();
+      LOG(out.c_str());
+      lastStatReport = now;
+    }
+  #endif
 
   switch(prgState){
 
@@ -196,7 +188,8 @@ void TestDebug(){
 
  
 #ifdef WITH_SD_CARD
-  void printDirectory(SDFile dir, int numTabs) {
+  String printDirectory(SDFile dir, int numTabs) {
+    String out="";
     while (true) {
 
       SDFile entry =  dir.openNextFile();
@@ -205,18 +198,20 @@ void TestDebug(){
         break;
       }
       for (uint8_t i = 0; i < numTabs; i++) {
-        Serial.print('\t');
+        out+=('\t');
       }
-      LOG(entry.name());
+      out+=entry.name();
       if (entry.isDirectory()) {
-        LOG("/");
-        printDirectory(entry, numTabs + 1);
+        out+="/\n";
+        out += printDirectory(entry, numTabs + 1);
       } else {
         // files have sizes, directories do not
-        LOG("\t\t");
-        LOG(String(entry.size()).c_str());
+        out+="\t\t";
+        out+=String(entry.size(),DEC);
+        out+="\n";
       }
       entry.close();
     }
+    return out;
   }
 #endif

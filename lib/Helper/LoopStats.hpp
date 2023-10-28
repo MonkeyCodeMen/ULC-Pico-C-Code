@@ -22,5 +22,7 @@ class LoopStats
         u32_t       _min,_max,_sum;
         u32_t       _bands;
         u32_t       _factor_ms;
+        bool        _first;
+        u32_t       _lastCall;
         
 };

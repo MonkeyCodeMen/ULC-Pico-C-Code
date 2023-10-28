@@ -1,3 +1,4 @@
 (fp_lib_table
   (lib (name "Pico")(type "KiCad")(uri "C:/Data/Users/Menninger_s1/Documents/PyScripts/RpPico-arduino-blink-debug/PCB/Pico.pretty")(options "")(descr ""))
+  (lib (name "eec")(type "KiCad")(uri "C:/Users/User/Documents/PlatformIO/Projects/ULC-Pico/PCB/Pico.pretty/eec.pretty")(options "")(descr ""))
 )

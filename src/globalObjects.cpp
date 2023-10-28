@@ -57,6 +57,4 @@ Com * pCom;
 #ifdef WITH_SD_CARD
   #include <SD.h>
   SDFile root;
-  #define PIN_SD_CS 16
-  void printDirectory(SDFile dir, int numTabs);
 #endif

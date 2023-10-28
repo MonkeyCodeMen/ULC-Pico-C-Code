@@ -15,37 +15,44 @@ LoopStats::LoopStats(u8_t bands, u32_t factor_ms)
 void LoopStats::reset(){
     _sampleCount = 0;
     memset(_pBuffer,0,sizeof(u16_t[_bands+1]));
-    _min = 0;
-    _max = 0xFFFFFFFF;
+    _min = 0xFFFFFFFF;
+    _max = 0x0;
     _sum = 0;
+    _lastCall = 0;
+    _first = true;
 }
 
 
 void LoopStats::measure(u32_t now){
-    static u32_t lastMeasure = 0;
+    if (_first == true){
+        _first = false;
+        _lastCall = now;
+    }
     if (_sampleCount < _sampleTarget){
-        u32_t diff = (now-lastMeasure) / _factor_ms;
-        lastMeasure = now;
-        diff = clamp(0,diff,_bands);
-        _pBuffer[diff]++;
-        _sampleCount++;
-        _sum += diff;
+        u32_t diff = now-_lastCall;
         _min = min(diff,_min);
         _max = max(diff,_max);
+        _sampleCount++;
+        _sum += diff;
+        _lastCall = now;
+        
+        diff = diff / _factor_ms;
+        diff = clamp(0,diff,_bands);
+        _pBuffer[diff]++;
     }
 }
 
 
 String LoopStats::print(){
-    String out = "";
+    String out = "\n\n";
     for(int i=0;i < _bands; i++){
       out += "duration "+String(i*_factor_ms)+" to "+String((i+1)*_factor_ms)+" ms: "+String(_pBuffer[i])+"times \n";
     }
     out += "duration more than "+String(_bands*_factor_ms)+" ms: "+String(_pBuffer[_bands])+"times \n";
     out += "\n";
-    out += "mean : "+String(_sum/_sampleCount*_factor_ms)+" ms";
-    out += "min  : "+String(_min*_factor_ms)+" ms";
-    out += "max  : "+String(_max*_factor_ms)+" ms";
+    out += "mean : "+String(_sum/_sampleCount)+" ms\n";
+    out += "min  : "+String(_min)+" ms\n";
+    out += "max  : "+String(_max)+" ms\n";
 
     return out;
 }

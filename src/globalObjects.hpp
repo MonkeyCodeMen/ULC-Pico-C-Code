@@ -38,17 +38,17 @@ extern NeoMatrixCtrl *      pNeoMatrixCtrl2;
 extern Com * pCom;
 
 #ifdef WITH_DISPLAY
-  #include <TFT_eSPI.h> // Hardware-specific library
-  extern TFT_eSPI * pTFT;       // Invoke custom library
-  #define TFT_DIM     int(255*1.0)
+    #include <TFT_eSPI.h> // Hardware-specific library
+    extern TFT_eSPI * pTFT;       // Invoke custom library
+    #define TFT_DIM     int(255*1.0)
 
-  #include <cube.hpp>
-  extern Cube * pCube;
+    #include <cube.hpp>
+    extern Cube * pCube;
 #endif
 
 
 #ifdef WITH_SD_CARD
-  #include <SD.h>
-  extern SDFile root;
-  void printDirectory(SDFile dir, int numTabs);
+    #include <SD.h>
+    extern SDFile root;
+    String printDirectory(SDFile dir, int numTabs);
 #endif

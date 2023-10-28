@@ -12,6 +12,8 @@
 #define USER_SETUP_INFO     "ULC-Pico"
 #define USER_SETUP_LOADED
 
+#include <PinMapping.h>
+
 //#define RPI_DISPLAY_TYPE
 
 
@@ -50,13 +52,13 @@
 //#define TFT_BL   17            // LED back-light control pin
 //#define TFT_BACKLIGHT_ON HIGH  // Level to turn ON back-light (HIGH or LOW)
 
-#define TFT_MISO  4    
-#define TFT_MOSI  3    
-#define TFT_SCLK  2    
+#define TFT_MISO  PIN_SPI0_MISO 
+#define TFT_MOSI  PIN_SPI0_MOSI
+#define TFT_SCLK  PIN_SPI0_SCK
 
-#define TFT_CS    13   
-#define TFT_DC    15   
-#define TFT_RST   14   
+#define TFT_CS    PIN_SPI0_CS_TFT   
+#define TFT_DC    PIN_TFT_DC   
+#define TFT_RST   PIN_TFT_RST   
 
 
 
