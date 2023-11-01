@@ -227,3 +227,14 @@ u32_t dimColor255(u8_t r,u8_t g,u8_t b,u8_t dim ){
 
 }
 
+u32_t color24Bit(u8_t r,u8_t g,u8_t b){
+    union u32_byteAcess value;
+    value.bval.HH   = r; // r
+    value.bval.H    = g; // g
+    value.bval.L    = b; // b
+    value.bval.HHH  = 0;
+    return value.ival;
+
+}
+
+

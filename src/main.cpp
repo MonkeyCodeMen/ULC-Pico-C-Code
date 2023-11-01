@@ -9,7 +9,12 @@
 #include <globalObjects.hpp>
 #include <LoopStats.hpp>
 
+
 void TestDebug();
+
+
+void gifSetup();
+void gifLoop();
 
 
 
@@ -24,6 +29,10 @@ volatile bool waitForsecondCore    = true;
 void setup() {
   pinMode(LED_BUILTIN,OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
+  #ifdef WAIT_FOR_TERMINAL
+  while (millis()  < WAIT_FOR_TERMINAL) {  }; 
+  #endif
+
   LOG(F_CONST("setup 0:"));
   //analogWriteFreq(3200);
   //analogWriteRange(255);
@@ -42,7 +51,7 @@ void setup() {
 
   LOG(F_CONST("setup 0: RGB LED"));
   pRgbCtrl1 = new RgbLedCtrl(&rgbLedStrip1);
-  pRgbCtrl1->setup(F_CONST("multi flash"));  
+  pRgbCtrl1->setup(F_CONST("rainbow"));  
 
   LOG(F_CONST("setup 0: Neo stripe"));
   pNeoStripeCtrl1 = new NeoStripeCtrl(&ws2812strip1);
@@ -53,12 +62,16 @@ void setup() {
   LOG(F_CONST("setup 0: Neo matrix"));
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
-  pNeoMatrixCtrl1->setup("breath");
-  pNeoMatrixCtrl2->setup("breath");
+  pNeoMatrixCtrl1->setup("off");
+  pNeoMatrixCtrl2->setup("off");
 
   setupStartsecondCore = true;
   while(waitForsecondCore == true){
   }
+
+  LOG(F_CONST("setup 0: gif setup"));
+  gifSetup();
+
 
   LOG(F_CONST("setup 0: done"));
   digitalWrite(LED_BUILTIN, LOW);
@@ -73,6 +86,10 @@ void setup1() {
   LOG(F_CONST("setup 1: COM interface"));
   pCom = new Com();
   pCom->setup();
+
+  LOG(F_CONST("setup 1: startup SPI"));
+  SPI.begin();
+
 
   #ifdef WITH_DISPLAY
     LOG(F_CONST("setup 1: TFT"));
@@ -93,12 +110,19 @@ void setup1() {
       LOG(F_CONST("setup 1: SD card initialization failed!"));
     }
     LOG(F_CONST("setup 1: SD card initialization done."));
-    root = SD.open("/");
+    SDFile root = SD.open("/");
     String dir = printDirectory(root, 0);
+    root.close();
     dir = "setup 1: directory of SD card:\n\n" + dir +"\n\n";
     LOG(dir.c_str());
+    String res= fileWriteReadTest();
+    res = "setup 1: file write read test :\n\n" + res +"\n\n";
+    LOG(res.c_str());
+    //SD.end();
   #endif
- 
+
+
+
   LOG(F_CONST("setup 1: done"));
   waitForsecondCore = false;
 }
@@ -161,11 +185,14 @@ void loop() {
     
     case 7:   pLedCtrl2->loop(now);
               pNeoMatrixCtrl2->loop(now);      break;
-    
+
     default:  prgState = 0;                    break;
   }
   prgState++;
 }
+
+
+
 
 void loop1(){
   static u32_t lastCycle=0;
@@ -179,39 +206,11 @@ void loop1(){
     lastCycle = now;
   }
   pCom->loop();
+  gifLoop();
+
 }
 
 void TestDebug(){
   // place code to debug here (single core before startup)
 }
 
-
- 
-#ifdef WITH_SD_CARD
-  String printDirectory(SDFile dir, int numTabs) {
-    String out="";
-    while (true) {
-
-      SDFile entry =  dir.openNextFile();
-      if (! entry) {
-        // no more files
-        break;
-      }
-      for (uint8_t i = 0; i < numTabs; i++) {
-        out+=('\t');
-      }
-      out+=entry.name();
-      if (entry.isDirectory()) {
-        out+="/\n";
-        out += printDirectory(entry, numTabs + 1);
-      } else {
-        // files have sizes, directories do not
-        out+="\t\t";
-        out+=String(entry.size(),DEC);
-        out+="\n";
-      }
-      entry.close();
-    }
-    return out;
-  }
-#endif

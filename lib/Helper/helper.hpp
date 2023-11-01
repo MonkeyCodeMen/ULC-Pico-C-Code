@@ -29,6 +29,7 @@ u16_t toColor565Dim(u32_t c);
 
 // color dimming based on 255 base
 inline u8_t  dimColorChannel255(u8_t c,u8_t dim) {    return ((u32_t)c*dim)/255; };
+u32_t color24Bit(u8_t r,u8_t g,u8_t b);
 u32_t dimColor255(u32_t color,u8_t dim );
 u32_t dimColor255(u8_t r,u8_t g,u8_t b,u8_t dim );
 u32_t dimRgb24ToRgb(u32_t value);

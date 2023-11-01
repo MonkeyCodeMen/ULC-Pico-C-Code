@@ -1,5 +1,7 @@
 #include <Arduino.h>
 #include "MainConfig.h"
+#include "Debug.hpp"
+#include "helper.hpp"
 
 #include <Adafruit_NeoMatrix.h>
 #include <WS2812FX.h>
@@ -49,6 +51,6 @@ extern Com * pCom;
 
 #ifdef WITH_SD_CARD
     #include <SD.h>
-    extern SDFile root;
     String printDirectory(SDFile dir, int numTabs);
+    String fileWriteReadTest();
 #endif

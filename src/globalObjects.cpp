@@ -46,6 +46,7 @@ Com * pCom;
 
 
 #ifdef WITH_DISPLAY
+  #include <SPI.h>
   #include <TFT_eSPI.h> // Hardware-specific library
   TFT_eSPI * pTFT;       // Invoke custom library
   #define TFT_DIM     int(255*1.0)
