@@ -9,6 +9,7 @@ class LoopStats
         ~LoopStats() = default;
 
         void measure(u32_t now);
+        void measureAndPrint(u32_t now,u32_t printEachMs,const char * text);
         void reset();
         String print();
         u16_t getSampleCount()          {return _sampleCount;};
@@ -24,5 +25,6 @@ class LoopStats
         u32_t       _factor_ms;
         bool        _first;
         u32_t       _lastCall;
+        u32_t       _lastStatReport;
         
 };

@@ -24,11 +24,11 @@ NeoStripeCtrl  * pNeoStripeCtrl2;
 
 // WS 2812 LED matrix
 Adafruit_NeoMatrix neoMatrix1(
-    8, 8, 1,1, 
+    8, 8, 4,4, 
     PIN_MATRIX_1,
     NEO_MATRIX_TOP     + NEO_MATRIX_LEFT +
     NEO_MATRIX_ROWS    + NEO_MATRIX_PROGRESSIVE +
-    NEO_TILE_COLUMNS   + NEO_TILE_PROGRESSIVE,
+    NEO_TILE_ROWS      + NEO_TILE_PROGRESSIVE,
     NEO_GRB            + NEO_KHZ800);
 Adafruit_NeoMatrix neoMatrix2(
     8, 8, 4,4, 

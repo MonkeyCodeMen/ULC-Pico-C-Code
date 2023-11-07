@@ -10,13 +10,6 @@
 #include <LoopStats.hpp>
 
 
-void TestDebug();
-
-
-void gifSetup();
-void gifLoop();
-
-
 
 volatile bool setupStartsecondCore = false;
 volatile bool waitForsecondCore    = true;
@@ -25,7 +18,68 @@ volatile bool waitForsecondCore    = true;
 
 
 
-/***********************************************************************************************************************************/
+/*****************************************************************
+ * 
+ *    functions
+ * 
+ ******************************************************************
+ */
+
+extern void gifSetup();
+extern void gifLoop();
+
+
+void toggleLed(u32_t now){
+  static u8_t ledState=0;
+  static u32_t lastSwitch=0;
+
+  switch(ledState){
+    case 0:   if (now-lastSwitch >= 250){
+                  digitalWrite(LED_BUILTIN, HIGH);
+                  lastSwitch = now;
+                  ledState = 1;
+                  }
+              break;
+    case 1:   if (now-lastSwitch >= 250){
+                  digitalWrite(LED_BUILTIN, LOW);
+                  lastSwitch = now;
+                  ledState = 0;
+                  }
+              break;
+    default:  LOG(F_CONST("loop 0 unknown ledState"));
+              digitalWrite(LED_BUILTIN, LOW);
+              lastSwitch = now;
+              ledState = 0;
+              break;
+  }
+
+}
+
+void renderDisplay(u32_t now){
+    #ifdef WITH_DISPLAY
+    static u32_t lastCycle=0;
+
+    if (now-lastCycle > 25){
+        pCube->Render();
+        pCube->moveView();
+      lastCycle = now;
+    }
+    #endif
+}
+
+
+void TestDebug(){
+  // place code to debug here (single core before startup)
+}
+
+
+/*****************************************************************
+ * 
+ *    Setups
+ * 
+ ******************************************************************
+ */
+
 void setup() {
   pinMode(LED_BUILTIN,OUTPUT);
   digitalWrite(LED_BUILTIN, HIGH);
@@ -37,9 +91,13 @@ void setup() {
   //analogWriteFreq(3200);
   //analogWriteRange(255);
 
-
   LOG(F_CONST("setup 0: Test functions"));
   TestDebug();
+
+  LOG(F_CONST("setup 0: COM interface"));
+  pCom = new Com();
+  pCom->setup();
+
 
   LOG(F_CONST("setup 0: LED switch"));
   pLedCtrl1 = new LedCtrl(&ledStripe1);
@@ -69,8 +127,6 @@ void setup() {
   while(waitForsecondCore == true){
   }
 
-  LOG(F_CONST("setup 0: gif setup"));
-  gifSetup();
 
 
   LOG(F_CONST("setup 0: done"));
@@ -82,10 +138,6 @@ void setup1() {
   }
 
   LOG(F_CONST("setup 1:"));
-
-  LOG(F_CONST("setup 1: COM interface"));
-  pCom = new Com();
-  pCom->setup();
 
   LOG(F_CONST("setup 1: startup SPI"));
   SPI.begin();
@@ -110,83 +162,38 @@ void setup1() {
       LOG(F_CONST("setup 1: SD card initialization failed!"));
     }
     LOG(F_CONST("setup 1: SD card initialization done."));
-    SDFile root = SD.open("/");
-    String dir = printDirectory(root, 0);
-    root.close();
-    dir = "setup 1: directory of SD card:\n\n" + dir +"\n\n";
-    LOG(dir.c_str());
-    String res= fileWriteReadTest();
-    res = "setup 1: file write read test :\n\n" + res +"\n\n";
-    LOG(res.c_str());
-    //SD.end();
   #endif
 
-
+  
+  LOG(F_CONST("setup 1: gif setup"));
+  gifSetup();
 
   LOG(F_CONST("setup 1: done"));
   waitForsecondCore = false;
 }
 
 
-/***********************************************************************************************************************************/
-
+/*****************************************************************
+ * 
+ *    Loops
+ * 
+ ******************************************************************
+ */
 void loop() {
   static u8_t prgState=1;
-  static u8_t ledState=0;
-  static u32_t lastSwitch=0;
-  static u32_t lastStatReport = 0;
-  static LoopStats stats(20,10);
-  
-  
   u32_t now = millis();
-  stats.measure(now);
-
-  switch(ledState){
-    case 0:   if (now-lastSwitch >= 250){
-                  digitalWrite(LED_BUILTIN, HIGH);
-                  lastSwitch = now;
-                  ledState = 1;
-                  }
-              break;
-    case 1:   if (now-lastSwitch >= 250){
-                  digitalWrite(LED_BUILTIN, LOW);
-                  lastSwitch = now;
-                  ledState = 0;
-                  }
-              break;
-    default:  LOG(F_CONST("loop 0 unknown ledState"));
-              digitalWrite(LED_BUILTIN, LOW);
-              lastSwitch = now;
-              ledState = 0;
-              break;
-  }
 
   #ifdef PRINT_LOOP_STATS
-    if (now - lastStatReport > 5000){
-      String out = stats.print();
-      LOG(out.c_str());
-      lastStatReport = now;
-    }
+    static LoopStats stats(10,1);
+    stats.measureAndPrint(now,PRINT_LOOP_STATS,F_CONST("loop0 stats:"));
   #endif
-
   switch(prgState){
-
-    case 1:   pLedCtrl1->loop(now);            break;
-    case 2:   pLedCtrl2->loop(now);            break;
-    case 3:   pRgbCtrl1->loop(now);            break;
-    case 4:   pLedCtrl1->loop(now);
-              pNeoStripeCtrl1->loop(now);      break;
-    
-    case 5:   pLedCtrl1->loop(now);
-              pNeoStripeCtrl2->loop(now);      break;
-    
-    case 6:   pRgbCtrl1->loop(now);
-              pNeoMatrixCtrl1->loop(now);      break;
-    
-    case 7:   pLedCtrl2->loop(now);
-              pNeoMatrixCtrl2->loop(now);      break;
-
-    default:  prgState = 0;                    break;
+      case 1:   pLedCtrl1->loop(now);             break;
+      case 2:   pLedCtrl2->loop(now);             break;
+      case 3:   pRgbCtrl1->loop(now);             break;
+      case 4:   pCom->loop();                     break;
+      case 5:   toggleLed(now);                   break;
+      default:  prgState = 0;                     break;
   }
   prgState++;
 }
@@ -195,22 +202,24 @@ void loop() {
 
 
 void loop1(){
-  static u32_t lastCycle=0;
+  static u8_t prgState=1;
   u32_t now = millis();
 
-  if (now-lastCycle > 25){
-    #ifdef WITH_DISPLAY
-      pCube->Render();
-      pCube->moveView();
-    #endif
-    lastCycle = now;
+  #ifdef PRINT_LOOP_STATS
+    static LoopStats stats(20,5);
+    stats.measureAndPrint(now,PRINT_LOOP_STATS,F_CONST("loop1 stats:"));
+  #endif
+
+  switch(prgState){
+      //case 1:   pNeoMatrixCtrl1->loop(now);       break;
+      case 1:   gifLoop();                        break;
+      case 2:   pNeoMatrixCtrl2->loop(now);       break;
+      case 3:   pNeoStripeCtrl1->loop(now);       break;
+      case 4:   pNeoStripeCtrl1->loop(now);       break;
+      case 5:   renderDisplay(now);               break;
+      default:  prgState = 0;                     break;
   }
-  pCom->loop();
-  gifLoop();
-
+  prgState++;
 }
 
-void TestDebug(){
-  // place code to debug here (single core before startup)
-}
 

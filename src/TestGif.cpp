@@ -16,11 +16,8 @@
 
 
 // Normal color values are too bright on the LED array, so reduce the values
-#define BRIGHT_SHIFT 2
-
-AnimatedGIF gif; // static instance of the class uses 22.5K of RAM
-
-
+//#define BRIGHT_SHIFT 2
+#define BRIGHT_SHIFT 1
 
 
 //
@@ -71,12 +68,44 @@ int x, y = pDraw->iY + pDraw->y;
     }
 } /* GIFDraw() */
 
+AnimatedGIF gif; // static instance of the class uses 22.5K of RAM
+u8_t * pBuffer = NULL;
+int size = 0;
+
 void gifSetup() {
-  gif.begin(GIF_PALETTE_RGB888); // request 24-bit palette
+    gif.begin(GIF_PALETTE_RGB888); // request 24-bit palette
+    String name = "32x32-1.GIF";
+    String out;
+    if (SD.exists(name.c_str())){
+        SDFile file = SD.open(name.c_str(),FILE_READ);
+        if (file.isDirectory()) {
+            out = "file is directory: ";
+            out += name;
+            LOG(out.c_str());
+            STOP();
+        }
+        size = file.size();
+        out = "before load file "+name;
+        LOG_MEM(out.c_str());
+        pBuffer = new u8_t[size];
+        out = "after load file "+name;
+        LOG_MEM(out.c_str());
+        if (pBuffer == NULL){
+            LOG(F_CONST("could not create GIF buffer"));
+            STOP();
+        }
+        file.readBytes(pBuffer,size);
+        file.close();
+        gif.openFLASH(pBuffer,size,GIFDraw);
+        
+        LOG(F_CONST("32x32-1.GIF loaded"));
+    } else {
+        LOG(F_CONST("32x32-1.GIF not found "));
+    }
 } /* setup() */
 
 
-void gifLoop() {
+void gifLoop_rotation() {
     #define MAX_GIF_COUNTER     13
     #define MAX_REPEAT          5
     static u8_t fileCounter     = 0;
@@ -149,5 +178,23 @@ void gifLoop() {
                 
             }
         }
+    }
+
+}
+
+void gifLoop() {
+    String out;
+    bool res;
+    static u32_t lastFrame;
+    u32_t now = millis();
+    static int wait=0;
+
+    if (now-lastFrame >= wait){
+        lastFrame = now;
+        res = gif.playFrame(false,&wait);
+        if(res==false){
+                gif.close();
+                gif.openFLASH(pBuffer,size,GIFDraw);
+            }
     }
 }

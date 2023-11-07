@@ -42,6 +42,18 @@ void LoopStats::measure(u32_t now){
     }
 }
 
+void LoopStats::measureAndPrint(u32_t now,u32_t printEachMs,const char * text){
+    measure(now);
+
+    if (now - _lastStatReport > printEachMs){
+        String out = text;
+        out+='\n';
+        out+=print();
+        LOG(out.c_str());
+        _lastStatReport = now;
+    }
+}
+
 
 String LoopStats::print(){
     String out = "\n\n";
