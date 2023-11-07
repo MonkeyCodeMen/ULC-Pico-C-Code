@@ -68,6 +68,21 @@ int x, y = pDraw->iY + pDraw->y;
     }
 } /* GIFDraw() */
 
+//
+// The memory management functions are needed to keep operating system
+// dependencies out of the core library code
+//
+// memory allocation callback function
+void * GIFAlloc(uint32_t u32Size)
+{
+  return malloc(u32Size);
+} /* GIFAlloc() */
+// memory free callback function
+void GIFFree(void *p)
+{
+  free(p);
+} /* GIFFree() */
+
 AnimatedGIF gif; // static instance of the class uses 22.5K of RAM
 u8_t * pBuffer = NULL;
 int size = 0;
@@ -96,8 +111,13 @@ void gifSetup() {
         }
         file.readBytes(pBuffer,size);
         file.close();
-        gif.openFLASH(pBuffer,size,GIFDraw);
-        
+        gif.open(pBuffer,size,GIFDraw);
+
+        // setup buffer        
+        //gif.allocFrameBuf(GIFAlloc);
+        //gif.setDrawType(GIF_DRAW_COOKED);
+        //while(gif.playFrame(false,NULL)){};
+
         LOG(F_CONST("32x32-1.GIF loaded"));
     } else {
         LOG(F_CONST("32x32-1.GIF not found "));
@@ -182,6 +202,9 @@ void gifLoop_rotation() {
 
 }
 
+
+
+
 void gifLoop() {
     String out;
     bool res;
@@ -193,8 +216,9 @@ void gifLoop() {
         lastFrame = now;
         res = gif.playFrame(false,&wait);
         if(res==false){
+                //gif.reset();
                 gif.close();
-                gif.openFLASH(pBuffer,size,GIFDraw);
+                gif.open(pBuffer,size,GIFDraw);
             }
     }
 }
