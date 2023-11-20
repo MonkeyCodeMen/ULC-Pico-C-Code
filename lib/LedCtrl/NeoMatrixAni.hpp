@@ -4,6 +4,9 @@
 #include "helper.hpp"
 #include "Debug.hpp"
 
+#include <AnimatedGIF.h>
+#include <SD.h>
+
 
 class NeoMatrixAni:public Ani
 {
@@ -611,7 +614,176 @@ class MatrixRunningCircleAni : public MatrixRunningRectAni{
 
 
 };  
-  
+
+
+
+
+class MatrixGifFileAni : public NeoMatrixAni{
+    /*  
+        ref    | default value |  layout
+        =======+===============+===========================
+        name:  |               |  gif file
+        -------+---------------+---------------------------
+        p1:    | 0x0000 0001   |  0x0000 NNNN   
+               |               |  file number in root dir to play
+        -------+---------------+---------------------------
+        p2:    | 0x0000 0080   |  0xCCCC 00DD     
+               |               |  D:brightness 0..255
+               |               |  C:repeat count, 0 = endless   
+        -------+---------------+---------------------------
+        p3:    |               |  N/A
+        -------+---------------+---------------------------
+        p4:    |               |  N/A
+        -------+---------------+---------------------------
+        pData: | N/A           |  length(0):
+               |               |    N/A        
+    */
+    public:
+        MatrixGifFileAni():NeoMatrixAni((const char *)F("gif file"))      {_gif.begin(GIF_PALETTE_RGB888);_pBuffer = NULL;};
+        void reset() { setup(1,0x80,0,0,0,NULL); };
+
+        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
+            switch (_state){
+                case stop:
+                    // do nothing parameters are loocked by other thread
+                    // the setup will move forward to state init
+                    break;
+
+                case init:
+                    pMatrix->fillScreen(0);
+                    pMatrix->show();
+                    _gif.close();
+                    loadGifToBuffer();
+                    _count = 0;
+                    _state = run;
+                    break;
+                
+                case run:
+                    if (time-_lastFrame >= _wait){
+                        _lastFrame = time;
+                        bool res = _gif.playFrame(false,&_wait,pMatrix);
+                        if(res==false){
+                            _gif.close();
+                            if (_repeat > 0){
+                                _count++;
+                                if (_count >= _repeat){
+                                    _state = stop;
+                                    break;
+                                }
+                            }
+                            _gif.open(_pBuffer,_size,GIFDraw);
+                        }
+                    }
+                    break;
+            }
+        };
+
+        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
+            _state      = stop;
+            _fileNr     = L_WORD(p1);
+            _fileName   = "32x32-1.GIF";  // for now fixed
+            _brightness = L_BYTE(p2);
+            _repeat     = H_WORD(p2);
+            _state      = init;
+        };
+
+        void loadGifToBuffer(){
+            String out;
+            if (_pBuffer != NULL)   delete _pBuffer;
+            if (SD.exists(_fileName.c_str())){
+                SDFile file = SD.open(_fileName.c_str(),FILE_READ);
+                if (file.isDirectory()) {
+                    out = "file is directory: ";
+                    out += _fileName;
+                    LOG(out.c_str());
+                    STOP();
+                }
+                _size = file.size();
+                out = "before load file "+_fileName;
+                LOG_MEM(out.c_str());
+                _pBuffer = new u8_t[_size];
+                out = "after load file "+_fileName;
+                LOG_MEM(out.c_str());
+                if (_pBuffer == NULL){
+                    LOG(F_CONST("could not create GIF buffer"));
+                    STOP();
+                }
+                file.readBytes(_pBuffer,_size);
+                file.close();
+                _gif.open(_pBuffer,_size,GIFDraw);
+                LOG(F_CONST("GIF loaded"));
+            } else {
+                out = "GIF not found :";
+                out += _fileName;
+                LOG(out.c_str());
+            }
+        }
+
+    static void GIFDraw(GIFDRAW *pDraw)
+    {
+        //
+        // GIF decoder callback function
+        // called once per line as the image is decoded
+        uint8_t r, g, b, *s, *p, *pPal = (uint8_t *)pDraw->pPalette;
+        int x, y = pDraw->iY + pDraw->y;
+        Adafruit_NeoMatrix * pMatrix = (Adafruit_NeoMatrix *)pDraw->pUser;
+        
+        s = pDraw->pPixels;
+        if (pDraw->ucDisposalMethod == 2) // restore to background color
+        {
+        p = &pPal[pDraw->ucBackground * 3];
+        r = p[0]; g = p[1]; b = p[2];
+        for (x=0; x<pDraw->iWidth; x++)
+        {
+            if (s[x] == pDraw->ucTransparent) {
+                pMatrix->drawPixel(x,y,toColor565(r,g,b));
+            }
+        }
+        pDraw->ucHasTransparency = 0;
+        }
+        // Apply the new pixels to the main image
+        if (pDraw->ucHasTransparency) // if transparency used
+        {
+        const uint8_t ucTransparent = pDraw->ucTransparent;
+        for (x=0; x<pDraw->iWidth; x++)
+        {
+            if (s[x] != ucTransparent) {
+                p = &pPal[s[x] * 3];
+                pMatrix->drawPixel(x,y,toColor565(p[0], p[1], p[2]));
+            }
+        }
+        }
+        else // no transparency, just copy them all
+        {
+        for (x=0; x<pDraw->iWidth; x++)
+        {
+            p = &pPal[s[x] * 3];
+            pMatrix->drawPixel(x,y,toColor565(p[0], p[1], p[2]));
+        }
+        }
+        if (pDraw->y == pDraw->iHeight-1) {// last line has been decoded, display the image
+            pMatrix->show();
+        }
+    } /* GIFDraw() */
+
+    private:
+        enum GifState {stop,init,run};
+        volatile GifState   _state;
+
+        AnimatedGIF         _gif; // static instance of the class uses 22.5K of RAM
+        u8_t *              _pBuffer = NULL;
+        int                 _size = 0;
+        u32_t               _lastFrame;
+        int                 _wait,_fileNr,_repeat,_count;                
+        u8_t                _brightness;
+        String              _fileName;
+
+
+
+
+};
+
+
     /*  
         ref    | default value |  layout
         =======+===============+===========================

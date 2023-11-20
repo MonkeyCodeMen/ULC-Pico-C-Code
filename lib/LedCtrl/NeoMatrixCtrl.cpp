@@ -21,6 +21,7 @@ NeoMatrixCtrl::NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix) : Ctrl()
     addAni(new MatrixRainbowFlashAni());
     addAni(new MatrixMultiFlashAni());
     addAni(new MatrixRunningRectAni());
+    addAni(new MatrixGifFileAni());
 
     // select first
     setup(0);

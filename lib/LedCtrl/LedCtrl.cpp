@@ -10,6 +10,7 @@ LedCtrl::LedCtrl(Led * pLed) : Ctrl(){
     addAni(new LedOffAni());
     addAni(new LedOnAni());
     addAni(new LedDimAni());
+    addAni(new LedBreathAni());
     addAni(new LedBlinkAni());
     addAni(new LedMultiFlashAni());
 

@@ -38,17 +38,55 @@
 
 
 examples:
-    S:R;00;on;0x00FF00FF#
-    garbage S:R;00;on;0x0000FF00#
-    S:R;00;blink;0;0x000000FF;250;250#
-    S:R;00;breath;0x000000FF;10;10;0x04004000#
-    S:R;00;off#
-    S:R;00;blink#
-    S:R;00;breath#
+
+-- LED switch ---
+S:L;00;on#
+S:L;00;dim;0xFF#
+S:L;00;dim;10#
+S:L;00;blink#
+S:L;00;multi flash;0xFF;0;0x00200060;0x000201F4#
+
+-- RGB LEDS'S ---
+S:R;00;on;0x00FF00FF#
+garbage S:R;00;on;0x0000FF00#
+S:R;00;blink;0;0x000000FF;250;250#
+S:R;00;breath;0x000000FF;10;10;0x04004000#
+S:R;00;off#
+S:R;00;blink#
+S:R;00;breath#
+S:R;00;on;0xFFFFFF#
+S:R;00;rainbow;255;1;50#
+S:R;00;multi flash#
+
+-- Neo LED stripes
+S:S;00;Static;0x00FFFFFF;0xFF;1000#
+S:S;00;Static;0x00FF0000;0xFF;1000#
+S:S;00;Static;0x0000FF00;0xFF;1000#
+S:S;00;Static;0x000000FF;0xFF;1000#
+S:S;00;Static;0x000000FF;0x10;1000#
+S:S;00;Off#
+S:S;00;Rainbow Cycle#
+
+"Off";"Static";"Blink";"Breath";"Color Wipe";"Color Wipe Inverse";"Color Wipe Reverse";"Color Wipe Reverse Inverse";"Color Wipe Random";"Random Color";"Single Dynamic";
+"Multi Dynamic";"Rainbow";"Rainbow Cycle";"Scan";"Dual Scan";"Fade";"Theater Chase";"Theater Chase Rainbow";"Running Lights";"Twinkle";"Twinkle Random";"Twinkle Fade";
+"Twinkle Fade Random";"Sparkle";"Flash Sparkle";"Hyper Sparkle";"Strobe";"Strobe Rainbow";"Multi Strobe";"Blink Rainbow";"Chase White";"Chase Color";"Chase Random";
+"Chase Rainbow";"Chase Flash";"Chase Flash Random";"Chase Rainbow White";"Chase Blackout";"Chase Blackout Rainbow";"Color Sweep Random";"Running Color";"Running Red Blue";
+"Running Random";"Larson Scanner";"Comet";"Fireworks";"Fireworks Random";"Merry Christmas";"Fire Flicker";"Fire Flicker (soft)";"Fire Flicker (intense)";"Circus Combustus";
+"Halloween";"Bicolor Chase";"Tricolor Chase";"TwinkleFOX";"Rain";
+"Custom 0";"Custom 1";"Custom 2";"Custom 3";"Custom 4";"Custom 5";"Custom 6";"Custom 7";
+
+- NEO LED Matrix
+S:M;00;breath#
+S:M;00;static;0xFF0000FF#
+S:M;00;running rect#
+S:M;00;gif file#
+
+
+
 */
 
-#define COM_FRAME_MAX_COMMAND_LENGTH    20
-#define COM_FRAME_MAX_PARAMETER_LENGTH  15
+#define COM_FRAME_MAX_COMMAND_LENGTH    50
+#define COM_FRAME_MAX_PARAMETER_LENGTH  30
 #define COM_FRAME_START1            'S'
 #define COM_FRAME_START2            ':'
 #define COM_FRAME_END               '#'

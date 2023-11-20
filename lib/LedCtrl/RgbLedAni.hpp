@@ -21,7 +21,7 @@ class RgbLedAni:public Ani
 
 class RgbLedOffAni : public RgbLedAni{
     public:
-        RgbLedOffAni():RgbLedAni((const char *)F("off"))     {};
+        RgbLedOffAni():RgbLedAni(F_CONST("off"))     {};
         void loop(u32_t time,RgbLed * pLed)                    {pLed->set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);};
 };
 
@@ -46,7 +46,7 @@ class RgbLedOnAni : public RgbLedAni{
                |               |    N/A        
     */
     public:
-        RgbLedOnAni()  : RgbLedAni((const char *)F("on"))   {};
+        RgbLedOnAni()  : RgbLedAni(F_CONST("on"))   {};
         void reset()                                        {setup(0x00FFFFFF,0,0,0,0,NULL);};
         void loop(u32_t time,RgbLed * pLed)                 {pLed->set(_r,_g,_b);};
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) 
@@ -79,7 +79,7 @@ class RgbLedBlinkAni : public RgbLedAni{
                |               |    N/A        
     */
     public:
-        RgbLedBlinkAni()  : RgbLedAni((const char *)F("blink")) {};
+        RgbLedBlinkAni()  : RgbLedAni(F_CONST("blink")) {};
         
         void reset()    { setup(0x0,0x00FFFFFF,250,250,0,NULL);  };
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
@@ -143,16 +143,16 @@ class RgbLedBreathAni : public RgbLedAni{
     /*  
         ref    | default value |  layout
         =======+===============+===========================
-        name:  |               |  dim
+        name:  |               |  breath
         -------+---------------+---------------------------
         p1:    | 0x0000 00FF   |  0x00RR GGBB
                |               |  R: red value  
                |               |  G: green value  
                |               |  B: blue value  
         -------+---------------+---------------------------
-        p2:    | 0x0000 0130   |  inc time in ms
+        p2:    | 0x0000 0300   |  inc time in ms
         -------+---------------+---------------------------
-        p3:    | 0x0000 0130   |  dec time in ms
+        p3:    | 0x0000 0300   |  dec time in ms
         -------+---------------+---------------------------
         p4:    | 0x0000 FF10   |  0x0000 UULL
                |               |  U: upper dim limit
@@ -163,9 +163,9 @@ class RgbLedBreathAni : public RgbLedAni{
     */
 
     public:
-        RgbLedBreathAni()  : RgbLedAni((const char *)F("breath")) {};
+        RgbLedBreathAni()  : RgbLedAni(F_CONST("breath")) {};
         
-        void reset() {  setup(0x000000FF,0x130,0x130,0x0000FF10,0,NULL); };
+        void reset() {  setup(0x000000FF,0x300,0x300,0x0000FF10,0,NULL); };
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
             _state = stop; 
             _r = HH_BYTE(p1);
@@ -259,7 +259,7 @@ class RgbLedRainbowAni : public RgbLedAni{
                |               |    N/A        
     */    
     public:
-        RgbLedRainbowAni()  : RgbLedAni((const char *)F("rainbow")) {};
+        RgbLedRainbowAni()  : RgbLedAni(F_CONST("rainbow")) {};
         
         void reset() {  setup(0x80,1,0x000A,0,0,NULL); };
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
@@ -337,7 +337,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
                |               |    N/A        
     */    
     public:
-        RgbLedMultiFlashAni()  : RgbLedAni((const char *)F("multi flash")) {};
+        RgbLedMultiFlashAni()  : RgbLedAni(F_CONST("multi flash")) {};
         
         void reset() { setup(0x80,0xFF,0x00200060,0x000201F4,0,NULL);};
         void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {

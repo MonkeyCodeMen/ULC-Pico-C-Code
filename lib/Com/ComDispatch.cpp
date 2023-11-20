@@ -18,7 +18,7 @@ void ComDispatch::dispatchFrame(ComFrame * pFrame)
         case('M'):  dispatchNeoMatrixFrame(pFrame); break;
         
         default:
-            LOG(F("unknown module .. could not disptach Frame"));
+            LOG(F_CONST("unknown module .. could not disptach Frame"));
     }
 }
 
@@ -30,11 +30,12 @@ void ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
 void ComDispatch::dispatchLedFrame(ComFrame * pFrame)
 {
     LedCtrl * pLedCtrl;
+    LOG(F_CONST("LED Frame"));
     switch(pFrame->index){
         case 0: pLedCtrl = pLedCtrl1; break;
         case 1: pLedCtrl = pLedCtrl2; break;
         default:
-            LOG(F("unknown index for Led module  .. skip frame"));
+            LOG(F_CONST("unknown index for Led module  .. skip frame"));
             return;
     }
     if (pFrame->withPar == true){
@@ -48,10 +49,11 @@ void ComDispatch::dispatchLedFrame(ComFrame * pFrame)
 void ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
 {
     RgbLedCtrl * pRgbCtrl;
+    LOG(F_CONST("RGB LED Frame"));
     switch(pFrame->index){
         case 0: pRgbCtrl = pRgbCtrl1; break;
         default:
-            LOG(F("unknown index for Led module  .. skip frame"));
+            LOG(F_CONST("unknown index for Led module  .. skip frame"));
             return;
     }
 
@@ -70,13 +72,15 @@ void ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)
         case 0: pStripeCtrl = pNeoStripeCtrl1; break;
         case 1: pStripeCtrl = pNeoStripeCtrl2; break;
         default:
-            LOG(F("unknown index for Neo Stripe module  .. skip frame"));
+            LOG(F_CONST("unknown index for Neo Stripe module  .. skip frame"));
             return;
     }
     if (pFrame->withPar == true){
+        LOG(F_CONST("Neo stripe frame with parameter"));
         pStripeCtrl->setup(pFrame->command.c_str());
         pStripeCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->length,pFrame->pData);
     } else {
+        LOG(F_CONST("Neo stripe frame just program"));
         pStripeCtrl->setup(pFrame->command.c_str());  // use default parameter for 
     }
 
@@ -85,11 +89,12 @@ void ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)
 void ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame)
 {
     NeoMatrixCtrl * pMatrixCtrl;
+    LOG(F_CONST("Neo Matrix Frame"));
     switch(pFrame->index){
         case 0: pMatrixCtrl = pNeoMatrixCtrl1; break;
         case 1: pMatrixCtrl = pNeoMatrixCtrl2; break;
         default:
-            LOG(F("unknown index for Neo matrix module  .. skip frame"));
+            LOG(F_CONST("unknown index for Neo matrix module  .. skip frame"));
             return;
     }
     if (pFrame->withPar == true){

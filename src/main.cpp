@@ -102,10 +102,8 @@ void setup() {
   LOG(F_CONST("setup 0: LED switch"));
   pLedCtrl1 = new LedCtrl(&ledStripe1);
   pLedCtrl2 = new LedCtrl(&ledStripe2);
-  pLedCtrl1->setup(F_CONST("blink"));
-  pLedCtrl1->setup(0xFF,250,250,0,0,NULL);
-  pLedCtrl2->setup(F_CONST("blink"));
-  pLedCtrl2->setup(0xFF,250,250,0,0,NULL);
+  pLedCtrl1->setup(F_CONST("breath"));
+  pLedCtrl2->setup(F_CONST("breath"));
 
   LOG(F_CONST("setup 0: RGB LED"));
   pRgbCtrl1 = new RgbLedCtrl(&rgbLedStrip1);
@@ -120,7 +118,7 @@ void setup() {
   LOG(F_CONST("setup 0: Neo matrix"));
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
-  pNeoMatrixCtrl1->setup("off");
+  pNeoMatrixCtrl1->setup("gif file");
   pNeoMatrixCtrl2->setup("off");
 
   setupStartsecondCore = true;
@@ -211,8 +209,7 @@ void loop1(){
   #endif
 
   switch(prgState){
-      //case 1:   pNeoMatrixCtrl1->loop(now);       break;
-      case 1:   gifLoop();                        break;
+      case 1:   pNeoMatrixCtrl1->loop(now);       break;
       case 2:   pNeoMatrixCtrl2->loop(now);       break;
       case 3:   pNeoStripeCtrl1->loop(now);       break;
       case 4:   pNeoStripeCtrl1->loop(now);       break;

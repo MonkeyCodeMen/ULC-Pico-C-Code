@@ -5,12 +5,12 @@
 
 NeoStripeCtrl::NeoStripeCtrl(WS2812FX * pNeoStripe) : Ctrl()
 {
-    LOG(F("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx"));
+    LOG(F_CONST("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx"));
     ASSERT(pNeoStripe != NULL,"pNeoStripe must not be NULL");
     _pNeoStripe = pNeoStripe;
     _pNeoStripe->init();
     _count = _pNeoStripe->getModeCount() - MAX_CUSTOM_MODES + 1;
-    _aniNameList = "0:off,";   // add off as number 0
+    _aniNameList = "0:Off,";   // add off as number 0
     for(int i=1; i < _count; i++){
         _aniNameList += String(i);
         _aniNameList += ':';
@@ -28,9 +28,9 @@ NeoStripeCtrl::NeoStripeCtrl(WS2812FX * pNeoStripe) : Ctrl()
 
 
 void NeoStripeCtrl::setStdParameter(){
-    _pNeoStripe->setBrightness(0x20);
+    _pNeoStripe->setBrightness(0xFF);
     _pNeoStripe->setSpeed(1000);
-    _pNeoStripe->setColor(0x007BFF);
+    _pNeoStripe->setColor(0x0000FF);
 }
 
 void NeoStripeCtrl::setOff(){
@@ -43,7 +43,7 @@ void NeoStripeCtrl::setOff(){
 
 const char * NeoStripeCtrl::getName(){
     if (_current == 0){
-        return F_CONST("off");
+        return F_CONST("Off");
     } 
     return (const char *)_pNeoStripe->getModeName(_current-1);
 }
@@ -75,7 +75,7 @@ void NeoStripeCtrl::setup(int nr){
 void NeoStripeCtrl::setup(const char *pName){
     _mutexSetup.lock();
     // find matching entry or set all to NULL
-    if (strcmp(pName , "off") == 0){
+    if (strcmp(pName , "Off") == 0){
         setOff();
         _current = 0;
         _mutexSetup.unlock();
@@ -89,15 +89,13 @@ void NeoStripeCtrl::setup(const char *pName){
             return;            
         }
     }
+    LOG(F_CONST("NeoStripeCtrl::setup could not find mode"));
     _mutexSetup.unlock();
 }
 
 
 
 void NeoStripeCtrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData){
-    ASSERT(_pCurrentAni != NULL,"");
-    if (_pCurrentAni == NULL)   return;
-
     _mutexSetup.lock();
     _pNeoStripe->setColor(p1);
     _pNeoStripe->setBrightness(p2 & 0xFF);
