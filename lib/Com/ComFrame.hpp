@@ -68,6 +68,7 @@ S:S0;Static;0x000000FF;0xFF;1000#
 S:S0;Static;0x000000FF;0x10;1000#
 S:S0;Off#
 S:S0;Rainbow Cycle#
+S:S0;Comet#
 
 "Off";"Static";"Blink";"Breath";"Color Wipe";"Color Wipe Inverse";"Color Wipe Reverse";"Color Wipe Reverse Inverse";"Color Wipe Random";"Random Color";"Single Dynamic";
 "Multi Dynamic";"Rainbow";"Rainbow Cycle";"Scan";"Dual Scan";"Fade";"Theater Chase";"Theater Chase Rainbow";"Running Lights";"Twinkle";"Twinkle Random";"Twinkle Fade";
@@ -81,6 +82,7 @@ S:S0;Rainbow Cycle#
 S:M0;breath#
 S:M0;static;0xFF0000FF#
 S:M0;running rect#
+S:M0;running circle#
 S:M0;gif file#
 
 */

@@ -22,7 +22,7 @@ class NeoMatrixAni:public Ani
 
 class MatrixOffAni : public NeoMatrixAni{
     public:
-        MatrixOffAni():NeoMatrixAni((const char *)F("off"))      {};
+        MatrixOffAni():NeoMatrixAni(F_CONST("off"))      {};
         void reset() {_color = 0; _needUpdate = true;};
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
             if (_needUpdate == true){
@@ -59,7 +59,7 @@ class MatrixStaticAni : public NeoMatrixAni{
                |               |    N/A        
     */
    public:
-        MatrixStaticAni():NeoMatrixAni((const char *)F("static"))      {};
+        MatrixStaticAni():NeoMatrixAni(F_CONST("static"))      {};
         void reset() {  setup(0x500000FF,0,0,0,0,NULL); };
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
@@ -119,7 +119,7 @@ class MatrixBreathAni : public NeoMatrixAni{
                |               |    N/A        
     */
     public:
-        MatrixBreathAni():NeoMatrixAni((const char *)F("breath"))      {};
+        MatrixBreathAni():NeoMatrixAni(F_CONST("breath"))      {};
         void reset() { setup(0x000000FF,0x00000A50,0x0BBB0CCC,0,0,NULL); };
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
@@ -222,7 +222,7 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
     */
     #define COLOR_LIST_LENGTH 16
     public:
-        MatrixRainbowFlashAni():NeoMatrixAni((const char *)F("rainbow flash"))      {};
+        MatrixRainbowFlashAni():NeoMatrixAni(F_CONST("rainbow flash"))      {};
 
         void reset() { setup(0x0019004A,0x00080800,0x00005008,0,0,NULL); };
        
@@ -289,7 +289,7 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
 
  
     protected:
-        virtual void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
+        void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
             u16_t color565;
             u32_t color24;
             u8_t  dim;
@@ -346,7 +346,7 @@ class MatrixMultiFlashAni : public MatrixRainbowFlashAni{
     public:
         MatrixMultiFlashAni()      {
             MatrixRainbowFlashAni();
-            NeoMatrixAni((const char *)F("multi flash"));
+            NeoMatrixAni(F_CONST("multi flash"));
             for(int i=0;i < COLOR_LIST_LENGTH;i++){
                 _colorList[i]=0;
             }
@@ -445,7 +445,7 @@ class MatrixRunningRectAni : public NeoMatrixAni{
     */
     #define COLOR_LIST_LENGTH 16
     public:
-        MatrixRunningRectAni():NeoMatrixAni((const char *)F("running rect"))      {};
+        MatrixRunningRectAni():NeoMatrixAni(F_CONST("running rect"))      {};
 
         void reset() { setup(0x01005040,0,0,0,0,NULL); };
        
@@ -488,7 +488,7 @@ class MatrixRunningRectAni : public NeoMatrixAni{
 
  
     protected:
-        virtual void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
+        void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
             u16_t color565;
             u32_t color24;
             u8_t  borderLine = 0;
@@ -568,13 +568,13 @@ class MatrixRunningCircleAni : public MatrixRunningRectAni{
     public:
         MatrixRunningCircleAni() {
             MatrixRunningRectAni();
-            NeoMatrixAni((const char *)F("running circle"));
+            NeoMatrixAni(F_CONST("running circle"));
         };
 
 
  
     protected:
-        virtual void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
+        void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
             u16_t color565;
             u32_t color24;
             u8_t  borderLine = 0;
@@ -589,6 +589,11 @@ class MatrixRunningCircleAni : public MatrixRunningRectAni{
             }
 
             for(int i=0; i < steps; i++){
+                x=0+i;
+                y=0+i;
+                h = _sizeY - (2*i);
+                w = _sizeX - (2*i);
+                
                 if ((h>0) && (w>0)){
                     // get color from color wheel
                     color24 = getColorWheel24Bit(colorIndex);
@@ -596,7 +601,7 @@ class MatrixRunningCircleAni : public MatrixRunningRectAni{
                     color565 = toColor565(color24);
                     
                     // rect with rounded corner
-                    pMatrix->drawRect(i,i,w,h,color565 );
+                    pMatrix->drawRoundRect(i,i,w,h,i,color565 );
 
                     // change color or repeat color 
                     borderLine++;
@@ -639,7 +644,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                |               |    N/A        
     */
     public:
-        MatrixGifFileAni():NeoMatrixAni((const char *)F("gif file"))      {_gif.begin(GIF_PALETTE_RGB888);_pBuffer = NULL;};
+        MatrixGifFileAni():NeoMatrixAni(F_CONST("gif file"))      {_gif.begin(GIF_PALETTE_RGB888);_pBuffer = NULL;};
         void reset() { setup(1,0x80,0,0,0,NULL); };
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
