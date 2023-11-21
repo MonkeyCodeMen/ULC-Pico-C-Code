@@ -15,7 +15,7 @@ public:
     void reset();
 
 private:
-    enum ComState  {WAIT,START_FRAME,MODULE,INDEX,COMMAND,PAR1,PAR2,PAR3,PAR4,LENGTH,DATA,END_FRAME,FRAME_DONE};
+    enum ComState  {WAIT,START_FRAME,MODULE,INDEX,COMMAND,PAR1,PAR2,PAR3,PAR4,STR_START,STR_DATA,STR_END,LENGTH,DATA,FRAME_DONE};
     HardwareSerial * _pPort;
     ComState _state; 
 
@@ -28,9 +28,11 @@ private:
     void getPar2();
     void getPar3();
     void getPar4();
+    void getStrStart();
+    void getStrData();
+    void getStrEnd();
     void getLength();
     void getData();
-    void getEndOfFrame();
     void frameDone();
 
     bool getByte(u8_t * pBuffer);
@@ -40,6 +42,7 @@ private:
     u8_t    _byte;
     String  _field;
     u32_t   _maxFieldLength;
+    u32_t   _dataReceived;
     bool    _endFound;
 
     ComFrame _frame;

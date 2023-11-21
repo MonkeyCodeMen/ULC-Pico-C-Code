@@ -18,15 +18,15 @@ void Com::loop(){
         case WAIT:          doWaiting();        break;
         case START_FRAME:   getStartOfFrame();  break;
         case MODULE:        getModule();        break;
-        case INDEX:         getIndex();         break;
         case COMMAND:       getCommand();       break;
         case PAR1:          getPar1();          break;
         case PAR2:          getPar2();          break;
         case PAR3:          getPar3();          break;
         case PAR4:          getPar4();          break;
+        case STR_START:     getStrStart();      break;
+        case STR_DATA:      getStrData();       break;
         case LENGTH:        getLength();        break;
         case DATA:          getData();          break;
-        case END_FRAME:     getEndOfFrame();    break;
         case FRAME_DONE:    frameDone();        break;
 
         default:
@@ -39,6 +39,7 @@ void Com::reset(){
     _endFound = false;
     _field = "";
     _maxFieldLength = COM_FRAME_MAX_COMMAND_LENGTH;
+    _dataReceived = 0;
     _frame.reset();
     _state = WAIT;
 }
@@ -69,19 +70,6 @@ void Com::getStartOfFrame(){
 }
 
 void Com::getModule(){
-    u8_t buffer[2];
-    if (getBytes(2,buffer)== false)   {
-        return;
-    }
-    if (buffer[1] != COM_FRAME_SEP)   {
-        reset(); 
-        return;   
-    }      
-    _frame.module = buffer[0];
-    _state = INDEX;
-}
-
-void Com::getIndex(){
     u8_t buffer[3];
     if (getBytes(3,buffer)== false)   {
         return;
@@ -89,15 +77,13 @@ void Com::getIndex(){
     if (buffer[2] != COM_FRAME_SEP)   {
         reset(); 
         return;   
-    }
-
-    buffer[2]=0;
-    _frame.index = String((char*)buffer).toInt();
+    }      
+    _frame.module = buffer[0];
+    _frame.index = String((char)buffer[1]).toInt();
     _state = COMMAND;
     _field = "";
     _maxFieldLength = COM_FRAME_MAX_COMMAND_LENGTH;
 }
-
 
 
 void Com::getCommand(){
@@ -167,10 +153,63 @@ void Com::getPar4(){
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
-        _state = DATA;
+        _state = STR_START;
         _frame.length=0;
         _field = "";
         _frame.pData = (u8_t *) new String();
+    }
+}
+
+void Com::getStrStart(){
+    u8_t buffer;
+    if (getByte(&buffer) == false)  {
+        return;            
+    } 
+
+    if (buffer == COM_FRAME_TEXT_QUOTES){
+        _state = STR_DATA;
+        _frame.str = "";
+    } else if (buffer == COM_FRAME_END) {
+        _state = FRAME_DONE;
+    } else if (buffer == COM_FRAME_SEP) {
+        _state = LENGTH;
+        _field = "";
+        _maxFieldLength = COM_FRAME_MAX_PARAMETER_LENGTH;
+    } else {
+        reset();       
+    }
+}
+
+void Com::getStrData(){
+    u8_t buffer;
+    if (getByte(&buffer) == false)  {
+        return;            
+    } 
+
+    if (buffer == COM_FRAME_TEXT_QUOTES){
+        _state = STR_END;
+    } else {
+        _frame.str+=(char)buffer;
+        if (_frame.str.length() > COM_FRAME_MAX_STR_LENGTH){
+            reset();       
+        }
+    }
+}
+
+void Com::getStrEnd(){
+    u8_t buffer;
+    if (getByte(&buffer) == false)  {
+        return;            
+    } 
+
+    if (buffer == COM_FRAME_END) {
+        _state = FRAME_DONE;
+    } else if (buffer == COM_FRAME_SEP) {
+        _state = LENGTH;
+        _field = "";
+        _maxFieldLength = COM_FRAME_MAX_PARAMETER_LENGTH;
+    } else {
+        reset();       
     }
 }
 
@@ -178,11 +217,14 @@ void Com::getLength(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.length = convertStrToInt(_field);
     if (_endFound == true){
         reset();  // length without data???
     } else {
+        _frame.length = convertStrToInt(_field);
         _state = DATA;
+        _dataReceived = 0;
+        ASSERT(_frame.pData == NULL,F_CONST("frame binary buffer must be cleared at this point"));
+        _frame.pData = new u8_t[_frame.length];
     }
 }
 
@@ -192,33 +234,16 @@ void Com::getData(){
         return;            
     }
 
-    if (buffer == 0){
-        // end of pData (ASCII mode string) reached
-        _frame.pData = (u8_t *)_frame.str.c_str();
-        _state = END_FRAME;
-        return;
+    _dataReceived++;
+    if (_dataReceived  == _frame.length){
+        if (buffer == COM_FRAME_END){
+            _state = FRAME_DONE;
+        } else {
+            reset();
+        }
+    } else {
+        _frame.pData[_dataReceived-1]=buffer;
     }
-
-    // end not reached at char to pData (String)
-    _frame.str.concat((char)buffer);
-}
-
-
-void Com::getEndOfFrame(){
-    u8_t buffer;
-    if (getByte(&buffer) == false)  {
-        return;            
-    }
-
-    if (buffer != COM_FRAME_END){
-        LOG(F("getEndOfFrame wrong end frame signature   .. frame skipped"));
-        reset();
-        return;
-    }
-
-    _state = FRAME_DONE;
-    _endFound = true;
-    _frame.length = 0;  // it is a string
 }
 
 
