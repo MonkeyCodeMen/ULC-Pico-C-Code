@@ -295,7 +295,7 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
 
  
     protected:
-        virtual void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
+        void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
             u16_t color565;
             u32_t color24;
             u8_t  dim;
@@ -503,7 +503,7 @@ class MatrixBoxAni : public NeoMatrixAni{
 
  
     protected:
-        virtual void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
+        void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
             u16_t color565;
             u32_t color24;
             u8_t  borderLine = 0;
