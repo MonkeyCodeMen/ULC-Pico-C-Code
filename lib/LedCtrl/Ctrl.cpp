@@ -79,10 +79,10 @@ const char * Ctrl::getName(){
     return _pCurrentNode->pName;
 }
 
-void Ctrl::setup(int nr){
-    if (nr >= _count)        return;
-    if (nr < 0 )             return;
-    if (_pRoot == NULL)      return;
+int Ctrl::setup(int nr){
+    if (nr >= _count)        return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
+    if (nr < 0 )             return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
+    if (_pRoot == NULL)      return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 
     _mutexSetup.lock();
     // find matching entry or set all to NULL
@@ -91,17 +91,19 @@ void Ctrl::setup(int nr){
         if (_pCurrentNode->pNext == NULL){
             _pCurrentAni = NULL;
             _pCurrentNode= NULL;
-            return;
+            _mutexSetup.unlock();
+            return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
         }
         _pCurrentNode = _pCurrentNode->pNext;
     }
     _pCurrentAni = _pCurrentNode->pAni;
     _pCurrentAni->reset();
     _mutexSetup.unlock();
+    return ANI_OK;
 }
 
-void Ctrl::setup(const char * pName){
-    if (_pRoot == NULL)      return;
+int Ctrl::setup(const char * pName){
+    if (_pRoot == NULL)      return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 
     _mutexSetup.lock();
     // find matching entry or set all to NULL
@@ -110,23 +112,26 @@ void Ctrl::setup(const char * pName){
         if (_pCurrentNode->pNext == NULL){
             _pCurrentAni = NULL;
             _pCurrentNode= NULL;
-            return;
+            _mutexSetup.unlock();
+            return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
         }
         _pCurrentNode = _pCurrentNode->pNext;
     }
     _pCurrentAni = _pCurrentNode->pAni;
     _pCurrentAni->reset();
     _mutexSetup.unlock();
+    return ANI_OK;
 }
 
 
 
-void Ctrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData){
+int Ctrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData){
     ASSERT(_pCurrentAni != NULL,"");
-    if (_pCurrentAni == NULL)   return;
+    if (_pCurrentAni == NULL)   return ANI_ERROR_INTERNAL;
 
     _mutexSetup.lock();
-    _pCurrentAni->setup(p1,p2,p3,p4,length,pData);
+    int res = _pCurrentAni->setup(p1,p2,p3,p4,str,length,pData);
     _mutexSetup.unlock();
+    return res;
 }
 

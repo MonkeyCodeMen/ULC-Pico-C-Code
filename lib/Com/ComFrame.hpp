@@ -6,7 +6,7 @@
     Start,Module,Index,Command,Par1,Par2,Par3,Par4,length,data#
 
     simple example
-    S:L,00,On#   {start:S:,Module:switch,Index:0,Command:on,Ende:#}
+    S:L0;On#   {start:"S:""  Module:"S" Index:"0" ; Command:"on" end:"#""}
 
     must have: start module command
     other paramtres are optional
@@ -80,7 +80,8 @@ S:S0;Rainbow Cycle#
 - NEO LED Matrix
 S:M0;breath#
 S:M0;static;0xFF0000FF#
-S:M0;running rect#
+S:M0;rect#
+S:M0;circle#
 S:M0;gif file#
 
 */
@@ -94,6 +95,7 @@ S:M0;gif file#
 #define COM_FRAME_SEP               ';'
 #define COM_FRAME_PARAMETER_SEP     ','
 #define COM_FRAME_TEXT_QUOTES       '"'
+#define COM_FRAME_ANSWER_START      "A:"
 
 class ComFrame{
     public:
@@ -111,4 +113,7 @@ class ComFrame{
         String  str;                    // string 
         u32_t   length;                 // binary length
         u8_t *  pData;                  // binary data
+
+        // result
+        String res;
 };

@@ -41,7 +41,7 @@ void test_Ctrl_constructor1(void) {
   TEST_ASSERT_EQUAL_STRING("",object.getNameList());
   TEST_ASSERT_EQUAL_STRING("",object.getName());
 
-  object.setup(0,0,0,0,0,NULL);  // try parameter change on not existing animation
+  object.setup(0,0,0,0,"",0,NULL);  // try parameter change on not existing animation
   TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
   TEST_ASSERT_EQUAL_STRING("",object.getNameList());
   TEST_ASSERT_EQUAL_STRING("",object.getName());

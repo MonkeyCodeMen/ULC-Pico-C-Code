@@ -12,9 +12,9 @@ class NeoStripeCtrl : public Ctrl
         ~NeoStripeCtrl() = default;
 
         // overwrite virtuals    
-        void setup(int nr);         // change programm
-        void setup(const char *pName);   // change programm
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData); // config program
+        int setup(int nr);         // change programm
+        int setup(const char *pName);   // change programm
+        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData); // config program
         void loop(u32_t time);
 
         const char * getName();

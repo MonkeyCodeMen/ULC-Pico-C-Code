@@ -58,9 +58,9 @@ void NeoStripeCtrl::loop(u32_t time){
     _mutexSetup.unlock();
 }
 
-void NeoStripeCtrl::setup(int nr){
-    if (nr >= _count)        return;
-    if (nr < 0 )             return;
+int NeoStripeCtrl::setup(int nr){
+    if (nr >= _count)        return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
+    if (nr < 0 )             return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 
     _mutexSetup.lock();
     if (nr == 0){
@@ -70,15 +70,17 @@ void NeoStripeCtrl::setup(int nr){
         setStdParameter();
     }
     _mutexSetup.unlock();
+    return ANI_OK;
 }
 
-void NeoStripeCtrl::setup(const char *pName){
+int NeoStripeCtrl::setup(const char *pName){
     _mutexSetup.lock();
     // find matching entry or set all to NULL
     if (strcmp(pName , "Off") == 0){
         setOff();
         _current = 0;
         _mutexSetup.unlock();
+        return ANI_OK;
     }
     for(int i=1;i < _count;i++){
         if (strcmp(pName, (const char *)_pNeoStripe->getModeName(i-1)) == 0){
@@ -86,19 +88,21 @@ void NeoStripeCtrl::setup(const char *pName){
             setStdParameter();
             _current = i;
             _mutexSetup.unlock();
-            return;            
+            return ANI_OK;            
         }
     }
     LOG(F_CONST("NeoStripeCtrl::setup could not find mode"));
     _mutexSetup.unlock();
+    return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 }
 
 
 
-void NeoStripeCtrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData){
+int NeoStripeCtrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData){
     _mutexSetup.lock();
     _pNeoStripe->setColor(p1);
     _pNeoStripe->setBrightness(p2 & 0xFF);
     _pNeoStripe->setSpeed(p3);
     _mutexSetup.unlock();
+    return ANI_OK;
 }

@@ -144,7 +144,7 @@ void test_LedCtrl_dim(void){
   object.loop(1000);
   TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
 
-  object.setup(123,0,0,0,0,NULL);
+  object.setup(123,0,0,0,"",0,NULL);
   TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
   object.loop(1001);
   TEST_ASSERT_EQUAL_UINT8( 123 , simLed.get());
@@ -216,7 +216,7 @@ void test_LedCtrl_blink(void){
   object.loop(1001);
   TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
 
-  object.setup(123,100,100,100,100,NULL);
+  object.setup(123,100,100,100,10"",0,NULL);
   TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
 
   object.loop(1002);

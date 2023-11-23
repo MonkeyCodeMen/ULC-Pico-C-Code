@@ -8,85 +8,99 @@ ComDispatch::ComDispatch()
 {
 }
 
-void ComDispatch::dispatchFrame(ComFrame * pFrame)
+bool ComDispatch::dispatchFrame(ComFrame * pFrame)
 {
+    bool res;
     switch(pFrame->module){
-        case('C'):  dispatchCommonFrame(pFrame);    break;
-        case('L'):  dispatchLedFrame(pFrame);       break;
-        case('R'):  dispatchRgbLedFrame(pFrame);    break;
-        case('S'):  dispatchNeoStripeFrame(pFrame); break;
-        case('M'):  dispatchNeoMatrixFrame(pFrame); break;
+        case('C'):  res = dispatchCommonFrame(pFrame);    break;
+        case('L'):  res = dispatchLedFrame(pFrame);       break;
+        case('R'):  res = dispatchRgbLedFrame(pFrame);    break;
+        case('S'):  res = dispatchNeoStripeFrame(pFrame); break;
+        case('M'):  res = dispatchNeoMatrixFrame(pFrame); break;
         
         default:
-            LOG(F_CONST("unknown module .. could not disptach Frame"));
+            pFrame->res=F_CONST("unknown module");
+            return false;
     }
+    return res;
 }
 
-void ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
-
+bool ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
+    return false;
 }
 
 
-void ComDispatch::dispatchLedFrame(ComFrame * pFrame)
+bool ComDispatch::dispatchLedFrame(ComFrame * pFrame)
 {
     LedCtrl * pLedCtrl;
-    LOG(F_CONST("LED Frame"));
+    int res;
     switch(pFrame->index){
         case 0: pLedCtrl = pLedCtrl1; break;
         case 1: pLedCtrl = pLedCtrl2; break;
         default:
-            LOG(F_CONST("unknown index for Led module  .. skip frame"));
-            return;
+            pFrame->res = F_CONST("unknown index");
+            return false;
     }
     if (pFrame->withPar == true){
-        pLedCtrl->setup(pFrame->command.c_str());
-        pLedCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->length,pFrame->pData);
+        res = pLedCtrl->setup(pFrame->command.c_str());
+        if (res == ANI_OK) {
+            res = pLedCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->str,pFrame->length,&(pFrame->pData));
+        }
     } else {
-        pLedCtrl->setup(pFrame->command.c_str());  // use default parameter for 
+        res = pLedCtrl->setup(pFrame->command.c_str());  // use default parameter for 
     }
+    pFrame->res = Ani::getErrorText(res);
+    return res==ANI_OK?true:false;
 }
 
-void ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
+bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
 {
     RgbLedCtrl * pRgbCtrl;
     LOG(F_CONST("RGB LED Frame"));
     switch(pFrame->index){
         case 0: pRgbCtrl = pRgbCtrl1; break;
         default:
-            LOG(F_CONST("unknown index for Led module  .. skip frame"));
-            return;
+            pFrame->res=F_CONST("unknown index");
+            return false;
     }
 
+    int res;
     if (pFrame->withPar == true){
-        pRgbCtrl->setup(pFrame->command.c_str());
-        pRgbCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->length,pFrame->pData);
+        res = pRgbCtrl->setup(pFrame->command.c_str());
+        if (res == ANI_OK){
+            res = pRgbCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->str,pFrame->length,&(pFrame->pData));
+        }
     } else {
-        pRgbCtrl->setup(pFrame->command.c_str());  // use default parameter for 
+        res = pRgbCtrl->setup(pFrame->command.c_str());  // use default parameter for 
     }
+    pFrame->res = Ani::getErrorText(res);
+    return res==ANI_OK?true:false;
 }
 
-void ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)
+bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)
 {
     NeoStripeCtrl * pStripeCtrl;
     switch(pFrame->index){
         case 0: pStripeCtrl = pNeoStripeCtrl1; break;
         case 1: pStripeCtrl = pNeoStripeCtrl2; break;
         default:
-            LOG(F_CONST("unknown index for Neo Stripe module  .. skip frame"));
-            return;
+            pFrame->res=F_CONST("unknown index");
+            return false;
     }
+    int res;
     if (pFrame->withPar == true){
-        LOG(F_CONST("Neo stripe frame with parameter"));
-        pStripeCtrl->setup(pFrame->command.c_str());
-        pStripeCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->length,pFrame->pData);
+        res = pStripeCtrl->setup(pFrame->command.c_str());
+        if (res == ANI_OK) {
+            res = pStripeCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->str,pFrame->length,&(pFrame->pData));
+        }
     } else {
-        LOG(F_CONST("Neo stripe frame just program"));
-        pStripeCtrl->setup(pFrame->command.c_str());  // use default parameter for 
+        res = pStripeCtrl->setup(pFrame->command.c_str());  // use default parameter for 
     }
-
+    pFrame->res = Ani::getErrorText(res);
+    return res==ANI_OK?true:false;
 }
 
-void ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame)
+bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame)
 {
     NeoMatrixCtrl * pMatrixCtrl;
     LOG(F_CONST("Neo Matrix Frame"));
@@ -94,14 +108,18 @@ void ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame)
         case 0: pMatrixCtrl = pNeoMatrixCtrl1; break;
         case 1: pMatrixCtrl = pNeoMatrixCtrl2; break;
         default:
-            LOG(F_CONST("unknown index for Neo matrix module  .. skip frame"));
-            return;
+            pFrame->res=F_CONST("unknown index");
+            return false;
     }
+    int res;
     if (pFrame->withPar == true){
-        pMatrixCtrl->setup(pFrame->command.c_str());
-        pMatrixCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->length,pFrame->pData);
+        res = pMatrixCtrl->setup(pFrame->command.c_str());
+        if (res == ANI_OK){
+            res = pMatrixCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->str,pFrame->length,&(pFrame->pData));
+        }
     } else {
-        pMatrixCtrl->setup(pFrame->command.c_str());  // use default parameter for 
+        res = pMatrixCtrl->setup(pFrame->command.c_str());  // use default parameter for 
     }
-
+    pFrame->res = Ani::getErrorText(res);
+    return res==ANI_OK?true:false;
 }

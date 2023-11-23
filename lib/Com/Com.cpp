@@ -248,14 +248,49 @@ void Com::getData(){
 
 
 void Com::frameDone(){
-    LOG(F("COM:Dispatch Frame:"));
+    //LOG(F("COM:Dispatch Frame:"));
     // frame ready for further processing
-    _dispatcher.dispatchFrame(&_frame);
+    bool res = _dispatcher.dispatchFrame(&_frame);
+    sendAnswer(res,&_frame);
     // frame processed delete all data now
-    reset();
+    reset();  // will free pBuffer if not taken over from application (=NULL)
 }
 
+void Com::sendAnswer(bool res,ComFrame * pFrame){
+    String out;
 
+    out = COM_FRAME_ANSWER_START;
+    out += pFrame->module;
+    out += String(pFrame->index);
+    if (pFrame->withPar == true){
+        out += COM_FRAME_SEP;
+        out += String(pFrame->par1,HEX);
+        out += COM_FRAME_SEP;
+        out += String(pFrame->par2,HEX);
+        out += COM_FRAME_SEP;
+        out += String(pFrame->par3,HEX);
+        out += COM_FRAME_SEP;
+        out += String(pFrame->par4,HEX);
+        out += COM_FRAME_SEP;
+        out += COM_FRAME_TEXT_QUOTES;
+        out += String(pFrame->str);
+        out += COM_FRAME_TEXT_QUOTES;
+        out += COM_FRAME_SEP;
+        out += String(pFrame->length,HEX);
+        // do not repeat binary data (can be hugh)
+        if (res == true){
+            out+=COM_FRAME_END;
+            out+="OK";
+            out+=COM_FRAME_END;
+        } else {
+            out+=COM_FRAME_END;
+            out+="NOK-";
+            out+=pFrame->res;
+            out+=COM_FRAME_END;
+        }
+        _pPort->println(out.c_str());
+    }
+}
 
 
 

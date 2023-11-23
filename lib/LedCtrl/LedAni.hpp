@@ -16,7 +16,7 @@ class LedAni : public Ani
     // base class
         //String getName()		{return _name;};
 		//virtual void reset()  {};
-        //virtual void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData) {};
+        //virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) {};
         // if nothing to do for this member functions you can stay with the default implentation from base class
 
 };
@@ -86,10 +86,10 @@ class LedDimAni : public LedAni{
 
     public:
         LedDimAni()  : LedAni((const char *) F("dim"))        {};
-        void reset()                                {setup(0x80,0,0,0,0,NULL);};
+        void reset()                                {setup(0x80,0,0,0,"",0,NULL);};
         void loop(u32_t time,Led * pLed)            {pLed->set(_dimValue);};
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  
-                                                    {_dimValue = L_BYTE(p1);}; 
+        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  
+                                                    {_dimValue = L_BYTE(p1);return ANI_OK;}; 
     private:
         u8_t _dimValue;
 };
@@ -115,13 +115,14 @@ class LedBlinkAni : public LedAni{
     public:
         LedBlinkAni()  : LedAni((const char *) F("blink"))    {};
         
-        void reset() {  setup(0x80,250,250,0,0,NULL); };
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  { 
+        void reset() {  setup(0x80,250,250,0,"",0,NULL); };
+        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  { 
             _state = stop;
             _dimValue = L_BYTE(p1);
             _onTime_ms = p2;
             _offTime_ms = p3;
             _state = init;
+            return ANI_OK;
         };
 
 
@@ -188,8 +189,8 @@ class LedMultiFlashAni : public LedAni{
     public:
         LedMultiFlashAni()  : LedAni((const char *) F("multi flash")) {};
         
-        void reset() {  setup(0xFF,0,0x00200060,0x000201F4,0,NULL); };
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
+        void reset() {  setup(0xFF,0,0x00200060,0x000201F4,"",0,NULL); };
+        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
             _dim        = L_BYTE(p1);
             _onTime     = H_WORD(p3);
@@ -197,6 +198,7 @@ class LedMultiFlashAni : public LedAni{
             _flashCount = H_WORD(p4);
             _pauseTime  = L_WORD(p4);
             _state      = init;
+            return ANI_OK;
         };
  
         void loop(u32_t time,Led * pLed){
@@ -282,8 +284,8 @@ class LedBreathAni : public LedAni{
     public:
         LedBreathAni()  : LedAni((const char *)F("breath")) {};
         
-        void reset() {  setup(0,0x1000,0x1000,0x0000FF10,0,NULL); };
-        void setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,u32_t length,u8_t * pData)  {
+        void reset() {  setup(0,0x1000,0x1000,0x0000FF10,"",0,NULL); };
+        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state = stop; 
             _incTimeMs = p2;
             _decTimeMs = p3;
@@ -295,6 +297,7 @@ class LedBreathAni : public LedAni{
                 _lowerLimit = temp;
             }
             _state = init;
+            return ANI_OK;
         };
  
         void loop(u32_t time,Led * pLed){

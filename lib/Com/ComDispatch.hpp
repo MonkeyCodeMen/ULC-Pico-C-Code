@@ -7,13 +7,13 @@ public:
 	ComDispatch();
 	~ComDispatch() = default;
 
-    void dispatchFrame(ComFrame * pFrame);
+    bool dispatchFrame(ComFrame * pFrame);
 
 private:
-    void dispatchCommonFrame(ComFrame * pFrame);
-    void dispatchLedFrame(ComFrame * pFrame);
-    void dispatchRgbLedFrame(ComFrame * pFrame);
-    void dispatchNeoStripeFrame(ComFrame * pFrame);
-    void dispatchNeoMatrixFrame(ComFrame * pFrame);
+    bool dispatchCommonFrame(ComFrame * pFrame);
+    bool dispatchLedFrame(ComFrame * pFrame);
+    bool dispatchRgbLedFrame(ComFrame * pFrame);
+    bool dispatchNeoStripeFrame(ComFrame * pFrame);
+    bool dispatchNeoMatrixFrame(ComFrame * pFrame);
 
 };
