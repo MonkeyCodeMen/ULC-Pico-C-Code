@@ -10,6 +10,13 @@
 #include <LoopStats.hpp>
 
 
+/*
+
+#ifdef WITH_SD_CARD
+    #include <SD.h>
+#endif
+*/
+
 
 volatile bool setupStartsecondCore = false;
 volatile bool waitForsecondCore    = true;
@@ -118,8 +125,8 @@ void setup() {
   LOG(F_CONST("setup 0: Neo matrix"));
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
-  pNeoMatrixCtrl1->setup("gif file");
-  pNeoMatrixCtrl2->setup("off");
+  pNeoMatrixCtrl1->setup("gif");
+  pNeoMatrixCtrl2->setup("breath");
 
   setupStartsecondCore = true;
   while(waitForsecondCore == true){
@@ -139,32 +146,38 @@ void setup1() {
 
   LOG(F_CONST("setup 1: startup SPI"));
   SPI.begin();
+  SPI_mutex.unlock();
 
 
   #ifdef WITH_DISPLAY
     LOG(F_CONST("setup 1: TFT"));
-    pTFT = new TFT_eSPI();
-    pTFT->init();
-    pTFT->setRotation(1);
-    pTFT->fillScreen(TFT_BLACK);
-    pinMode(PIN_TFT_LED, OUTPUT);
-    analogWrite(PIN_TFT_LED,TFT_DIM);
+    SPI_mutex.lock();   // TFT lib does not know SPI mutex .. so do it by hand
+      pTFT = new TFT_eSPI();
+      pTFT->init();
+      pTFT->setRotation(1);
+      pTFT->fillScreen(TFT_BLACK);
+      pinMode(PIN_TFT_LED, OUTPUT);
+      analogWrite(PIN_TFT_LED,TFT_DIM);
+    SPI_mutex.unlock();
 
     LOG(F_CONST("setup 1: cube"));
-    pCube = new Cube(pTFT);
+    pCube = new Cube(pTFT);  // cube object handles SPI mutex !!
+
   #endif
+/*
 
   #ifdef WITH_SD_CARD
-    LOG(F_CONST("setup 1: Initializing SD card..."));
-    if (!SD.begin(PIN_SPI0_CS_SD)) {
+    LOG(F_CONST("setup 1: test for  SD card..."));
+    SDClass card;
+    if (!card.begin(PIN_SPI0_CS_SD)) {
       LOG(F_CONST("setup 1: SD card initialization failed!"));
+    } else {
+      card.end();
+      LOG(F_CONST("setup 1: SD card initialization done."));
     }
-    LOG(F_CONST("setup 1: SD card initialization done."));
   #endif
+*/
 
-  
-  LOG(F_CONST("setup 1: gif setup"));
-  gifSetup();
 
   LOG(F_CONST("setup 1: done"));
   waitForsecondCore = false;

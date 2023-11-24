@@ -8,8 +8,9 @@ Com::Com()
 }
 
 void Com::setup(){
-    _pPort->begin(115200);
-    _state = WAIT;
+    _pPort->begin(115200,SERIAL_8N1);
+    _pPort->println("ULC-Pico V1.0 ready");
+    reset();
 }
 
 
@@ -25,6 +26,7 @@ void Com::loop(){
         case PAR4:          getPar4();          break;
         case STR_START:     getStrStart();      break;
         case STR_DATA:      getStrData();       break;
+        case STR_END:       getStrEnd();        break;
         case LENGTH:        getLength();        break;
         case DATA:          getData();          break;
         case FRAME_DONE:    frameDone();        break;
@@ -35,7 +37,6 @@ void Com::loop(){
 }
 
 void Com::reset(){
-    LOG(F("COM:Reset "));
     _endFound = false;
     _field = "";
     _maxFieldLength = COM_FRAME_MAX_COMMAND_LENGTH;
@@ -248,12 +249,12 @@ void Com::getData(){
 
 
 void Com::frameDone(){
-    //LOG(F("COM:Dispatch Frame:"));
     // frame ready for further processing
     bool res = _dispatcher.dispatchFrame(&_frame);
     sendAnswer(res,&_frame);
+
     // frame processed delete all data now
-    reset();  // will free pBuffer if not taken over from application (=NULL)
+    reset();  // will free pBuffer if not taken over from application (_frame.pBuffer=NULL)
 }
 
 void Com::sendAnswer(bool res,ComFrame * pFrame){
@@ -262,6 +263,8 @@ void Com::sendAnswer(bool res,ComFrame * pFrame){
     out = COM_FRAME_ANSWER_START;
     out += pFrame->module;
     out += String(pFrame->index);
+    out += COM_FRAME_SEP;
+    out += pFrame->command;
     if (pFrame->withPar == true){
         out += COM_FRAME_SEP;
         out += String(pFrame->par1,HEX);
@@ -278,18 +281,18 @@ void Com::sendAnswer(bool res,ComFrame * pFrame){
         out += COM_FRAME_SEP;
         out += String(pFrame->length,HEX);
         // do not repeat binary data (can be hugh)
-        if (res == true){
-            out+=COM_FRAME_END;
-            out+="OK";
-            out+=COM_FRAME_END;
-        } else {
-            out+=COM_FRAME_END;
-            out+="NOK-";
-            out+=pFrame->res;
-            out+=COM_FRAME_END;
-        }
-        _pPort->println(out.c_str());
     }
+    if (res == true){
+        out+=COM_FRAME_END;
+        out+="OK";
+        out+=COM_FRAME_END;
+    } else {
+        out+=COM_FRAME_END;
+        out+="NOK-";
+        out+=pFrame->res;
+        out+=COM_FRAME_END;
+    }
+    _pPort->print(out);
 }
 
 

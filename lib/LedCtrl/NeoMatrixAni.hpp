@@ -6,6 +6,10 @@
 
 #include <AnimatedGIF.h>
 #include <SD.h>
+#include <../../include/PinMapping.h>
+#include "Mutex.hpp"
+extern Mutex SPI_mutex;
+
 
 
 class NeoMatrixAni:public Ani
@@ -441,8 +445,8 @@ class MatrixBoxAni : public NeoMatrixAni{
                |               |  D:dim value for color
                |               |  I:inc step for color wheel (full wheel 255)
         -------+---------------+---------------------------
-        p2:    | 0x0000 0002   |  0x0000 00TT
-               |               |  T: rect border width
+        p2:    | 0x0000 0001   |  0x0000 00TT
+               |               |  T: rect/circle line width
         -------+---------------+---------------------------
         p3:    | N/A           |  N/A
         -------+---------------+---------------------------
@@ -462,7 +466,7 @@ class MatrixBoxAni : public NeoMatrixAni{
             _circle = circle;
         };
 
-        void reset() { setup(0x01005040,0,0,0,"",0,NULL); };
+        void reset() { setup(0x0100500A,1,0,0,"",0,NULL); };
        
         virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
@@ -529,9 +533,9 @@ class MatrixBoxAni : public NeoMatrixAni{
                     color24 = dimColor255(color24,_dim);
                     color565 = toColor565(color24);
                     
-                    if (_circle){
+                    if (_circle==true){
                         // rect with rounded corner
-                        pMatrix->drawRect(i,i,w,h,color565 );
+                        pMatrix->drawRoundRect(x,y,w,h,i,color565 );
                     }   else {
                         // draw 4 lines (rect)    
                         pMatrix->drawRect(x,y,w,h,color565 );
@@ -551,8 +555,8 @@ class MatrixBoxAni : public NeoMatrixAni{
             _colorIndex += _incStep;
         };
 
-        enum RunningRectState {stop,init,run};
-        volatile RunningRectState _state;
+        enum BoxState {stop,init,run};
+        volatile BoxState _state;
         u32_t _lastCallTime;
         u16_t _incTime;
         u8_t  _dim,_incStep,_colorIndex,_border;
@@ -582,14 +586,14 @@ class MatrixGifFileAni : public NeoMatrixAni{
         -------+---------------+---------------------------
         p4:    |               |  N/A
         -------+---------------+---------------------------
-        str:   | "32x32-1.GIF" |  filename of gif file on SD card
+        str:   | "TEST.GIF"    |  filename of gif file on SD card
         -------+---------------+---------------------------
         pData: | N/A           |  length(0):
                |               |    N/A        
     */
     public:
-        MatrixGifFileAni():NeoMatrixAni(F_CONST("gif file"))      {_gif.begin(GIF_PALETTE_RGB888);_pBuffer = NULL;};
-        void reset() { setup(0x80,0,0,0,"32x32-1.GIF",0,NULL); };
+        MatrixGifFileAni():NeoMatrixAni(F_CONST("gif"))      {_gif.begin(GIF_PALETTE_RGB888);_pBuffer = NULL;};
+        void reset() { setup(0x80,0,0,0,"TEST.GIF",0,NULL); };
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
             switch (_state){
@@ -600,8 +604,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
 
                 case init:
                     pMatrix->fillScreen(0);
-                    pMatrix->show();
-                    _gif.close();
+                    pMatrix->setBrightness(_brightness);
                     _gif.open(_pBuffer,_size,_GIFDraw);
                     _count = 0;
                     _state = run;
@@ -629,24 +632,27 @@ class MatrixGifFileAni : public NeoMatrixAni{
 
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
-            _fileNr     = L_WORD(p1);
+            _gif.close();
+            if (_pBuffer != NULL) {
+                delete _pBuffer;
+                _pBuffer = NULL;
+            }
             _fileName   = str;  
-            _brightness = L_BYTE(p2);
-            _repeat     = H_WORD(p2);
+            _brightness = L_BYTE(p1);
+            _repeat     = H_WORD(p1);
             if (length != 0){
-                if (_pBuffer != NULL) delete _pBuffer;
                 _pBuffer = *pData; 
                 // from now on this object is owner of the buffer
                 // and take care about free the memory if no longer used
                 *pData = NULL;
                 _state  = init;
                 return ANI_OK;
-            } else {
-                int res = _loadGifFromSD();
-                if (res == ANI_OK) _state  = init;
-                return res;
-            }
-            return ANI_ERROR_INTERNAL;
+            } 
+            int res = _loadGifFromSD();
+            if (res == ANI_OK){
+                _state  = init;
+            } 
+            return res;
         };
 
     private:
@@ -657,31 +663,40 @@ class MatrixGifFileAni : public NeoMatrixAni{
         u8_t *              _pBuffer = NULL;
         int                 _size = 0;
         u32_t               _lastFrame;
-        int                 _wait,_fileNr,_repeat,_count;                
+        int                 _wait,_repeat,_count;                
         u8_t                _brightness;
         String              _fileName;
 
         int _loadGifFromSD(){
-            String out;
-            ASSERT(_pBuffer == NULL,"buffer must here be empty!!!");
-            if (SD.exists(_fileName.c_str())){
-                SDFile file = SD.open(_fileName.c_str(),FILE_READ);
+            SDClass card;
+            if (_pBuffer != NULL) LOG(F_CONST("buffer should here be empty!!!"));
+            SPI_mutex.lock();
+            if (!card.begin(PIN_SPI0_CS_SD)) {
+                LOG(F_CONST("SD card initialization failed!"));
+                SPI_mutex.unlock();
+                return ANI_ERROR_FILE_NOT_FOUND;
+            }
+            if (card.exists(_fileName.c_str())){
+                SDFile file = card.open(_fileName.c_str(),FILE_READ);
                 if (file.isDirectory()) {
-                    return ANI_ERROR_OUT_OF_RANGE;
+                    SPI_mutex.unlock();
+                    return ANI_ERROR_FILE_NOT_FOUND;
                 }
                 
                 _size = file.size();
                 _pBuffer = new u8_t[_size];
-                if (_pBuffer == NULL){
+                if (_pBuffer == NULL)  {
+                    SPI_mutex.unlock();
                     return ANI_ERROR_INTERNAL;
-                }
+                } 
+
                 file.readBytes(_pBuffer,_size);
                 file.close();
+                SPI_mutex.unlock();
                 return ANI_OK;
-            } else {
-                return ANI_ERROR_OUT_OF_RANGE;
-            }
-            return ANI_ERROR_INTERNAL;
+            } 
+            SPI_mutex.unlock();
+            return ANI_ERROR_FILE_NOT_FOUND;
         }
 
         static void _GIFDraw(GIFDRAW *pDraw)
@@ -728,25 +743,3 @@ class MatrixGifFileAni : public NeoMatrixAni{
         } /* GIFDraw() */
 };
 
-
-    /*  
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  breath
-        -------+---------------+---------------------------
-        p1:    |               |  N/A
-        -------+---------------+---------------------------
-        p2:    | 0x0000 00FF   |  0x00RR GGBB  
-               |               |  color red,green,blues
-        -------+---------------+---------------------------
-        p3:    | 0x0000 0A50   |  0x0000 LLHH     
-               |               |  L:dim low level   
-               |               |  H:dim high level
-        -------+---------------+---------------------------
-        p4:    | 0x0BBB 0CCC   |  0xIIII DDDD
-               |               |  I:inc time
-               |               |  D:dec time
-        -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
-    */

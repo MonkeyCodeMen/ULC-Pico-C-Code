@@ -42,6 +42,7 @@ NeoMatrixCtrl  * pNeoMatrixCtrl2;
 
 // COM
 Com * pCom;
+Mutex SPI_mutex;
 
 
 
@@ -55,7 +56,3 @@ Com * pCom;
   Cube * pCube;
 #endif
 
-#ifdef WITH_SD_CARD
-  #include <SD.h>
-  SDFile root;
-#endif

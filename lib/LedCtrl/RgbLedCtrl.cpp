@@ -27,8 +27,9 @@ RgbLedCtrl::~RgbLedCtrl()
 
 
 void RgbLedCtrl::loop(u32_t time){
-    ASSERT(_pCurrentAni != NULL,"");
-    ASSERT(_pRgbLed != NULL,"");
+    if (_pCurrentAni == NULL)           return;
+    if (_pRgbLed == NULL)               return;
+    if (_mutexSetup.isLocked()==true)   return;  // do not wait 
  
     if (_mutexSetup.isLocked()==true){
         return;  // do not wait 

@@ -56,7 +56,6 @@ bool ComDispatch::dispatchLedFrame(ComFrame * pFrame)
 bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
 {
     RgbLedCtrl * pRgbCtrl;
-    LOG(F_CONST("RGB LED Frame"));
     switch(pFrame->index){
         case 0: pRgbCtrl = pRgbCtrl1; break;
         default:
@@ -103,7 +102,6 @@ bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)
 bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame)
 {
     NeoMatrixCtrl * pMatrixCtrl;
-    LOG(F_CONST("Neo Matrix Frame"));
     switch(pFrame->index){
         case 0: pMatrixCtrl = pNeoMatrixCtrl1; break;
         case 1: pMatrixCtrl = pNeoMatrixCtrl2; break;

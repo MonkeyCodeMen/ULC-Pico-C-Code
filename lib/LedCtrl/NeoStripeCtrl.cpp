@@ -49,11 +49,10 @@ const char * NeoStripeCtrl::getName(){
 }
 
 void NeoStripeCtrl::loop(u32_t time){
-    if (_mutexSetup.isLocked()==true){
-        return;  // do not wait 
-    }
+    if (_pNeoStripe == NULL)            return;
+    if (_mutexSetup.isLocked()==true)   return;  // do not wait 
+
     _mutexSetup.lock();
-    ASSERT(_pNeoStripe != NULL,"");
     _pNeoStripe->service();;
     _mutexSetup.unlock();
 }

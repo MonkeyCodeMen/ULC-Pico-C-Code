@@ -24,12 +24,9 @@ LedCtrl::~LedCtrl(){
 
 
 void LedCtrl::loop(u32_t time){
-    ASSERT(_pCurrentAni != NULL,"");
-    ASSERT(_pLed != NULL,"");
-
-    if (_mutexSetup.isLocked()==true){
-        return;  // do not wait 
-    }
+    if (_pCurrentAni == NULL)           return;
+    if (_pLed == NULL)                  return;
+    if (_mutexSetup.isLocked()==true)   return;  // do not wait 
 
     _mutexSetup.lock();
     ((LedAni*)_pCurrentAni)->loop(time,_pLed);

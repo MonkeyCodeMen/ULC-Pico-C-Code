@@ -2,8 +2,9 @@
 #include "ComFrame.hpp"
 
 ComFrame::ComFrame():
-    module(0),index(0),command(""),par1(0),par2(0),par3(0),par4(0),str(""),length(0),pData(NULL),res("")
+    module(0),index(0),command(""),par1(0),par2(0),par3(0),par4(0),str(""),length(0),pData(NULL),res(""),withPar(false)
 {}
+
 
 ComFrame::~ComFrame()
 {
@@ -16,7 +17,7 @@ ComFrame::~ComFrame()
 
 void ComFrame::reset()
 {
-    module = 0;
+    module = ' ';
     index  = 0;
     command == "";
     par1=0;

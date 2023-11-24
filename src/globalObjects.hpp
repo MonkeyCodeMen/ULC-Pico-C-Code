@@ -11,6 +11,8 @@
 #include <NeoStripeCtrl.hpp>
 #include <NeoMatrixCtrl.hpp>
 
+#include <Mutex.hpp>
+
 
 
 // LED switch stripes
@@ -49,8 +51,5 @@ extern Com * pCom;
 #endif
 
 
-#ifdef WITH_SD_CARD
-    #include <SD.h>
-    String printDirectory(SDFile dir, int numTabs);
-    String fileWriteReadTest();
-#endif
+
+extern Mutex SPI_mutex;

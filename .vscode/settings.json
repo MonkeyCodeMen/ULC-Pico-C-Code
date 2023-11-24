@@ -2,5 +2,6 @@
     "cmake.sourceDirectory": "C:/Users/User/Documents/PlatformIO/Projects/ULC-Pico/.pio/libdeps/cmsis-dap/Adafruit BusIO",
     "files.associations": {
         "new": "cpp"
-    }
+    },
+    "C_Cpp.default.compilerPath": "C:/Users/User/.platformio/packages/toolchain-rp2040-earlephilhower/bin/arm-none-eabi-gcc.exe"
 }
