@@ -18,7 +18,6 @@ NeoMatrixCtrl::NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix) : Ctrl()
     addAni(new MatrixOffAni());
     addAni(new MatrixStaticAni());
     addAni(new MatrixBreathAni());
-    addAni(new MatrixRainbowFlashAni());
     addAni(new MatrixMultiFlashAni());
     addAni(new MatrixBoxAni(false));
     addAni(new MatrixBoxAni(true));

@@ -3,8 +3,10 @@
 #include <Adafruit_NeoMatrix.h>
 #include "helper.hpp"
 #include "Debug.hpp"
+#include <ColorSelector.hpp>
 
 #include <AnimatedGIF.h>
+
 #include <SD.h>
 #include <../../include/PinMapping.h>
 #include "Mutex.hpp"
@@ -107,25 +109,48 @@ class MatrixBreathAni : public NeoMatrixAni{
         =======+===============+===========================
         name:  |               |  breath
         -------+---------------+---------------------------
-        p1:    | 0x0000 00FF   |  0x00RR GGBB  
-               |               |  color red,green,blues
-        -------+---------------+---------------------------
-        p2:    | 0x0000 0A50   |  0x0000 LLHH     
+        p1:    | 0x0000 0A50   |  0x0000 LLHH     
                |               |  L:dim low level   
                |               |  H:dim high level
         -------+---------------+---------------------------
-        p3:    | 0x0BBB 0CCC   |  0xIIII DDDD
+        p2:    | 0x0BBB 0CCC   |  0xIIII DDDD
                |               |  I:inc time
                |               |  D:dec time
+        -------+---------------+---------------------------
+        p3:    | 0x0000 0001   |  0x00SS 00II
+               |               |  S:start index for color wheel/list
+               |               |  I:inc step for color wheel/list (full wheel 255)
         -------+---------------+---------------------------
         p4:    |               |  N/A
         -------+---------------+---------------------------
         pData: | N/A           |  length(0):
                |               |    N/A        
+
+        breath blue only:
+        setup(0x00000A50,0x0BBB0CCC,0,0,"0x000000FF",0,NULL)
+
+        breath rainbow:
+        setup(0x00000A50,0x0BBB0CCC,0,1,"",0,NULL)
+
+        breath color list:
+        setup(0x00000A50,0x0BBB0CCC,0,1,"0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF",0,NULL)
+
     */
     public:
         MatrixBreathAni():NeoMatrixAni(F_CONST("breath"))      {};
-        void reset() { setup(0x000000FF,0x00000A50,0x0BBB0CCC,0,"",0,NULL); };
+        void reset() { setup(0x00000A50,0x0BBB0CCC,1,0,"",0,NULL); };
+
+        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+            _state      = stop;
+            _dimMin     = H_BYTE(p1);
+            _dimMax     = L_BYTE(p1);
+            _incTime    = H_WORD(p2);
+            _decTime    = L_WORD(p2);
+            _colorGen.setup(255,HH_BYTE(p3),L_BYTE(p3),str,length,*pData);
+            _state      = init;
+            return ANI_OK;
+        };
+
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
             u32_t diff,color;
@@ -140,7 +165,7 @@ class MatrixBreathAni : public NeoMatrixAni{
                 case init:
                     _lastSwitchTime = time;
                     _dimDiff = _dimMax-_dimMin;
-                    color24 = dimColor255(_color24,_dimMin);
+                    color24 = _colorGen.getNextColor(_dimMin);
                     color565 = toColor565(color24);
                     pMatrix->fillScreen(color565);
                     pMatrix->show();
@@ -150,14 +175,14 @@ class MatrixBreathAni : public NeoMatrixAni{
                 case inc:
                     diff = time - _lastSwitchTime;
                     if (diff >= _incTime){
-                        color24 = dimColor255(_color24,_dimMax);
+                        color24 = _colorGen.getNextColor(_dimMax);
                         color565 = toColor565(color24);
                         pMatrix->fillScreen(color565);
                         pMatrix->show();
                         _lastSwitchTime = time;
                         _state = dec;
                     } else {
-                        color24 = dimColor255(_color24,_dimMin+((_dimDiff*diff)/_incTime));
+                        color24 = _colorGen.getNextColor(_dimMin+((_dimDiff*diff)/_incTime));
                         color565 = toColor565(color24);
                         pMatrix->fillScreen(color565);
                         pMatrix->show();
@@ -167,14 +192,14 @@ class MatrixBreathAni : public NeoMatrixAni{
                 case dec:
                     diff = time - _lastSwitchTime;
                     if (diff >= _decTime){
-                        color24 = dimColor255(_color24,_dimMin);
+                        color24 = _colorGen.getNextColor(_dimMin);
                         color565 = toColor565(color24);
                         pMatrix->fillScreen(color565);
                         pMatrix->show();
                         _lastSwitchTime = time;
                         _state = inc;
                     } else {
-                        color24 = dimColor255(_color24,_dimMax-((_dimDiff*diff)/_decTime));
+                        color24 = _colorGen.getNextColor(_dimMax-((_dimDiff*diff)/_decTime));
                         color565 = toColor565(color24);
                         pMatrix->fillScreen(color565);
                         pMatrix->show();
@@ -183,32 +208,24 @@ class MatrixBreathAni : public NeoMatrixAni{
             }
         };
 
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
-            _state      = stop;
-            _color24    = p1 & 0x00FFFFFF;
-            _dimMin     = H_BYTE(p2);
-            _dimMax     = L_BYTE(p2);
-            _incTime    = H_WORD(p3);
-            _decTime    = L_WORD(p3);
-            _state      = init;
-            return ANI_OK;
-        };
-
     private:
         enum BreathState {stop,init,inc,dec};
         volatile BreathState _state;
         u32_t _lastSwitchTime;
         u8_t _dimMin,_dimMax,_dimDiff;
         u16_t _incTime,_decTime;
-        u32_t _color24;
+        ColorSelector _colorGen;
 
 };
 
-class MatrixRainbowFlashAni : public NeoMatrixAni{
+class MatrixMultiFlashAni : public NeoMatrixAni{
+
+    //#define COLOR_DEF_LIST F_CONST("")
+    #define COLOR_DEF_LIST F_CONST("0xFFFFFFFF,0xFF0000FF,0xFF00FF00,0xFFFF0000")
     /*  
         ref    | default value |  layout
         =======+===============+===========================
-        name:  |               |  rainbow flash
+        name:  |               |  multi flash
         -------+---------------+---------------------------
         p1:    | 0x0019 004A   |  0xIIII DDDD
                |               |  I:on time
@@ -218,22 +235,22 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
                |               |  C:flash count per sequence   
                |               |  P:pause time   
         -------+---------------+---------------------------
-        p3:    | 0x0000 5008   |  0x0000 DDII
-               |               |  I:inc step for color wheel (full wheel 255)
+        p3:    | 0x0000 FF10   |  0x00SS DDII
+               |               |  S:start index for color wheel/list
                |               |  D:dim value for color
+               |               |  I:inc step for color wheel/list (full wheel 255)
         -------+---------------+---------------------------
         p4:    | N/A           |  N/A
         -------+---------------+---------------------------
-        str:   | N/A           |  N/A
+        str:   | COLOR_DEF_LIST|  if not empty this color list will be taken instead of rainbow colors
         -------+---------------+---------------------------
-        pData: | N/A           |  N/A 
+        pData: | N/A           |  bin color List .. n of uint32 (4bytes) L-Byte first 
 
     */
-    #define COLOR_LIST_LENGTH 16
     public:
-        MatrixRainbowFlashAni():NeoMatrixAni(F_CONST("rainbow flash"))      {};
+        MatrixMultiFlashAni():NeoMatrixAni(F_CONST("multi flash"))      {};
 
-        void reset() { setup(0x0019004A,0x00080800,0x00005008,0,"",0,NULL); };
+        void reset() { setup(0x0019004A,0x00080800,0x0000FF10,0,COLOR_DEF_LIST,0,NULL); };
        
         virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
@@ -241,8 +258,7 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
             _offTime    = L_WORD(p1);
             _flashCount = H_WORD(p2);
             _pauseTime  = L_WORD(p2);
-            _incStep    = L_BYTE(p3);
-            _dim        = H_BYTE(p3);
+            _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);
             _state      = init;
             return ANI_OK;
         };
@@ -258,7 +274,7 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
                 case init:
                     _state = flashOn;
                     _lastCallTime = time;
-                    _colorIndex=0;
+                    pMatrix->fillScreen(0);
                     _setNextColor(pMatrix);
                     break;
                 
@@ -299,15 +315,18 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
 
  
     protected:
+        enum MultiFlashState {stop,init,flashOn,flashOff,pause};
+        volatile MultiFlashState _state;
+        u32_t _lastCallTime;
+        u16_t _onTime,_offTime;
+        u16_t _pauseTime;
+        u16_t _flashCount,_count;
+        ColorSelector _colorGen;
+
+
         void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
             u16_t color565;
-            u32_t color24;
-            u8_t  dim;
-            dim   = _dim;
-            color24 = getColorWheel24Bit(_colorIndex);
-            color24 = dimColor255(color24,dim);
-            color565 = toColor565(color24);
-            _colorIndex += _incStep;
+            color565 = toColor565(_colorGen.getNextColor());
             pMatrix->fillScreen(color565);
             pMatrix->show();
         };
@@ -316,164 +335,43 @@ class MatrixRainbowFlashAni : public NeoMatrixAni{
             pMatrix->fillScreen(0);
             pMatrix->show();
         }
-
-        enum MultiFlashState {stop,init,flashOn,flashOff,pause};
-        volatile MultiFlashState _state;
-        u32_t _lastCallTime;
-        u8_t  _incStep;
-        u16_t _onTime,_offTime;
-        u16_t _pauseTime;
-        u16_t _flashCount,_count;
-        u8_t  _colorIndex,_dim;
-
 };
 
-class MatrixMultiFlashAni : public MatrixRainbowFlashAni{
-    /*  
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  multi flash
-        -------+---------------+---------------------------
-        p1:    | 0x0019 004A   |  0xIIII DDDD
-               |               |  I:on time
-               |               |  D:off time
-        -------+---------------+---------------------------
-        p2:    | 0x0008 0800   |  0xCCCC PPPP     
-               |               |  C:flash count per sequence   
-               |               |  P:pause time   
-        -------+---------------+---------------------------
-        p3:    | 0x0000 00001  |  0x0000 00II
-               |               |  I:inc step for color table
-        -------+---------------+---------------------------
-        p4:    | N/A           |  N/A
-        -------+---------------+---------------------------
-        str:   | COLOR_DEF_LIST|  length(0): ASCII  List 
-               |               |  0xDDRRGGBB,0xDDRRGGBB,...  (max COLOR_LIST_LENGTH)
-        -------+---------------+---------------------------
-        pData: | N/A           |  N/A 
-
-
-
-    */
-    #define COLOR_LIST_LENGTH 16
-    #define COLOR_DEF_LIST F_CONST("0xFFFFFFFF,0xFF0000FF,0xFF00FF00,0xFFFF0000")
-    public:
-        MatrixMultiFlashAni()      {
-            MatrixRainbowFlashAni();
-            NeoMatrixAni(F_CONST("multi flash"));
-            for(int i=0;i < COLOR_LIST_LENGTH;i++){
-                _colorList[i]=0;
-            }
-        };
-
-        void reset() { setup(0x0019004A,0x00080800,1,0,String(COLOR_DEF_LIST),0,NULL); };      
-       
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
-            MatrixRainbowFlashAni::setup(p1,p2,p3,p4,str,length,pData);
-            _state      = stop;
-            // clear color list
-            _colorCount = 0;
-            for(int i=0;i < COLOR_LIST_LENGTH;i++){
-                _colorList[i]=0;
-            }
-            if (str.length() != 0){
-                _decodeAsciiColorList(str.c_str());
-            } else if (length != 0){
-                _decodeBinColorList(*pData,length);
-            } else {
-              // stay with last list ??   
-              return ANI_ERROR_PAR_MISSING;
-              // stay in state stop
-            }
-            _state      = init;
-            return ANI_OK;
-    };
-
-    private:
-        void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
-            u16_t color565;
-            u32_t color24;
-            u8_t  dim;
-            color24 = dimRgb24ToRgb(_colorList[_colorIndex]);
-            color565 = toColor565(color24);
-            _colorIndex += _incStep;
-            _colorIndex %= _colorCount;
-            pMatrix->fillScreen(color565);
-            pMatrix->show();
-        };
-
-        void _decodeAsciiColorList(const char * listText){
-            StringList list(listText,',');
-            while(list.isEndReached() == false){
-                _colorList[_colorCount] = convertStrToInt(list.getNextListEntry());
-                _colorCount++;
-            }
-        };
-
-        void _decodeBinColorList(u8_t * pData,u32_t length){
-            if (length % 4 != 0){
-                LOG(F_CONST("MatrixMultiFlashAni::_decodeBinColorList  invalid length (%4 = 0!!) list skipped"));
-                return;
-            }
-
-            _colorCount = length/4;
-            if (_colorCount > COLOR_LIST_LENGTH){
-                _colorCount = COLOR_LIST_LENGTH;
-                LOG(F_CONST("MatrixMultiFlashAni::_decodeBinColorList  list to long, list truncated"));
-            }
-
-            u32_t * p=(u32_t*)pData;
-            for(int i=0;i < _colorCount;i++){
-                _colorList[i] = *p;
-                p++;
-            }
-        };
-
-        u16_t _colorList[COLOR_LIST_LENGTH];
-        u8_t  _colorIndex,_colorCount;
-
-};
-  
 class MatrixBoxAni : public NeoMatrixAni{
     /*  
         ref    | default value |  layout
         =======+===============+===========================
         name:  |               |  rect or circle (depends on constructor)
         -------+---------------+---------------------------
-        p1:    | 0x0100 5003   |  0xSSSS DDII
+        p1:    | 0x0000 0020   |  0x0000 SSSS 
                |               |  S:step time in ms
-               |               |  D:dim value for color
-               |               |  I:inc step for color wheel (full wheel 255)
         -------+---------------+---------------------------
         p2:    | 0x0000 0001   |  0x0000 00TT
                |               |  T: rect/circle line width
         -------+---------------+---------------------------
-        p3:    | N/A           |  N/A
+        p3:    | 0x0000 500A   |  0x00SS DDII
+               |               |  S:start index for color wheel/list
+               |               |  D:dim value for color
+               |               |  I:inc step for color wheel/list (full wheel 255)
         -------+---------------+---------------------------
         p4:    | N/A           |  N/A
         -------+---------------+---------------------------
-        str:   | N/A           |  N/A
+        str:   | COLOR_DEF_LIST|  if not empty this color list will be taken instead of rainbow colors
         -------+---------------+---------------------------
-        pData: | N/A           |  N/A 
-
-
-        currently only with rainbow colors
-        ToDo: color from color list 
+        pData: | N/A           |  bin color List .. n of uint32 (4bytes) L-Byte first 
     */
-    #define COLOR_LIST_LENGTH 16
     public:
         MatrixBoxAni(bool circle = false):NeoMatrixAni(circle ? F_CONST("circle"):F_CONST("rect") ){ 
             _circle = circle;
         };
 
-        void reset() { setup(0x0100500A,1,0,0,"",0,NULL); };
+        void reset() { setup(0x020,1,0x300A,0,"",0,NULL); };
        
         virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
-            _incTime    = H_WORD(p1);
-            _incStep    = L_BYTE(p1);
-            _dim        = H_BYTE(p1);
+            _incTime    = L_WORD(p1);
             _border     = L_BYTE(p2);
+            _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);
             _state      = init;
             return ANI_OK;
         };
@@ -488,9 +386,9 @@ class MatrixBoxAni : public NeoMatrixAni{
 
                 case init:
                     _lastCallTime = time;
-                    _colorIndex = 0;
                     _sizeX = pMatrix->width();
                     _sizeY = pMatrix->height();
+                    pMatrix->fillScreen(0);
                     _setNextColor(pMatrix);
                     _state = run;
                     break;
@@ -507,11 +405,20 @@ class MatrixBoxAni : public NeoMatrixAni{
 
  
     protected:
+        enum BoxState {stop,init,run};
+        volatile BoxState _state;
+        u32_t _lastCallTime;
+        u16_t _incTime;
+        u8_t  _border,_dim,_inc,_start;
+        u32_t _sizeX,_sizeY;
+        s32_t _startX,_startY;
+        bool _circle;
+        ColorSelector _colorGen;
+
         void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
             u16_t color565;
             u32_t color24;
             u8_t  borderLine = 0;
-            u8_t  colorIndex = _colorIndex;
             u16_t steps,x,y;
             s32_t h,w;
             
@@ -521,6 +428,9 @@ class MatrixBoxAni : public NeoMatrixAni{
                 steps = _sizeY/2;
             }
 
+            _colorGen.restore();
+            color24 = _colorGen.getNextColor();
+            _colorGen.backup(); // start next time with this color 
             for(int i=0; i < steps; i++){
                 x=0+i;
                 y=0+i;
@@ -529,8 +439,6 @@ class MatrixBoxAni : public NeoMatrixAni{
 
                 if ((h>0) && (w>0)){
                     // get color from color wheel
-                    color24 = getColorWheel24Bit(colorIndex);
-                    color24 = dimColor255(color24,_dim);
                     color565 = toColor565(color24);
                     
                     if (_circle==true){
@@ -544,26 +452,13 @@ class MatrixBoxAni : public NeoMatrixAni{
                     // change color or repeat color 
                     borderLine++;
                     if(borderLine >= _border){
-                        colorIndex += _incStep;
+                        color24 = _colorGen.getNextColor();
                         borderLine = 0;
                     }
                 }
             }
             pMatrix->show();
-
-            // next time start one color step later 
-            _colorIndex += _incStep;
         };
-
-        enum BoxState {stop,init,run};
-        volatile BoxState _state;
-        u32_t _lastCallTime;
-        u16_t _incTime;
-        u8_t  _dim,_incStep,_colorIndex,_border;
-        u32_t _sizeX,_sizeY;
-        s32_t _startX,_startY;
-        bool _circle;
-
 };
  
 

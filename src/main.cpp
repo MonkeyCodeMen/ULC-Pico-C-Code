@@ -125,8 +125,8 @@ void setup() {
   LOG(F_CONST("setup 0: Neo matrix"));
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
-  pNeoMatrixCtrl1->setup("gif");
-  pNeoMatrixCtrl2->setup("breath");
+  pNeoMatrixCtrl1->setup("circle");
+  pNeoMatrixCtrl2->setup("off");
 
   setupStartsecondCore = true;
   while(waitForsecondCore == true){
