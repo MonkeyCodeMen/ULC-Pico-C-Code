@@ -125,7 +125,7 @@ void setup() {
   LOG(F_CONST("setup 0: Neo matrix"));
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
-  pNeoMatrixCtrl1->setup("circle");
+  pNeoMatrixCtrl1->setup("multi flash");
   pNeoMatrixCtrl2->setup("off");
 
   setupStartsecondCore = true;

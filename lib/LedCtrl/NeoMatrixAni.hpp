@@ -12,7 +12,7 @@
 #include "Mutex.hpp"
 extern Mutex SPI_mutex;
 
-
+#define matrix_default_brightness   0xA0
 
 class NeoMatrixAni:public Ani
 {
@@ -49,8 +49,7 @@ class MatrixStaticAni : public NeoMatrixAni{
         =======+===============+===========================
         name:  |               |  static
         -------+---------------+---------------------------
-        p1:    | 0x5000 00FF   |  0xDDRR GGBB  
-               |               |  D: dim value
+        p1:    | 0x0000 00FF   |  0x00RR GGBB  
                |               |  R: red value
                |               |  G: green value
                |               |  B: blue value
@@ -59,16 +58,26 @@ class MatrixStaticAni : public NeoMatrixAni{
         -------+---------------+---------------------------
         p3:    | N/A           |  N/A
         -------+---------------+---------------------------
-        p4:    |               |  N/A
+        p4:    | N/A           |  N/A
+        -------+---------------+---------------------------
+        str:   | N/A           |  N/A
         -------+---------------+---------------------------
         pData: | N/A           |  length(0):
                |               |    N/A        
     */
    public:
         MatrixStaticAni():NeoMatrixAni(F_CONST("static"))      {};
-        void reset() {  setup(0x500000FF,0,0,0,"",0,NULL); };
+        void reset() {  setup(0xFF,0,0,0,"",0,NULL); };
+
+        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) {
+            _state = stop;
+            _color = p1&0xFFFFFF;
+            _state = init;
+            return ANI_OK;
+        };
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
+            u16_t color565; 
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -76,8 +85,8 @@ class MatrixStaticAni : public NeoMatrixAni{
                     break;
 
                 case init:
-                    u16_t color565;
-                    color565 = toColor565(dimRgb24ToRgb( _colorWithDim));
+                    pMatrix->setBrightness(matrix_default_brightness);
+                    color565 = toColor565(_color);
                     pMatrix->fillScreen(color565);
                     pMatrix->show();
                     _state = run;
@@ -89,16 +98,10 @@ class MatrixStaticAni : public NeoMatrixAni{
             }
         };
 
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) {
-            _state = stop;
-            _colorWithDim = p1;
-            _state = init;
-            return ANI_OK;
-        };
     private:
         enum StaticState {stop,init,run};
         volatile StaticState _state;
-        u32_t   _colorWithDim;
+        u32_t   _color;
         u8_t    _dim;
 
 };
@@ -164,6 +167,7 @@ class MatrixBreathAni : public NeoMatrixAni{
 
                 case init:
                     _lastSwitchTime = time;
+                    pMatrix->setBrightness(matrix_default_brightness);
                     _dimDiff = _dimMax-_dimMin;
                     color24 = _colorGen.getNextColor(_dimMin);
                     color565 = toColor565(color24);
@@ -221,7 +225,7 @@ class MatrixBreathAni : public NeoMatrixAni{
 class MatrixMultiFlashAni : public NeoMatrixAni{
 
     //#define COLOR_DEF_LIST F_CONST("")
-    #define COLOR_DEF_LIST F_CONST("0xFFFFFFFF,0xFF0000FF,0xFF00FF00,0xFFFF0000")
+    #define COLOR_DEF_LIST F_CONST("0xFFFFFF,0x0000FF,0x00FF00,0xFF0000")
     /*  
         ref    | default value |  layout
         =======+===============+===========================
@@ -235,7 +239,7 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
                |               |  C:flash count per sequence   
                |               |  P:pause time   
         -------+---------------+---------------------------
-        p3:    | 0x0000 FF10   |  0x00SS DDII
+        p3:    | 0x0000 FF01   |  0x00SS DDII
                |               |  S:start index for color wheel/list
                |               |  D:dim value for color
                |               |  I:inc step for color wheel/list (full wheel 255)
@@ -250,7 +254,7 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
     public:
         MatrixMultiFlashAni():NeoMatrixAni(F_CONST("multi flash"))      {};
 
-        void reset() { setup(0x0019004A,0x00080800,0x0000FF10,0,COLOR_DEF_LIST,0,NULL); };
+        void reset() { setup(0x0019004A,0x00080800,0x0000FF01,0,COLOR_DEF_LIST,0,NULL); };
        
         virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
@@ -274,6 +278,7 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
                 case init:
                     _state = flashOn;
                     _lastCallTime = time;
+                    pMatrix->setBrightness(matrix_default_brightness);
                     pMatrix->fillScreen(0);
                     _setNextColor(pMatrix);
                     break;
@@ -325,8 +330,8 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
 
 
         void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
-            u16_t color565;
-            color565 = toColor565(_colorGen.getNextColor());
+            u32_t color24  = _colorGen.getNextColor();
+            u16_t color565 = toColor565(color24);
             pMatrix->fillScreen(color565);
             pMatrix->show();
         };
@@ -386,6 +391,7 @@ class MatrixBoxAni : public NeoMatrixAni{
 
                 case init:
                     _lastCallTime = time;
+                    pMatrix->setBrightness(matrix_default_brightness);
                     _sizeX = pMatrix->width();
                     _sizeY = pMatrix->height();
                     pMatrix->fillScreen(0);
