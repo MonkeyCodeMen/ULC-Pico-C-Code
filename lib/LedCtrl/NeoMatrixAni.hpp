@@ -439,7 +439,7 @@ class MatrixBoxAni : public NeoMatrixAni{
         p2:    | 0x0000 0001   |  0x0000 00TT
                |               |  T: rect/circle line width
         -------+---------------+---------------------------
-        p3:    | 0x0000 500A   |  0x00SS DDII
+        p3:    | 0x0000 800A   |  0x00SS DDII
                |               |  S:start index for color wheel/list
                |               |  D:dim value for color
                |               |  I:inc step for color wheel/list (full wheel 255)
@@ -450,12 +450,19 @@ class MatrixBoxAni : public NeoMatrixAni{
         -------+---------------+---------------------------
         pData: | N/A           |  bin color List .. n of uint32 (4bytes) L-Byte first 
     */
+
+   
+
     public:
-        MatrixBoxAni(bool circle = false):NeoMatrixAni(circle ? F_CONST("circle"):F_CONST("rect") ){ 
-            _circle = circle;
+        MatrixBoxAni(const char * type):NeoMatrixAni(type){ 
+            if      (strcmp(type,"rect") == 0)      _type = rect;
+            else if (strcmp(type,"circle") == 0)    _type = circle;
+            else if (strcmp(type,"hor") == 0)       _type = hor;
+            else if (strcmp(type,"ver") == 0)       _type = ver;
+            else _type = none;
         };
 
-        void reset() { setup(0x020,1,0x300A,0,"",0,NULL); };
+        void reset() { setup(0x020,1,0x800A,0,"",0,NULL); };
        
         virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
@@ -498,6 +505,8 @@ class MatrixBoxAni : public NeoMatrixAni{
     protected:
         enum BoxState {stop,init,run};
         volatile BoxState _state;
+        enum BoxType {none,rect,circle,hor,ver};
+        BoxType _type;        
         u32_t _lastCallTime;
         u16_t _incTime;
         u8_t  _border,_dim,_inc,_start;
@@ -507,21 +516,33 @@ class MatrixBoxAni : public NeoMatrixAni{
         ColorSelector _colorGen;
 
         void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
+            u32_t startColor;
+            _colorGen.restore();
+            startColor = _colorGen.getNextColor();
+            _colorGen.backup(); // start next time with this color 
+
+            switch (_type){
+                case none:      pMatrix->fill(0);                   break;
+                case circle:    _drawCircles(pMatrix,startColor);   break;
+                case rect:      _drawRect(pMatrix,startColor);      break;
+                case hor:       _drawHor(pMatrix,startColor);       break;
+                case ver:       _drawVer(pMatrix,startColor);       break;
+
+            }
+            
+            pMatrix->show();
+        };
+
+        void _drawCircles(Adafruit_NeoMatrix * pMatrix,u32_t startColor){
+            u32_t color24 = startColor;
             u16_t color565;
-            u32_t color24;
             u8_t  borderLine = 0;
             u16_t steps,x,y;
             s32_t h,w;
-            
-
             steps = _sizeX/2;
             if (_sizeY/2 < steps){
                 steps = _sizeY/2;
             }
-
-            _colorGen.restore();
-            color24 = _colorGen.getNextColor();
-            _colorGen.backup(); // start next time with this color 
             for(int i=0; i < steps; i++){
                 x=0+i;
                 y=0+i;
@@ -531,15 +552,8 @@ class MatrixBoxAni : public NeoMatrixAni{
                 if ((h>0) && (w>0)){
                     // get color from color wheel
                     color565 = toColor565(color24);
-                    
-                    if (_circle==true){
-                        // rect with rounded corner
-                        pMatrix->drawRoundRect(x,y,w,h,i,color565 );
-                    }   else {
-                        // draw 4 lines (rect)    
-                        pMatrix->drawRect(x,y,w,h,color565 );
-                    }   
-
+                    // rect with rounded corner
+                    pMatrix->drawRoundRect(x,y,w,h,i,color565 );
                     // change color or repeat color 
                     borderLine++;
                     if(borderLine >= _border){
@@ -548,8 +562,77 @@ class MatrixBoxAni : public NeoMatrixAni{
                     }
                 }
             }
-            pMatrix->show();
         };
+
+        void _drawRect(Adafruit_NeoMatrix * pMatrix,u32_t startColor){
+            u32_t color24 = startColor;
+            u16_t color565;
+            u8_t  borderLine = 0;
+            u16_t steps,x,y;
+            s32_t h,w;
+            steps = _sizeX/2;
+            if (_sizeY/2 < steps){
+                steps = _sizeY/2;
+            }
+            for(int i=0; i < steps; i++){
+                x=0+i;
+                y=0+i;
+                h = _sizeY - (2*i);
+                w = _sizeX - (2*i);
+
+                if ((h>0) && (w>0)){
+                    // get color from color wheel
+                    color565 = toColor565(color24);
+                    // draw 4 lines (rect)    
+                    pMatrix->drawRect(x,y,w,h,color565 );
+                    // change color or repeat color 
+                    borderLine++;
+                    if(borderLine >= _border){
+                        color24 = _colorGen.getNextColor();
+                        borderLine = 0;
+                    }
+                }
+            }
+        };
+
+        void _drawHor(Adafruit_NeoMatrix * pMatrix,u32_t startColor){
+            u32_t color24 = startColor;
+            u16_t color565;
+            u8_t  borderLine = 0;
+            u16_t steps = _sizeY;
+            u16_t lastX  = _sizeX-1;
+            for(int i=0; i < _sizeY; i++){
+                    color565 = toColor565(color24);
+                    pMatrix->drawLine(0,i,lastX,i,color565 );
+                    // change color or repeat color 
+                    borderLine++;
+                    if(borderLine >= _border){
+                        color24 = _colorGen.getNextColor();
+                        borderLine = 0;
+                    }
+            }
+        };
+
+        void _drawVer(Adafruit_NeoMatrix * pMatrix,u32_t startColor){
+            u32_t color24 = startColor;
+            u16_t color565;
+            u8_t  borderLine = 0;
+            u16_t steps = _sizeX;
+            u16_t lastY  = _sizeY-1;
+            for(int i=0; i < _sizeX; i++){
+                    color565 = toColor565(color24);
+                    pMatrix->drawLine(i,0,i,lastY,color565 );
+                    // change color or repeat color 
+                    borderLine++;
+                    if(borderLine >= _border){
+                        color24 = _colorGen.getNextColor();
+                        borderLine = 0;
+                    }
+            }
+        };
+
+
+
 };
  
 
@@ -687,6 +770,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 return ANI_OK;
             } 
             LOG(F_CONST("card OK, but file does not exist"));
+            LOG(_fileName.c_str());
             SPI_mutex.unlock();
             return ANI_ERROR_FILE_NOT_FOUND;
         }

@@ -20,8 +20,10 @@ NeoMatrixCtrl::NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix) : Ctrl()
     addAni(new MatrixRainbowAni());
     addAni(new MatrixBreathAni());
     addAni(new MatrixMultiFlashAni());
-    addAni(new MatrixBoxAni(false));
-    addAni(new MatrixBoxAni(true));
+    addAni(new MatrixBoxAni(F_CONST("rect")));
+    addAni(new MatrixBoxAni(F_CONST("circle")));
+    addAni(new MatrixBoxAni(F_CONST("ver")));
+    addAni(new MatrixBoxAni(F_CONST("hor")));
     addAni(new MatrixGifFileAni());
 
     // select first
