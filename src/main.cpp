@@ -125,7 +125,7 @@ void setup() {
   LOG(F_CONST("setup 0: Neo matrix"));
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
-  pNeoMatrixCtrl1->setup("multi flash");
+  pNeoMatrixCtrl1->setup("gif");
   pNeoMatrixCtrl2->setup("off");
 
   setupStartsecondCore = true;
@@ -226,7 +226,9 @@ void loop1(){
       case 2:   pNeoMatrixCtrl2->loop(now);       break;
       case 3:   pNeoStripeCtrl1->loop(now);       break;
       case 4:   pNeoStripeCtrl1->loop(now);       break;
-      case 5:   renderDisplay(now);               break;
+      #ifdef WITH_DISPLAY
+        case 5:   renderDisplay(now);               break;
+      #endif
       default:  prgState = 0;                     break;
   }
   prgState++;

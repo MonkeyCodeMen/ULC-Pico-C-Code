@@ -267,35 +267,48 @@ class LedBreathAni : public LedAni{
         =======+===============+===========================
         name:  |               |  breath
         -------+---------------+---------------------------
-        p1:    | N/A           |  N/A
+        p1:    | 0x000A 2020   |  0xSSSS UUDD
+               |               |  S: step time in ms
+               |               |  U: nr steps for dim up
+               |               |  D: nr steps for dim down
         -------+---------------+---------------------------
-        p2:    | 0x0000 1000   |  inc time in ms
-        -------+---------------+---------------------------
-        p3:    | 0x0000 1000   |  dec time in ms
-        -------+---------------+---------------------------
-        p4:    | 0x0000 FF10   |  0x0000 UULL
+        p2:    | 0x0000 FF10   |  0x0000 UULL
                |               |  U: upper dim limit
                |               |  B: lower dim limit
         -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
+        p3     | N/A           | N/A
+        -------+---------------+---------------------------
+        p4     | N/A           | N/A
+        -------+---------------+---------------------------
+        str    | ""            | color list
+        -------+---------------+---------------------------
+        pData: | N/A           |  length (multiple of 4),pData:
+               |               |    color list       
+
     */
 
     public:
-        LedBreathAni()  : LedAni((const char *)F("breath")) {};
+        LedBreathAni()  : LedAni(F_CONST("breath")) {};
         
-        void reset() {  setup(0,0x1000,0x1000,0x0000FF10,"",0,NULL); };
+        void reset() {  setup(0x00204040,0x0000FF10,0,0,"",0,NULL); };
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state = stop; 
-            _incTimeMs = p2;
-            _decTimeMs = p3;
-            _upperLimit = H_BYTE(p4);
-            _lowerLimit = L_BYTE(p4);
+            _stepTime  = H_WORD(p1);
+            _upSteps   = H_BYTE(p1);
+            _downSteps = L_BYTE(p1);
+            _upperLimit = H_BYTE(p2);
+            _lowerLimit = L_BYTE(p2);
+
+            // do some basic checks/correction of parameter set
             if (_lowerLimit > _upperLimit){
                 u8_t temp = _upperLimit;
                 _upperLimit = _lowerLimit;
                 _lowerLimit = temp;
             }
+            if (_upSteps == 0)      _upSteps = 1;
+            if (_downSteps == 0)    _downSteps = 1;
+            if (_stepTime == 0)     _stepTime = 1;
+
             _state = init;
             return ANI_OK;
         };
@@ -310,46 +323,51 @@ class LedBreathAni : public LedAni{
                     break;
 
                 case init:
-                    _state = inc;
-                    _lastSwitchTime = time;
-                    dim = _lowerLimit;
-                    _dimDiff = _upperLimit-_lowerLimit;
+                    _state       = up;
+                    _stepCounter = 0;
+                    _lastUpdate  = time;
+                    _dimDiff     = _upperLimit-_lowerLimit;
+                    dim          = _lowerLimit;
                     pLed->set(dim);
                     break;
                 
-                case inc:
-                    diff = time-_lastSwitchTime;
-                    if (diff >= _incTimeMs){
-                        _lastSwitchTime = time;
-                        _state = dec;
-                        dim = _upperLimit;
-                    } else {
-                        dim = _lowerLimit + (diff * _dimDiff) / _incTimeMs;
-                    }
-                    pLed->set(dim);
+                case up:
+                    diff = time-_lastUpdate;
+                    if (diff >= _stepTime){
+                        _lastUpdate = time;
+                        if (_stepCounter >= _upSteps){
+                            dim = _upperLimit;
+                            _stepCounter=0;    
+                            _state = down;
+                        } else {
+                            dim = _lowerLimit + (_stepCounter * _dimDiff) / _upSteps;
+                            _stepCounter++;
+                        }
+                        pLed->set(dim);
+                    } 
                     break;
                 
-                case dec:
-                    diff = time-_lastSwitchTime;
-                    if (diff >= _decTimeMs){
-                        _lastSwitchTime = time;
-                        _state = inc;
-                        dim = _lowerLimit;
-                    } else {
-                        dim = _upperLimit - (diff * _dimDiff) / _decTimeMs;
-                    }
-                    pLed->set(dim);
-                    break;
+                case down:
+                    diff = time-_lastUpdate;
+                    if (diff >= _stepTime){
+                        _lastUpdate = time;
+                        if (_stepCounter >= _downSteps){
+                            dim = _lowerLimit;
+                            _stepCounter=0;    
+                            _state = up;
+                        } else {
+                            dim = _upperLimit - (_stepCounter * _dimDiff) / _downSteps;
+                            _stepCounter++;
+                        }
+                        pLed->set(dim);
+                    } 
             }
         };
-
-
     private:
-        enum BreathState {stop,init,inc,dec};
+        enum BreathState {stop,init,up,down};
         volatile BreathState _state;
-        u32_t   _incTimeMs,_decTimeMs;
-        u32_t   _lastSwitchTime;
+        u32_t   _stepTime,_upSteps,_downSteps;
+        u32_t   _stepCounter,_lastUpdate;
         u8_t    _upperLimit,_lowerLimit;
         u8_t    _dimDiff;
-
 };

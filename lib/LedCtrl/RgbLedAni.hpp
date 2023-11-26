@@ -3,6 +3,8 @@
 #include "RgbLed.hpp"
 #include "helper.hpp"
 
+#include "ColorSelector.hpp"
+
 class RgbLedAni:public Ani
 {
 	public:
@@ -146,47 +148,67 @@ class RgbLedBreathAni : public RgbLedAni{
         =======+===============+===========================
         name:  |               |  breath
         -------+---------------+---------------------------
-        p1:    | 0x0000 00FF   |  0x00RR GGBB
-               |               |  R: red value  
-               |               |  G: green value  
-               |               |  B: blue value  
+        p1:    | 0x000A 2020   |  0xSSSS UUDD
+               |               |  S: step time in ms
+               |               |  U: nr steps for dim up
+               |               |  D: nr steps for dim down
         -------+---------------+---------------------------
-        p2:    | 0x0000 0300   |  inc time in ms
-        -------+---------------+---------------------------
-        p3:    | 0x0000 0300   |  dec time in ms
-        -------+---------------+---------------------------
-        p4:    | 0x0000 FF10   |  0x0000 UULL
+        p2:    | 0x0000 FF10   |  0x0000 UULL
                |               |  U: upper dim limit
                |               |  B: lower dim limit
         -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
+        p3:    | 0x0000 0001   |  0x00SS 00II
+               |               |  S:start index for color wheel/list
+               |               |  I:inc step for color wheel/list (full wheel 255)
+        -------+---------------+---------------------------
+        p4     | N/A           | N/A
+        -------+---------------+---------------------------
+        str    | ""            | color list
+        -------+---------------+---------------------------
+        pData: | N/A           |  length (multiple of 4),pData:
+               |               |    color list       
+
+
+        breath blue only:
+        setup(0x00204040,0xFF10,0,0,"0x000000FF",0,NULL)
+
+        breath rainbow:
+        setup(0x00204040,0x0000FF10,1,0,"",0,NULLL)
+
+        breath color list:
+        setup(0x02000404,0x0000FF10,1,0,"0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF",0,NULL)
+
     */
 
     public:
         RgbLedBreathAni()  : RgbLedAni(F_CONST("breath")) {};
         
-        void reset() {  setup(0x000000FF,0x300,0x300,0x0000FF10,"",0,NULL); };
+        void reset() {  setup(0x00204040,0x0000FF10,1,0,"",0,NULL); };
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state = stop; 
-            _r = HH_BYTE(p1);
-            _g = H_BYTE(p1);
-            _b = L_BYTE(p1);
-            _incTimeMs = p2;
-            _decTimeMs = p3;
-            _upperLimit = H_BYTE(p4);
-            _lowerLimit = L_BYTE(p4);
+            _stepTime  = H_WORD(p1);
+            _upSteps   = H_BYTE(p1);
+            _downSteps = L_BYTE(p1);
+            _upperLimit = H_BYTE(p2);
+            _lowerLimit = L_BYTE(p2);
+            _colorGen.setup(255,HH_BYTE(p3),L_BYTE(p3),str,length,*pData);
+
+            // do some basic checks/correction of parameter set
             if (_lowerLimit > _upperLimit){
                 u8_t temp = _upperLimit;
                 _upperLimit = _lowerLimit;
                 _lowerLimit = temp;
             }
+            if (_upSteps == 0)      _upSteps = 1;
+            if (_downSteps == 0)    _downSteps = 1;
+            if (_stepTime == 0)     _stepTime = 1;
+
             _state = init;
             return ANI_OK;
         };
  
         void loop(u32_t time,RgbLed * pLed){
-            u32_t diff;
+            u32_t diff,color24;
             u8_t dim;
             switch (_state){
                 case stop:
@@ -195,49 +217,57 @@ class RgbLedBreathAni : public RgbLedAni{
                     break;
 
                 case init:
-                    _state = inc;
-                    _lastSwitchTime = time;
-                    dim = _lowerLimit;
-                    _dimDiff = _upperLimit-_lowerLimit;
-                    pLed->set(_r,_g,_b,dim);
+                    _state       = up;
+                    _stepCounter = 0;
+                    _lastUpdate  = time;
+                    _dimDiff     = _upperLimit-_lowerLimit;
+                    dim          = _lowerLimit;
+                    color24      = _colorGen.getNextColor(dim);
+                    pLed->set(color24);
                     break;
                 
-                case inc:
-                    diff = time-_lastSwitchTime;
-                    if (diff >= _incTimeMs){
-                        _lastSwitchTime = time;
-                        _state = dec;
-                        dim = _upperLimit;
-                    } else {
-                        dim = _lowerLimit + (diff * _dimDiff) / _incTimeMs;
-                    }
-                    pLed->set(_r,_g,_b,dim);
+                case up:
+                    diff = time-_lastUpdate;
+                    if (diff >= _stepTime){
+                        _lastUpdate = time;
+                        if (_stepCounter >= _upSteps){
+                            dim = _upperLimit;
+                            _stepCounter=0;    
+                            _state = down;
+                        } else {
+                            dim = _lowerLimit + (_stepCounter * _dimDiff) / _upSteps;
+                            _stepCounter++;
+                        }
+                        color24  = _colorGen.getNextColor(dim);
+                        pLed->set(color24);
+                    } 
                     break;
                 
-                case dec:
-                    diff = time-_lastSwitchTime;
-                    if (diff >= _decTimeMs){
-                        _lastSwitchTime = time;
-                        _state = inc;
-                        dim = _lowerLimit;
-                    } else {
-                        dim = _upperLimit - (diff * _dimDiff) / _decTimeMs;
-                    }
-                    pLed->set(_r,_g,_b,dim);
-                    break;
+                case down:
+                    diff = time-_lastUpdate;
+                    if (diff >= _stepTime){
+                        _lastUpdate = time;
+                        if (_stepCounter >= _downSteps){
+                            dim = _lowerLimit;
+                            _stepCounter=0;    
+                            _state = up;
+                        } else {
+                            dim = _upperLimit - (_stepCounter * _dimDiff) / _downSteps;
+                            _stepCounter++;
+                        }
+                        color24  = _colorGen.getNextColor(dim);
+                        pLed->set(color24);
+                    } 
             }
         };
-
-
     private:
-        enum BreathState {stop,init,inc,dec};
+        enum BreathState {stop,init,up,down};
         volatile BreathState _state;
-        u32_t   _incTimeMs,_decTimeMs;
-        u8_t    _r,_g,_b;
-        u32_t   _lastSwitchTime;
+        u32_t   _stepTime,_upSteps,_downSteps;
+        u32_t   _stepCounter,_lastUpdate;
         u8_t    _upperLimit,_lowerLimit;
         u8_t    _dimDiff;
-
+        ColorSelector _colorGen;
 };
 
 class RgbLedRainbowAni : public RgbLedAni{
@@ -246,37 +276,36 @@ class RgbLedRainbowAni : public RgbLedAni{
         =======+===============+===========================
         name:  |               |  dim
         -------+---------------+---------------------------
-        p1:    | 0x0000 0080   |  0x0000 00DD
-               |               |  D: dim value for all color  
+        p1:    | 0x0000 0040   |  step time in ms
         -------+---------------+---------------------------
-        p2:    | 0x0000 0001   |  0x0000 SSII
-               |               |  S: color wheel start index
-               |               |  I: inc per step for color wheel 
+        p2:    | N/A           |  N/A
         -------+---------------+---------------------------
-        p3:    | 0x0000 000A   |  step time in ms
+        p3:    | 0x0000 FF04   |  0x00SS DDII
+               |               |  S:start index for color wheel/list
+               |               |  D: dim level 
+               |               |  I:inc step for color wheel/list (full wheel 255)
         -------+---------------+---------------------------
-        p4:    | N/A           |  N/A
+        p4     | N/A           | N/A
         -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
+        str    | ""            | color list
+        -------+---------------+---------------------------
+        pData: | N/A           |  length (multiple of 4),pData:
+               |               |    color list       
     */    
     public:
         RgbLedRainbowAni()  : RgbLedAni(F_CONST("rainbow")) {};
         
-        void reset() {  setup(0x80,1,0x000A,0,"",0,NULL); };
+        void reset() {  setup(0x0040,0,0xFF01,0,"",0,NULL); };
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
-            _dim        = L_BYTE(p1);
-            _wheelInc   = L_BYTE(p2);
-            _wheelIndex = H_BYTE(p2);
-            _timeInc    = clamp(1,p3,100000);
+            _timeInc    = clamp(1,p1,100000);
+            _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);            
             _state      = init;
             return ANI_OK;
         };
  
         void loop(u32_t time,RgbLed * pLed){
-            u32_t diff,color;
-            u8_t r,g,b;
+            u32_t diff;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -286,21 +315,15 @@ class RgbLedRainbowAni : public RgbLedAni{
                 case init:
                     _state = run;
                     _lastCallTime = time;
-                    _wheelIndex = 0;
-                    color = getColorWheel24Bit(_wheelIndex);
-                    r=HH_BYTE(color); g=H_BYTE(color); b=L_BYTE(color);
-                    pLed->set(r,g,b,_dim);
+                    pLed->set(_colorGen.getNextColor());
                     break;
                 
                 case run:
                     diff = time - _lastCallTime;
                     if (diff >= _timeInc){
                         _lastCallTime = time;
-                        _wheelIndex += _wheelInc;
+                        pLed->set(_colorGen.getNextColor());
                     }
-                    color = getColorWheel24Bit(_wheelIndex);
-                    r=HH_BYTE(color); g=H_BYTE(color); b=L_BYTE(color);
-                    pLed->set(r,g,b,_dim);
                     break;
             }
         };
@@ -309,9 +332,8 @@ class RgbLedRainbowAni : public RgbLedAni{
     private:
         enum RainbowState {stop,init,run};
         volatile RainbowState _state;
-        u16_t _dim;
-        u8_t  _wheelIndex,_wheelInc;
         u32_t _timeInc,_lastCallTime;
+        ColorSelector _colorGen;
 };
 
 class RgbLedMultiFlashAni : public RgbLedAni{
@@ -320,39 +342,38 @@ class RgbLedMultiFlashAni : public RgbLedAni{
         =======+===============+===========================
         name:  |               |  dim
         -------+---------------+---------------------------
-        p1:    | 0x0000 0080   |  0x0000 00DD
-               |               |  D: dim value for all color  
-        -------+---------------+---------------------------
-        p2:    | 0x0000 00FF   |  0x00RR GGBB
-               |               |  R: red value  
-               |               |  G: green value  
-               |               |  B: blue value   
-        -------+---------------+---------------------------
-        p3:    | 0x0020 0060   |  0xAAAA BBBB
+        p1:    | 0x0020 0060   |  0xAAAA BBBB
                |               |  A: on Time in ms       
                |               |  B: off Time in ms       
         -------+---------------+---------------------------
-        p4:    | 0x0002 01F4   |  0xAAAA BBBB
+        p2:    | 0x0002 01F4   |  0xAAAA BBBB
                |               |  A: count of flash group
                |               |  B: pause time between flash group      
         -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
+        p3:    | 0x0000 FF01   |  0x00SS DDII
+               |               |  S:start index for color wheel/list
+               |               |  D: dim level 
+               |               |  I:inc step for color wheel/list (full wheel 255)
+        -------+---------------+---------------------------
+        p4     | N/A           | N/A
+        -------+---------------+---------------------------
+        str    | color list    | color list
+               | "0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF"  
+        -------+---------------+---------------------------
+        pData: | N/A           |  length (multiple of 4),pData:
+               |               |    color list       
     */    
     public:
         RgbLedMultiFlashAni()  : RgbLedAni(F_CONST("multi flash")) {};
         
-        void reset() { setup(0x80,0xFF,0x00200060,0x000201F4,"",0,NULL);};
+        void reset() { setup(0x00200060,0x000201F4,0xFF01,0,"0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF",0,NULL);};
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
-            _dim        = L_BYTE(p1);
-            _r          = HH_BYTE(p2); 
-            _g          = H_BYTE(p2); 
-            _b          = L_BYTE(p2); 
-            _onTime     = H_WORD(p3);
-            _offTime    = L_WORD(p3);
-            _flashCount = H_WORD(p4);
-            _pauseTime  = L_WORD(p4);
+            _onTime     = H_WORD(p1);
+            _offTime    = L_WORD(p1);
+            _flashCount = H_WORD(p2);
+            _pauseTime  = L_WORD(p2);
+            _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);   
             _state      = init;
             return ANI_OK;
         };
@@ -368,14 +389,14 @@ class RgbLedMultiFlashAni : public RgbLedAni{
                 case init:
                     _state = flashOn;
                     _lastCallTime = time;
-                    pLed->set(_r,_g,_b,_dim);
+                    pLed->set(_colorGen.getNextColor());
                     break;
                 
                 case flashOn:
                     diff = time - _lastCallTime;
                     if (diff >= _onTime){
                         _lastCallTime = time;
-                        pLed->set(0,0,0);
+                        pLed->set(0);
                         _count++;
                         if (_count >= _flashCount){
                             _state = pause;
@@ -389,7 +410,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
                     diff = time - _lastCallTime;
                     if (diff >= _offTime){
                         _lastCallTime = time;
-                        pLed->set(_r,_g,_b,_dim);
+                        pLed->set(_colorGen.getNextColor());
                         _state = flashOn;
                     }
                     break;
@@ -398,7 +419,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
                     diff = time - _lastCallTime;
                     if (diff >= _pauseTime){
                         _lastCallTime = time;
-                        pLed->set(_r,_g,_b,_dim);
+                        pLed->set(_colorGen.getNextColor());
                         _count = 0;
                         _state = flashOn;
                     }
@@ -414,7 +435,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
         u16_t _onTime,_offTime;
         u16_t _pauseTime;
         u16_t _flashCount,_count;
-        u8_t  _r,_g,_b,_dim;
+        ColorSelector _colorGen;
 
 };
 
