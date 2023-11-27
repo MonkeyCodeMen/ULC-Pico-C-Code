@@ -6,11 +6,8 @@
 #include <ColorSelector.hpp>
 
 #include <AnimatedGIF.h>
-
 #include <SD.h>
-#include <../../include/PinMapping.h>
-#include "Mutex.hpp"
-extern Mutex SPI_mutex;
+#include "globalObjects.hpp"
 
 #define matrix_default_brightness   0xA0
 
@@ -173,7 +170,6 @@ class MatrixRainbowAni : public NeoMatrixAni{
         u32_t _timeInc,_lastCallTime;
         ColorSelector _colorGen;
 };
-
 
 class MatrixBreathAni : public NeoMatrixAni{
     /*  
@@ -635,10 +631,6 @@ class MatrixBoxAni : public NeoMatrixAni{
 
 };
  
-
-
-
-
 class MatrixGifFileAni : public NeoMatrixAni{
     /*  
 
@@ -646,7 +638,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
 
         ref    | default value |  layout
         =======+===============+===========================
-        name:  |               |  gif file
+        name:  |               |  gif
         -------+---------------+---------------------------
         p1:    | 0x0000 0080   |  0xCCCC 00DD     
                |               |  D:brightness 0..255
@@ -664,7 +656,10 @@ class MatrixGifFileAni : public NeoMatrixAni{
                |               |    N/A        
     */
     public:
-        MatrixGifFileAni():NeoMatrixAni(F_CONST("gif"))      {_gif.begin(GIF_PALETTE_RGB888);_pBuffer = NULL;};
+        MatrixGifFileAni():NeoMatrixAni(F_CONST("gif"))      {
+            _gif.begin(GIF_PALETTE_RGB888 );
+        };
+        
         void reset() { setup(0x80,0,0,0,"TEST.GIF",0,NULL); };
 
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
@@ -677,7 +672,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 case init:
                     pMatrix->fillScreen(0);
                     pMatrix->setBrightness(_brightness);
-                    _gif.open(_pBuffer,_size,_GIFDraw);
+                    _gif.open((const char *)_fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
                     _count = 0;
                     _state = run;
                     break;
@@ -692,10 +687,12 @@ class MatrixGifFileAni : public NeoMatrixAni{
                                 _count++;
                                 if (_count >= _repeat){
                                     _state = stop;
+                                    //_gif.close();
                                     break;
                                 }
                             }
-                            _gif.open(_pBuffer,_size,_GIFDraw);
+                            //_gif.reset();
+                            _gif.open((const char *)_fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
                         }
                     }
                     break;
@@ -705,22 +702,10 @@ class MatrixGifFileAni : public NeoMatrixAni{
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
             _state      = stop;
             _gif.close();
-            if (_pBuffer != NULL) {
-                delete _pBuffer;
-                _pBuffer = NULL;
-            }
             _fileName   = str;  
             _brightness = L_BYTE(p1);
             _repeat     = H_WORD(p1);
-            if (length != 0){
-                _pBuffer = *pData; 
-                // from now on this object is owner of the buffer
-                // and take care about free the memory if no longer used
-                *pData = NULL;
-                _state  = init;
-                return ANI_OK;
-            } 
-            int res = _loadGifFromSD();
+            int res = _checkFile();
             if (res == ANI_OK){
                 _state  = init;
             } 
@@ -732,48 +717,86 @@ class MatrixGifFileAni : public NeoMatrixAni{
         volatile GifState   _state;
 
         AnimatedGIF         _gif; // static instance of the class uses 22.5K of RAM
-        u8_t *              _pBuffer = NULL;
-        int                 _size = 0;
         u32_t               _lastFrame;
         int                 _wait,_repeat,_count;                
         u8_t                _brightness;
         String              _fileName;
 
-        int _loadGifFromSD(){
-            SDClass card;
-            if (_pBuffer != NULL) LOG(F_CONST("buffer should here be empty!!!"));
-            SPI_mutex.lock();
-            if (!card.begin(PIN_SPI0_CS_SD)) {
-                LOG(F_CONST("SD card initialization failed!"));
-                SPI_mutex.unlock();
-                return ANI_ERROR_FILE_NOT_FOUND;
-            }
-            if (card.exists(_fileName.c_str())){
-                SDFile file = card.open(_fileName.c_str(),FILE_READ);
+
+        int _checkFile(){
+            SDFile file;
+            globalSPI0_mutex.lock();
+            if (globalSDcard0.exists(_fileName.c_str())){
+                file = globalSDcard0.open(_fileName.c_str(),FILE_READ);
                 if (file.isDirectory()) {
-                    LOG(F_CONST("given name is directory"));
-                    SPI_mutex.unlock();
+                    globalSPI0_mutex.unlock();
                     return ANI_ERROR_FILE_NOT_FOUND;
                 }
-                
-                _size = file.size();
-                _pBuffer = new u8_t[_size];
-                if (_pBuffer == NULL)  {
-                    SPI_mutex.unlock();
-                    LOG(F_CONST("alloc memory failed"));
-                    return ANI_ERROR_INTERNAL;
-                } 
-
-                file.readBytes(_pBuffer,_size);
-                file.close();
-                SPI_mutex.unlock();
+                // was just fpr test _gif will open file later
+                file.close();      
+                globalSPI0_mutex.unlock();
                 return ANI_OK;
             } 
-            LOG(F_CONST("card OK, but file does not exist"));
-            LOG(_fileName.c_str());
-            SPI_mutex.unlock();
+            globalSPI0_mutex.unlock();
             return ANI_ERROR_FILE_NOT_FOUND;
         }
+
+
+
+        static void * _GIFOpenFile(const char *fname, int32_t *pSize)
+        {
+            SDFile * pFile = new SDFile();
+            globalSPI0_mutex.lock();
+            *pFile = globalSDcard0.open(fname,FILE_READ);
+
+            if (*pFile)
+            {
+                *pSize = pFile->size();
+                globalSPI0_mutex.unlock();
+                return (void*)pFile;
+            }
+            globalSPI0_mutex.unlock();
+            return NULL;
+        } /* GIFOpenFile() */
+
+        static void _GIFCloseFile(void *pHandle)
+        {
+            SDFile *pFile = static_cast<SDFile *>(pHandle);
+            if (globalGifFile0 != NULL){
+                globalSPI0_mutex.lock();
+                pFile->close();
+                delete pFile;
+                globalSPI0_mutex.unlock();
+            }
+                
+        } /* GIFCloseFile() */
+
+        static int32_t _GIFReadFile(GIFFILE *pGifFile, uint8_t *pBuf, int32_t iLen)
+        {
+            int32_t iBytesRead;
+            iBytesRead = iLen;
+            SDFile *pFile = static_cast<SDFile *>(pGifFile->fHandle);
+            // Note: If you read a file all the way to the last byte, seek() stops working
+            if ((pGifFile->iSize - pGifFile->iPos) < iLen)
+                iBytesRead = pGifFile->iSize - pGifFile->iPos - 1; // <-- ugly work-around
+            if (iBytesRead <= 0)
+                return 0;
+            globalSPI0_mutex.lock();
+                iBytesRead = (int32_t)pFile->read(pBuf, iBytesRead);
+                pGifFile->iPos = pFile->position();
+            globalSPI0_mutex.unlock();
+            return iBytesRead;
+        } /* GIFReadFile() */
+
+        static int32_t _GIFSeekFile(GIFFILE *pGifFile, int32_t iPosition)
+        { 
+            SDFile *pFile = static_cast<SDFile *>(pGifFile->fHandle);
+            globalSPI0_mutex.lock();
+                pFile->seek(iPosition);
+                pGifFile->iPos = (int32_t)pFile->position();
+            globalSPI0_mutex.unlock();
+           return pGifFile->iPos;
+        } /* GIFSeekFile() */
 
         static void _GIFDraw(GIFDRAW *pDraw)
         {

@@ -1,4 +1,4 @@
-
+#pragma once
 
 #define PIN_LED_SWITCH_1  	7
 #define PIN_LED_SWITCH_2    6

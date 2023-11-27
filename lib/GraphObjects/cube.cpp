@@ -1,6 +1,6 @@
 #include "cube.hpp"
 #include "Mutex.hpp"
-extern Mutex SPI_mutex;
+extern Mutex globalSPI0_mutex;
 
 Cube::Cube(TFT_eSPI * pDisplay){
     _pDisplay = pDisplay;
@@ -67,7 +67,7 @@ void Cube::Render(){
         }
     }
 
-    SPI_mutex.lock();
+    globalSPI0_mutex.lock();
     // remove old lines
     for (int i=0; i < _linesDrawn; i++ ){
         _drawnLines[i].erase(_pDisplay,TFT_BLACK);
@@ -83,7 +83,7 @@ void Cube::Render(){
             _linesDrawn++;
         }
     }
-    SPI_mutex.unlock();
+    globalSPI0_mutex.unlock();
 
 }
 

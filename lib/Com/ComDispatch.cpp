@@ -1,7 +1,7 @@
 #include "ComDispatch.hpp"
-#include "ExternObjects.hpp"
 #include "Debug.hpp"
 #include "helper.hpp"
+#include <globalObjects.hpp>
 
 
 ComDispatch::ComDispatch()

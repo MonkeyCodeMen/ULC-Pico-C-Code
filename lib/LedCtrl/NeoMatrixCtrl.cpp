@@ -47,26 +47,3 @@ void NeoMatrixCtrl::loop(u32_t time){
     _mutexSetup.unlock();
 }
 
-
-/*
-const uint16_t colors[] = {
-  matrix->Color(255, 0, 0), matrix->Color(0, 255, 0), matrix->Color(0, 0, 255) };
-
-
-int x    = mw;
-int pass = 0;
-
-void loop() {
-  matrix->fillScreen(0);
-  matrix->setCursor(x, 0);
-  matrix->print(F("Howdy"));
-  if(--x < -36) {
-    x = matrix->width();
-    if(++pass >= 3) pass = 0;
-    matrix->setTextColor(colors[pass]);
-  }
-  matrix->show();
-  delay(100);
-}
-
-*/

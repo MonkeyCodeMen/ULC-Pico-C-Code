@@ -9,6 +9,7 @@
 #define ANI_ERROR_INTERNAL      			4
 #define ANI_ERROR_PAR_MISSING				5
 #define ANI_ERROR_FILE_NOT_FOUND			6
+#define ANI_ERROR_OUT_OF_MEMORY				7
 
 
 class Ani
@@ -29,6 +30,7 @@ class Ani
 				case ANI_ERROR_INTERNAL:				return F_CONST("internal error");
 				case ANI_ERROR_PAR_MISSING:				return F_CONST("parameter missing");
 				case ANI_ERROR_FILE_NOT_FOUND:			return F_CONST("file not found");
+				case ANI_ERROR_OUT_OF_MEMORY:			return F_CONST("out of memory");
 			}
 			return F_CONST("unknow error code");
 		}

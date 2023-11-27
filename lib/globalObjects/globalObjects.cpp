@@ -40,9 +40,8 @@ Adafruit_NeoMatrix neoMatrix2(
 NeoMatrixCtrl  * pNeoMatrixCtrl1;
 NeoMatrixCtrl  * pNeoMatrixCtrl2;
 
-// COM
-Com * pCom;
-Mutex SPI_mutex;
+
+Mutex globalSPI0_mutex;
 
 
 
@@ -56,3 +55,7 @@ Mutex SPI_mutex;
   Cube * pCube;
 #endif
 
+#ifdef WITH_SD_CARD
+  SDClass globalSDcard0;
+  SDFile  globalGifFile0;
+#endif

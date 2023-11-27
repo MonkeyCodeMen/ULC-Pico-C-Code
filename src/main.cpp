@@ -8,7 +8,7 @@
 
 #include <globalObjects.hpp>
 #include <LoopStats.hpp>
-
+#include <Com.hpp>
 
 /*
 
@@ -21,7 +21,7 @@
 volatile bool setupStartsecondCore = false;
 volatile bool waitForsecondCore    = true;
 
-
+Com * pCom;
 
 
 
@@ -105,6 +105,23 @@ void setup() {
   pCom = new Com();
   pCom->setup();
 
+  LOG(F_CONST("setup 0: startup SPI"));
+  SPI.begin();
+  globalSPI0_mutex.unlock();
+
+
+  #ifdef WITH_SD_CARD
+    LOG(F_CONST("setup 0: test for  SD card..."));
+    globalSPI0_mutex.lock();   
+      if (!globalSDcard0.begin(PIN_SPI0_CS_SD)) {
+        LOG(F_CONST("setup 0: SD card initialization failed!"));
+      } else {
+        LOG(F_CONST("setup 0: SD card initialization done."));
+      }
+    globalSPI0_mutex.unlock();  
+  #endif
+
+
 
   LOG(F_CONST("setup 0: LED switch"));
   pLedCtrl1 = new LedCtrl(&ledStripe1);
@@ -144,39 +161,22 @@ void setup1() {
 
   LOG(F_CONST("setup 1:"));
 
-  LOG(F_CONST("setup 1: startup SPI"));
-  SPI.begin();
-  SPI_mutex.unlock();
-
 
   #ifdef WITH_DISPLAY
     LOG(F_CONST("setup 1: TFT"));
-    SPI_mutex.lock();   // TFT lib does not know SPI mutex .. so do it by hand
+    globalSPI0_mutex.lock();   
       pTFT = new TFT_eSPI();
       pTFT->init();
       pTFT->setRotation(1);
       pTFT->fillScreen(TFT_BLACK);
       pinMode(PIN_TFT_LED, OUTPUT);
       analogWrite(PIN_TFT_LED,TFT_DIM);
-    SPI_mutex.unlock();
+    globalSPI0_mutex.unlock();
 
     LOG(F_CONST("setup 1: cube"));
-    pCube = new Cube(pTFT);  // cube object handles SPI mutex !!
+    pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
 
   #endif
-/*
-
-  #ifdef WITH_SD_CARD
-    LOG(F_CONST("setup 1: test for  SD card..."));
-    SDClass card;
-    if (!card.begin(PIN_SPI0_CS_SD)) {
-      LOG(F_CONST("setup 1: SD card initialization failed!"));
-    } else {
-      card.end();
-      LOG(F_CONST("setup 1: SD card initialization done."));
-    }
-  #endif
-*/
 
 
   LOG(F_CONST("setup 1: done"));

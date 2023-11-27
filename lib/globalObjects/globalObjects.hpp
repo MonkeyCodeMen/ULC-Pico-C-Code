@@ -1,16 +1,15 @@
-#include <Arduino.h>
-#include "MainConfig.h"
-#include "Debug.hpp"
-#include "helper.hpp"
+#pragma once
 
+#include <Arduino.h>
+#include <MainConfig.h>
+#include <Debug.hpp>
+#include <helper.hpp>
 #include <Adafruit_NeoMatrix.h>
 #include <WS2812FX.h>
-
 #include <LedCtrl.hpp>
 #include <RgbLedCtrl.hpp>
 #include <NeoStripeCtrl.hpp>
 #include <NeoMatrixCtrl.hpp>
-
 #include <Mutex.hpp>
 
 
@@ -37,9 +36,8 @@ extern Adafruit_NeoMatrix   neoMatrix2;
 extern NeoMatrixCtrl *      pNeoMatrixCtrl1;
 extern NeoMatrixCtrl *      pNeoMatrixCtrl2;
 
-
-#include "Com.hpp"
-extern Com * pCom;
+// HW mngt. 
+extern Mutex globalSPI0_mutex;
 
 #ifdef WITH_DISPLAY
     #include <TFT_eSPI.h> // Hardware-specific library
@@ -51,5 +49,11 @@ extern Com * pCom;
 #endif
 
 
+#ifdef WITH_SD_CARD
+    #include <SPI.h>
+    #include <SD.h>
+    extern SDClass globalSDcard0;
+    extern SDFile  globalGifFile0;
 
-extern Mutex SPI_mutex;
+#endif 
+
