@@ -39,21 +39,11 @@ extern NeoMatrixCtrl *      pNeoMatrixCtrl2;
 // HW mngt. 
 extern Mutex globalSPI0_mutex;
 
-#ifdef WITH_DISPLAY
-    #include <TFT_eSPI.h> // Hardware-specific library
-    extern TFT_eSPI * pTFT;       // Invoke custom library
-    #define TFT_DIM     int(255*1.0)
-
-    #include <cube.hpp>
-    extern Cube * pCube;
-#endif
 
 
 #ifdef WITH_SD_CARD
     #include <SPI.h>
     #include <SD.h>
     extern SDClass globalSDcard0;
-    extern SDFile  globalGifFile0;
-
 #endif 
 

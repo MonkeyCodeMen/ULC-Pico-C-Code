@@ -762,7 +762,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
         static void _GIFCloseFile(void *pHandle)
         {
             SDFile *pFile = static_cast<SDFile *>(pHandle);
-            if (globalGifFile0 != NULL){
+            if (pFile != NULL){
                 globalSPI0_mutex.lock();
                 pFile->close();
                 delete pFile;

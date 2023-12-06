@@ -1,5 +1,17 @@
 #pragma once
 
+
+/*
+To DO 
+
+Pico picture and pin usage here
+
+SD card and TFT does not work on same SPI bus !!!
+SD card has special SPI operation 
+
+
+*/
+
 #define PIN_LED_SWITCH_1  	7
 #define PIN_LED_SWITCH_2    6
 
