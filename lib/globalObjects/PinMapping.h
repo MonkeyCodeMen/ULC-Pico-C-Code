@@ -42,38 +42,39 @@ PIN | Arduino       |   Raspberry PI PICO                       | Application
 1   | D0  : SER1_TX | GP0  : SPI0_RX    : I2C0_SDA  : UART0_TX  | DEBUG_SER_TX
 2   | D1  : SER1_RX | GP1  : SPI0_CSn   : I2C0_SCL  : UART0_RX  | DEBUG_SER_RX
 3   |---------------|------ GND --------------------------------|------ GND -----------
-4   | D2  :         | GP2  : SPI0_SCK   : I2C1_SDA  : UART0_CTS |
-5   | D3  :         | GP3  : SPI0_TX    : I2C1_SCL  : UART0_RTS |
+4   | D2  :         | GP2  : SPI0_SCK   : I2C1_SDA  : UART0_CTS | LED_D01
+5   | D3  :         | GP3  : SPI0_TX    : I2C1_SCL  : UART0_RTS | LED_DO0
 6   | D4  :WIRE0_SDA| GP4  : SPI0_RX    : I2C0_SDA  : UART1_TX  | I2C_SDA
 7   | D5  :WIRE0_SCL| GP5  : SPI0_CSn   : I2C0_SCL  : UART1_RX  | I2C_SCL
 8   |---------------|------ GND --------------------------------|------ GND -----------
-9   | D6  :         | GP6  : SPI0_SCK   : I2C1_SDA  : UART1_CTS |
-10  | D7  :         | GP7  : SPI0_TX    : I2C1_SCL  : UART1_RTS |
-11  | D8  : SER2_TX | GP8  : SPI1_RX    : I2C0_SDA  : UART1_TX  |
-12  | D9  : SER2_RX | GP9  : SPI1_CSn   : I2C0_SCL  : UART1_RX  |
+9   | D6  :         | GP6  : SPI0_SCK   : I2C1_SDA  : UART1_CTS | /RESET_NANO
+10  | D7  :         | GP7  : SPI0_TX    : I2C1_SCL  : UART1_RTS | /RESET_TFT
+11  | D8  : SER2_TX | GP8  : SPI1_RX    : I2C0_SDA  : UART1_TX  | TFT_LED
+12  | D9  : SER2_RX | GP9  : SPI1_CSn   : I2C0_SCL  : UART1_RX  | TFT_DC
 13  |---------------|------ GND --------------------------------|------ GND -----------
-14  | D10 :         | GP10 : SPI1_SCK   : I2C1_SDA  : UART1_CTS |
-15  | D11 :         | GP11 : SPI1_TX    : I2C1_SCL  : UART1_RTS |
+14  | D10 :         | GP10 : SPI1_SCK   : I2C1_SDA  : UART1_CTS | SPI_CS_TOUCH
+15  | D11 :         | GP11 : SPI1_TX    : I2C1_SCL  : UART1_RTS | TOUCH_IRQ
 16  | D12 :SPI1_MISO| GP12 : SPI1_RX    : I2C0_SDA  : UART0_TX  | SPI_MISO
 17  | D13 :SPI1_CS  | GP13 : SPI1_CSn   : I2C0_SCL  : UART0_RX  | SPI_CS_TFT
 18  |---------------|------ GND --------------------------------|------ GND -----------
 19  | D14 :SPI1_SCK | GP14 : SPI1_SCK   : I2C1_SDA  : UART0_CTS | SPI_SCLK
 20  | D15 :SPI1_MOSI| GP15 : SPI1_TX    : I2C1_SCL  : UART0_RTS | SPI_MOSI
 ----+---------------+-------------------------------------------+----------------------
+----+---------------+-------------------------------------------+----------------------
 21  | D16 :SPI0_MISO| GP16 : SPI0_RX    : I2C0_SDA  : UART0_TX  | SD_MISO
 22  | D17 :SPI0_CS0 | GP17 : SPI0_CSn   : I2C0_SCL  : UART0_RX  | SD_CS
 23  |---------------|------ GND --------------------------------|------ GND -----------
 24  | D18 :SPI0_SCK | GP18 : SPI0_SCK   : I2C1_SDA  : UART0_CTS | SD_SCLK
 25  | D19 :SPI0_MOSI| GP19 : SPI0_TX    : I2C1_SCL  : UART0_RTS | SD_MOSI
-26  | D20 :         | GP20 : SPI0_RX    : I2C0_SDA  :           |
-27  | D21 :         | GP21 : SPI0_CSn   : I2C0_SCL  :           |
+26  | D20 :         | GP20 : SPI0_RX    : I2C0_SDA  :           | LED_DO2
+27  | D21 :         | GP21 : SPI0_CSn   : I2C0_SCL  :           | LED_DO3
 28  |---------------|------ GND --------------------------------|------ GND -----------
-29  | D22 :         | GP22 : SPI0_SCK   :           : UART1_CTS |
+29  | D22 :         | GP22 : SPI0_SCK   :           : UART1_CTS | I2S_SD
 30  |---------------|------ RUN --------------------------------|------ RUN -----------
-31  | A0  :WIRE1_SDA| GP26 : SPI1_SCK   : I2C0_SDA  : UART1_CTS |
-32  | A1  :WIRE1_SCL| GP27 : SPI1_TX    : I2C0_SCL  : UART1_RTS |
+31  | A0  :WIRE1_SDA| GP26 : SPI1_SCK   : I2C0_SDA  : UART1_CTS | A0
+32  | A1  :WIRE1_SCL| GP27 : SPI1_TX    : I2C0_SCL  : UART1_RTS | I2S_SCK
 33  |---------------|------ AGND -------------------------------|------ AGND ----------
-34  | A2  :         | GP28 : SPI1_SCK   : I2C0_SDA  : UART1_CTS |
+34  | A2  :         | GP28 : SPI1_SCK   : I2C0_SDA  : UART1_CTS | I2S_WS
 35  |---------------|------ AREF -------------------------------|------ AREF ----------
 36  |---------------|------ 3V3_OUT ----------------------------|------ 3V3_OUT -------
 37  |---------------|------ 3V3_EN -----------------------------|------ 3V3_EN --------
@@ -113,9 +114,9 @@ PIN | Arduino Nano              |   Atmega328                       | Applicatio
 12  | D9  :     :       :       | x :PCINT1 : OC1A  :       : PB1   | PWM-7 .. LED_RGB1_R
 13  | D10 :     :SPI_CS :       | x :PCINT2 : OC1B  :       : PB2   | PWM-8 .. LED_RGB2_G
 14  | D11 :     :SPI_MOSI:      | x :PCINT3 : OC2A  :       : PB3   | PWM-9 .. LED_RGB3_B
-15  | D12 :     :SPI_MISO:      | - :PCINT4 :       :       : PB4   | PWM-10 .. free
+15  | D12 :     :SPI_MISO:      | - :PCINT4 :       :       : PB4   | PWM-10 .. free1
 ----+---------------------------+-----------------------------------+----------------------
-16  | D13 :     :SPI_CLK:       | - :PCINT5 :       :       : PB5   | PWM-11 .. free
+16  | D13 :     :SPI_CLK:       | - :PCINT5 :       :       : PB5   | PWM-11 .. free2
 17  |---------------------------|------ 3V3 ------------------------|------ 3V3 -----------
 18  |---------------------------|------ AREF -----------------------|------ AREF ----------
 19  | D14 : A0  :       :       | - :PCINT8 :       :       : PC0   | 
@@ -133,76 +134,113 @@ PIN | Arduino Nano              |   Atmega328                       | Applicatio
 ----+---------------------------+-----------------------------------+----------------------
 
 
-simple program on Arduino nano:
-
-#include <Wire.h>
-
-void receiveEvent(int count){
-    u8_t channel = Wire.read();
-    u8_t data = Wire.read();
-    
-}
-
-void setup() 
-{
-    * D2-D13  :  Analog out
-    * Wire.begin(0x58)
-    * Wire.onReceive(receiveEvent);
-    * Serial debug??
-}
-
-void loop()
-{
-    delay(100);
-}
-
-
-
-
-
-
-
-To DO 
-
-Pico picture and pin usage here
-
 SD card and TFT does not work on same SPI bus !!!
 SD card has special SPI operation 
 
 
 */
 
-#define PIN_LED_SWITCH_1  	7
+/*
+==> these pin's are moved to the Arduino NANO 
+#define PIN_LED_SWITCH_1  	
+#define PIN_LED_SWITCH_2    
+#define PIN_LED_SWITCH_3  	
+#define PIN_LED_SWITCH_4    
+
+#define PIN_RGB1_LED_R      
+#define PIN_RGB1_LED_G      
+#define PIN_RGB1_LED_B      
+
+#define PIN_RGB2_LED_R      
+#define PIN_RGB2_LED_G      
+#define PIN_RGB2_LED_B      
+*/
+
+
+// for now (to compile .. I2C slave will be added later)
+#define PIN_LED_SWITCH_1    6 	
 #define PIN_LED_SWITCH_2    6
+#define PIN_LED_SWITCH_3  	6
+#define PIN_LED_SWITCH_4    6
 
-#define PIN_RGB1_LED_R      10
-#define PIN_RGB1_LED_G      11
-#define PIN_RGB1_LED_B      12
+#define PIN_RGB1_LED_R      6
+#define PIN_RGB1_LED_G      6
+#define PIN_RGB1_LED_B      6
 
+#define PIN_RGB2_LED_R      6
+#define PIN_RGB2_LED_G      6
+#define PIN_RGB2_LED_B      6
+
+////////////////////////////////////////
+// GPIO
+#define PIN_RESET_NANO      6
+
+
+////////////////////////////////////////
+// LED
 #define PIN_STRIPE_1        2 
 #define PIN_STRIPE_2        3 
 
 #define PIN_MATRIX_1        20
 #define PIN_MATRIX_2        21
 
-#define PIN_SPI0_CS_SD      9 
-#define PIN_SPI0_CS_TFT     13
-#define PIN_TFT_LED         8 
-#define PIN_TFT_DC          15   
-#define PIN_TFT_RST         14   
+////////////////////////////////////////
+// Micro
+#define PIN_MIC_ANALOG      26
+#define PIN_I2S_SD          22
+#define PIN_I2S_SCK         27
+#define PIN_I2S_WS          28
+
+////////////////////////////////////////
+// TFT & Touch / SPI
+#define PIN_TFT_RESET       7
+#define PIN_TFT_LED         8
+#define PIN_TFT_DC          9
+#define PIN_TOUCH_IRQ       11
+
+#define PIN_SPI1_CS_TOUCH   10
+#define PIN_SPI1_CS_TFT     13
 
 /* defined in common.h for PICO board :
+//SPI 1 
+#define PIN_SPI1_SS         (13u)
+#define PIN_SPI1_MISO       (12u)
+#define PIN_SPI1_SCK        (14u)
+#define PIN_SPI1_MOSI       (15u)
+*/
 
-//SPI 0
-#define PIN_SPI0_CS0        17  
+
+
+
+////////////////////////////////////////
+// SD
+/* defined in common.h for PICO board :
+//SPI 0 
+#define PIN_SPI0_SS         17  
 #define PIN_SPI0_MOSI       19
 #define PIN_SPI0_MISO       16
 #define PIN_SPI_SCK         18
+*/
 
+#define PIN_SD_CS           17
+#define PIN_SD_MISO         16
+#define PIN_SD_SCK          18
+#define PIN_SD_MOSI         19
+
+
+////////////////////////////////////////
+// I2C (Nano & Buttons)
+/* defined in common.h for PICO board :
 // I2C
 #define PIN_WIRE0_SDA       4
 #define PIN_WIRE0_SCL       5
 */
+
+
+
+
+
+
 
 
 

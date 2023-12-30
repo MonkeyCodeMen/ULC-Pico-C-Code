@@ -8,7 +8,7 @@ LoopStats::LoopStats(u8_t bands, u32_t factor_ms)
     _factor_ms    = factor_ms;
     _bands        = bands;
     _pBuffer      = new u16_t[bands+1];
-    ASSERT(_pBuffer != NULL,F_CONST("loopStats could not create measurement buffer"));
+    ASSERT(_pBuffer != NULL,F_CHAR("loopStats could not create measurement buffer"));
     reset();
 }
 

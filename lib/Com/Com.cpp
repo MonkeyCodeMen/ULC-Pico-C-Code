@@ -224,7 +224,7 @@ void Com::getLength(){
         _frame.length = convertStrToInt(_field);
         _state = DATA;
         _dataReceived = 0;
-        ASSERT(_frame.pData == NULL,F_CONST("frame binary buffer must be cleared at this point"));
+        ASSERT(_frame.pData == NULL,F_CHAR("frame binary buffer must be cleared at this point"));
         _frame.pData = new u8_t[_frame.length];
     }
 }

@@ -27,5 +27,6 @@ void test_collection_SimpleTest(void) {
   RUN_TEST(test_simple_Test1);
   RUN_TEST(test_simple_Test2);
   RUN_TEST(test_simple_Test3);
+  RUN_TEST(test_simple_DebugAndUnity);
 }
 

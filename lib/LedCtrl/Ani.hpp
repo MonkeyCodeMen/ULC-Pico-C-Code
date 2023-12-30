@@ -23,16 +23,16 @@ class Ani
 		virtual void trigger() 	{};
 		static const char * getErrorText(int error) {
 			switch (error){
-				case ANI_OK:							return F_CONST("OK");
-				case ANI_ERROR_GENERAL:					return F_CONST("general error");
-				case ANI_ERROR_PROGRAM_DOES_NOT_EXIST:	return F_CONST("program does not exist");
-				case ANI_ERROR_OUT_OF_RANGE:			return F_CONST("parameter out of range");
-				case ANI_ERROR_INTERNAL:				return F_CONST("internal error");
-				case ANI_ERROR_PAR_MISSING:				return F_CONST("parameter missing");
-				case ANI_ERROR_FILE_NOT_FOUND:			return F_CONST("file not found");
-				case ANI_ERROR_OUT_OF_MEMORY:			return F_CONST("out of memory");
+				case ANI_OK:							return F_CHAR("OK");
+				case ANI_ERROR_GENERAL:					return F_CHAR("general error");
+				case ANI_ERROR_PROGRAM_DOES_NOT_EXIST:	return F_CHAR("program does not exist");
+				case ANI_ERROR_OUT_OF_RANGE:			return F_CHAR("parameter out of range");
+				case ANI_ERROR_INTERNAL:				return F_CHAR("internal error");
+				case ANI_ERROR_PAR_MISSING:				return F_CHAR("parameter missing");
+				case ANI_ERROR_FILE_NOT_FOUND:			return F_CHAR("file not found");
+				case ANI_ERROR_OUT_OF_MEMORY:			return F_CHAR("out of memory");
 			}
-			return F_CONST("unknow error code");
+			return F_CHAR("unknow error code");
 		}
 
 	private:

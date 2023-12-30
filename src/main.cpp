@@ -40,29 +40,24 @@ extern void gifLoop();
 
 
 void toggleLed(u32_t now){
-  static u8_t ledState=0;
-  static u32_t lastSwitch=0;
+  static u32_t timerLED=0;
+  u32_t diff = now-timerLED;
 
-  switch(ledState){
-    case 0:   if (now-lastSwitch >= 250){
-                  digitalWrite(LED_BUILTIN, HIGH);
-                  lastSwitch = now;
-                  ledState = 1;
-                  }
-              break;
-    case 1:   if (now-lastSwitch >= 250){
-                  digitalWrite(LED_BUILTIN, LOW);
-                  lastSwitch = now;
-                  ledState = 0;
-                  }
-              break;
-    default:  LOG(F_CONST("loop 0 unknown ledState"));
-              digitalWrite(LED_BUILTIN, LOW);
-              lastSwitch = now;
-              ledState = 0;
-              break;
+  if (diff < 250){
+    digitalWrite(LED_BUILTIN,HIGH);
+  } else if (diff < 500){
+    digitalWrite(LED_BUILTIN,LOW);
+  } else if (diff < 1000){
+    digitalWrite(LED_BUILTIN,HIGH);
+  } else if (diff < 1500){
+    digitalWrite(LED_BUILTIN,LOW);
+  } else if (diff < 1750){
+    digitalWrite(LED_BUILTIN,HIGH);
+  } else if (diff < 2000){
+    digitalWrite(LED_BUILTIN,LOW);
+  } else {
+    timerLED = now;
   }
-
 }
 
 void renderDisplay(u32_t now){
@@ -97,29 +92,29 @@ void setup() {
   while (millis()  < WAIT_FOR_TERMINAL) {  }; 
   #endif
 
-  LOG(F_CONST("setup 0:"));
+  LOG(F_CHAR("setup 0:"));
   //analogWriteFreq(3200);
   //analogWriteRange(255);
 
-  LOG(F_CONST("setup 0: Test functions"));
+  LOG(F_CHAR("setup 0: Test functions"));
   TestDebug();
 
-  LOG(F_CONST("setup 0: COM interface"));
+  LOG(F_CHAR("setup 0: COM interface"));
   pCom = new Com();
   pCom->setup();
 
-  LOG(F_CONST("setup 0: startup SPI"));
+  LOG(F_CHAR("setup 0: startup SPI"));
   SPI.begin();
   globalSPI0_mutex.unlock();
 
 
   #ifdef WITH_SD_CARD
-    LOG(F_CONST("setup 0: test for  SD card..."));
+    LOG(F_CHAR("setup 0: test for  SD card..."));
     globalSPI0_mutex.lock();   
-      if (!globalSDcard0.begin(PIN_SPI0_CS_SD)) {
-        LOG(F_CONST("setup 0: SD card initialization failed!"));
+      if (!globalSDcard0.begin(PIN_SD_CS)) {
+        LOG(F_CHAR("setup 0: SD card initialization failed!"));
       } else {
-        LOG(F_CONST("setup 0: SD card initialization done."));
+        LOG(F_CHAR("setup 0: SD card initialization done."));
       }
       globalSDcard0.end();
     globalSPI0_mutex.unlock();  
@@ -127,23 +122,29 @@ void setup() {
 
 
 
-  LOG(F_CONST("setup 0: LED switch"));
+  LOG(F_CHAR("setup 0: LED switch"));
   pLedCtrl1 = new LedCtrl(&ledStripe1);
   pLedCtrl2 = new LedCtrl(&ledStripe2);
-  pLedCtrl1->setup(F_CONST("breath"));
-  pLedCtrl2->setup(F_CONST("breath"));
+  pLedCtrl3 = new LedCtrl(&ledStripe3);
+  pLedCtrl4 = new LedCtrl(&ledStripe4);
+  pLedCtrl1->setup(F_CHAR("breath"));
+  pLedCtrl2->setup(F_CHAR("breath"));
+  pLedCtrl3->setup(F_CHAR("breath"));
+  pLedCtrl4->setup(F_CHAR("breath"));
 
-  LOG(F_CONST("setup 0: RGB LED"));
+  LOG(F_CHAR("setup 0: RGB LED"));
   pRgbCtrl1 = new RgbLedCtrl(&rgbLedStrip1);
-  pRgbCtrl1->setup(F_CONST("rainbow"));  
+  pRgbCtrl2 = new RgbLedCtrl(&rgbLedStrip2);
+  pRgbCtrl1->setup(F_CHAR("rainbow"));  
+  pRgbCtrl2->setup(F_CHAR("rainbow"));  
 
-  LOG(F_CONST("setup 0: Neo stripe"));
+  LOG(F_CHAR("setup 0: Neo stripe"));
   pNeoStripeCtrl1 = new NeoStripeCtrl(&ws2812strip1);
   pNeoStripeCtrl2 = new NeoStripeCtrl(&ws2812strip2);
   pNeoStripeCtrl1->setup(13);  
   pNeoStripeCtrl2->setup(13);  
 
-  LOG(F_CONST("setup 0: Neo matrix"));
+  LOG(F_CHAR("setup 0: Neo matrix"));
   pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
   pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
   pNeoMatrixCtrl1->setup("gif");
@@ -153,7 +154,7 @@ void setup() {
   while(waitForsecondCore == true){
   }
 
-  LOG(F_CONST("setup 0: done"));
+  LOG(F_CHAR("setup 0: done"));
   digitalWrite(LED_BUILTIN, LOW);
 }
 
@@ -161,11 +162,11 @@ void setup1() {
   while(setupStartsecondCore == false){
   }
 
-  LOG(F_CONST("setup 1:"));
+  LOG(F_CHAR("setup 1:"));
 
 
   #ifdef WITH_DISPLAY
-    LOG(F_CONST("setup 1: TFT"));
+    LOG(F_CHAR("setup 1: TFT"));
     globalSPI0_mutex.lock();   
       pTFT = new TFT_eSPI();
       pTFT->init();
@@ -203,12 +204,12 @@ void setup1() {
       #endif
     globalSPI0_mutex.unlock();
 
-    LOG(F_CONST("setup 1: cube"));
+    LOG(F_CHAR("setup 1: cube"));
     pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
   #endif
 
 
-  LOG(F_CONST("setup 1: done"));
+  LOG(F_CHAR("setup 1: done"));
   waitForsecondCore = false;
 }
 

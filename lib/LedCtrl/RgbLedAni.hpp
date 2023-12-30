@@ -23,7 +23,7 @@ class RgbLedAni:public Ani
 
 class RgbLedOffAni : public RgbLedAni{
     public:
-        RgbLedOffAni():RgbLedAni(F_CONST("off"))     {};
+        RgbLedOffAni():RgbLedAni(F_CHAR("off"))     {};
         void loop(u32_t time,RgbLed * pLed)                    {pLed->set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);};
 };
 
@@ -48,7 +48,7 @@ class RgbLedOnAni : public RgbLedAni{
                |               |    N/A        
     */
     public:
-        RgbLedOnAni()  : RgbLedAni(F_CONST("on"))   {};
+        RgbLedOnAni()  : RgbLedAni(F_CHAR("on"))   {};
         void reset()                                        {setup(0x00FFFFFF,0,0,0,"",0,NULL);};
         void loop(u32_t time,RgbLed * pLed)                 {pLed->set(_r,_g,_b);};
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) 
@@ -81,7 +81,7 @@ class RgbLedBlinkAni : public RgbLedAni{
                |               |    N/A        
     */
     public:
-        RgbLedBlinkAni()  : RgbLedAni(F_CONST("blink")) {};
+        RgbLedBlinkAni()  : RgbLedAni(F_CHAR("blink")) {};
         
         void reset()    { setup(0x0,0x00FFFFFF,250,250,"",0,NULL);  };
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
@@ -181,7 +181,7 @@ class RgbLedBreathAni : public RgbLedAni{
     */
 
     public:
-        RgbLedBreathAni()  : RgbLedAni(F_CONST("breath")) {};
+        RgbLedBreathAni()  : RgbLedAni(F_CHAR("breath")) {};
         
         void reset() {  setup(0x00204040,0x0000FF10,1,0,"",0,NULL); };
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
@@ -293,7 +293,7 @@ class RgbLedRainbowAni : public RgbLedAni{
                |               |    color list       
     */    
     public:
-        RgbLedRainbowAni()  : RgbLedAni(F_CONST("rainbow")) {};
+        RgbLedRainbowAni()  : RgbLedAni(F_CHAR("rainbow")) {};
         
         void reset() {  setup(0x0040,0,0xFF01,0,"",0,NULL); };
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
@@ -364,7 +364,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
                |               |    color list       
     */    
     public:
-        RgbLedMultiFlashAni()  : RgbLedAni(F_CONST("multi flash")) {};
+        RgbLedMultiFlashAni()  : RgbLedAni(F_CHAR("multi flash")) {};
         
         void reset() { setup(0x00200060,0x000201F4,0xFF01,0,"0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF",0,NULL);};
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {

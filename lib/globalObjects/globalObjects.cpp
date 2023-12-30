@@ -7,12 +7,18 @@
 // LED Switch
 Led     ledStripe1(PIN_LED_SWITCH_1);
 Led     ledStripe2(PIN_LED_SWITCH_2);
+Led     ledStripe3(PIN_LED_SWITCH_3);
+Led     ledStripe4(PIN_LED_SWITCH_4);
 LedCtrl    * pLedCtrl1;
 LedCtrl    * pLedCtrl2;
+LedCtrl    * pLedCtrl3;
+LedCtrl    * pLedCtrl4;
 
 // RGB LED
 RgbLed  rgbLedStrip1(PIN_RGB1_LED_R,PIN_RGB1_LED_G,PIN_RGB1_LED_B);
+RgbLed  rgbLedStrip2(PIN_RGB2_LED_R,PIN_RGB2_LED_G,PIN_RGB2_LED_B);
 RgbLedCtrl * pRgbCtrl1;
+RgbLedCtrl * pRgbCtrl2;
 
 // WS2812 LED stripe
 #define COUNT_STRIPE_1      250

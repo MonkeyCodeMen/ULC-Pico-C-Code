@@ -288,7 +288,7 @@ class LedBreathAni : public LedAni{
     */
 
     public:
-        LedBreathAni()  : LedAni(F_CONST("breath")) {};
+        LedBreathAni()  : LedAni(F_CHAR("breath")) {};
         
         void reset() {  setup(0x00204040,0x0000FF10,0,0,"",0,NULL); };
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {

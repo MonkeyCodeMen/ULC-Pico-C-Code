@@ -30,9 +30,9 @@ void Debug::log(char * text){
     String time(millis());
 
     _mutex.lock();
-    _out((char*)F_CONST("LOG("));
+    _out((char*)F_CHAR("LOG("));
     _out((char *)time.c_str());
-    _out((char*)F_CONST(")::"));
+    _out((char*)F_CHAR(")::"));
     _out(text);
     _outEnd();
     _mutex.unlock();
@@ -44,14 +44,14 @@ void Debug::log(char * file,int line,char * text){
     String time(millis());
 
     _mutex.lock();
-    _out((char*)F_CONST("LOG("));
+    _out((char*)F_CHAR("LOG("));
     _out((char *)time.c_str());
-    _out((char*)F_CONST("):"));
+    _out((char*)F_CHAR("):"));
     _out(file);
-    _out((char*)F_CONST(":"));
+    _out((char*)F_CHAR(":"));
     String lineStr(line);
     _out((char *)lineStr.c_str());
-    _out((char*)F_CONST("::"));
+    _out((char*)F_CHAR("::"));
     _out(text);
     _outEnd();
     _mutex.unlock();
@@ -65,9 +65,9 @@ void Debug::assertTrue(bool cond ,char * text){
         String time(millis());
 
         _mutex.lock();
-        _out((char*)F_CONST("ASSERT failed("));
+        _out((char*)F_CHAR("ASSERT failed("));
         _out((char *)time.c_str());
-        _out((char*)F_CONST(")::"));
+        _out((char*)F_CHAR(")::"));
         _out(text);
         _outEnd();
         _mutex.unlock();
@@ -82,14 +82,14 @@ void Debug::assertTrue(bool cond ,char * file,int line,char * text){
         String time(millis());
         
         _mutex.lock();
-        _out((char*)F_CONST("ASSERT failed("));
+        _out((char*)F_CHAR("ASSERT failed("));
         _out((char *)time.c_str());
-        _out((char*)F_CONST("):"));
+        _out((char*)F_CHAR("):"));
         _out(file);
-        _out((char*)F_CONST(":"));
+        _out((char*)F_CHAR(":"));
         String lineStr(line);
         _out((char *)lineStr.c_str());
-        _out((char*)F_CONST("::"));
+        _out((char*)F_CHAR("::"));
         _out(text);
         _outEnd();
         _mutex.unlock();
@@ -118,15 +118,15 @@ void Debug::logMem(char * file,int line,char * text){
 
     _mutex.lock();
     
-    _out((char*)F_CONST("LOG memory("));
+    _out((char*)F_CHAR("LOG memory("));
     _out((char *)temp.c_str());
-    _out((char*)F_CONST("):"));
+    _out((char*)F_CHAR("):"));
     _out(file);
-    _out((char*)F_CONST(":"));
+    _out((char*)F_CHAR(":"));
     //temp = String(line);
     temp = line;
     _out((char *)temp.c_str());
-    _out((char*)F_CONST("::"));
+    _out((char*)F_CHAR("::"));
     _out(text);
     temp="-memory status:\n\tused heap: "+String(usedHeap)+"\n\tfree heap: "+String(freeHeap);
     _out((char *)temp.c_str());

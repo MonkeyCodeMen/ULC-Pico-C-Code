@@ -25,7 +25,7 @@ class NeoMatrixAni:public Ani
 
 class MatrixOffAni : public NeoMatrixAni{
     public:
-        MatrixOffAni():NeoMatrixAni(F_CONST("off"))      {};
+        MatrixOffAni():NeoMatrixAni(F_CHAR("off"))      {};
         void reset() {_color = 0; _needUpdate = true;};
         void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
             if (_needUpdate == true){
@@ -63,7 +63,7 @@ class MatrixStaticAni : public NeoMatrixAni{
                |               |    N/A        
     */
    public:
-        MatrixStaticAni():NeoMatrixAni(F_CONST("static"))      {};
+        MatrixStaticAni():NeoMatrixAni(F_CHAR("static"))      {};
         void reset() {  setup(0xFF,0,0,0,"",0,NULL); };
 
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) {
@@ -126,7 +126,7 @@ class MatrixRainbowAni : public NeoMatrixAni{
                |               |    color list       
     */    
     public:
-        MatrixRainbowAni()  : NeoMatrixAni(F_CONST("rainbow")) {};
+        MatrixRainbowAni()  : NeoMatrixAni(F_CHAR("rainbow")) {};
         
         void reset() {  setup(0x0040,0,0x5001,0,"",0,NULL); };
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
@@ -210,7 +210,7 @@ class MatrixBreathAni : public NeoMatrixAni{
     */
 
     public:
-        MatrixBreathAni():NeoMatrixAni(F_CONST("breath"))      {};
+        MatrixBreathAni():NeoMatrixAni(F_CHAR("breath"))      {};
         
         void reset() {  setup(0x00204040,0x0000FF10,1,0,"",0,NULL); };
         int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
@@ -333,7 +333,7 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
 
     */
     public:
-        MatrixMultiFlashAni():NeoMatrixAni(F_CONST("multi flash"))      {};
+        MatrixMultiFlashAni():NeoMatrixAni(F_CHAR("multi flash"))      {};
 
         void reset() { setup(0x00200060,0x000201F4,0xFF01,0,"0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF",0,NULL); };
        
@@ -656,7 +656,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                |               |    N/A        
     */
     public:
-        MatrixGifFileAni():NeoMatrixAni(F_CONST("gif"))      {
+        MatrixGifFileAni():NeoMatrixAni(F_CHAR("gif"))      {
             _gif.begin(GIF_PALETTE_RGB888 );
         };
         

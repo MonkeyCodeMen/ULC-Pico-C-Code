@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include "StringList.hpp"
 
-#define F_CONST (const char *) F
+#define F_CHAR (const char *) F
 
 /* 
 fast and simple convert function 

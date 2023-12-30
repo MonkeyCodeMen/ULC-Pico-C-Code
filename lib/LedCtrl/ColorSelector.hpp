@@ -82,14 +82,14 @@ class ColorSelector{
 
         void _decodeBinColorList(u8_t * pData,u32_t length){
             if (length % 4 != 0){
-                LOG(F_CONST("_decodeBinColorList  invalid length (%4 = 0!!) list skipped"));
+                LOG(F_CHAR("_decodeBinColorList  invalid length (%4 = 0!!) list skipped"));
                 return;
             }
 
             _colorCount = length/4;
             if (_colorCount > COLOR_LIST_LENGTH){
                 _colorCount = COLOR_LIST_LENGTH;
-                LOG(F_CONST("_decodeBinColorList  list to long, list truncated"));
+                LOG(F_CHAR("_decodeBinColorList  list to long, list truncated"));
             }
 
             u32_t * p=(u32_t*)pData;

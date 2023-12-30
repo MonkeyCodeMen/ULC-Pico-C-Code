@@ -17,12 +17,18 @@
 // LED switch stripes
 extern Led          ledStripe1;
 extern Led          ledStripe2;
+extern Led          ledStripe3;
+extern Led          ledStripe4;
 extern LedCtrl *    pLedCtrl1;
 extern LedCtrl *    pLedCtrl2;
+extern LedCtrl *    pLedCtrl3;
+extern LedCtrl *    pLedCtrl4;
 
 // RGB LED
 extern RgbLed       rgbLedStrip1;
+extern RgbLed       rgbLedStrip2;
 extern RgbLedCtrl * pRgbCtrl1;
+extern RgbLedCtrl * pRgbCtrl2;
 
 // WS2812 LED stripe
 extern WS2812FX         ws2812strip1;

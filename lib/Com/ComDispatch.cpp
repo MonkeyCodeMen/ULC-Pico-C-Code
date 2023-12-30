@@ -19,7 +19,7 @@ bool ComDispatch::dispatchFrame(ComFrame * pFrame)
         case('M'):  res = dispatchNeoMatrixFrame(pFrame); break;
         
         default:
-            pFrame->res=F_CONST("unknown module");
+            pFrame->res=F_CHAR("unknown module");
             return false;
     }
     return res;
@@ -37,8 +37,10 @@ bool ComDispatch::dispatchLedFrame(ComFrame * pFrame)
     switch(pFrame->index){
         case 0: pLedCtrl = pLedCtrl1; break;
         case 1: pLedCtrl = pLedCtrl2; break;
+        case 2: pLedCtrl = pLedCtrl3; break;
+        case 3: pLedCtrl = pLedCtrl4; break;
         default:
-            pFrame->res = F_CONST("unknown index");
+            pFrame->res = F_CHAR("unknown index");
             return false;
     }
     if (pFrame->withPar == true){
@@ -58,8 +60,9 @@ bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
     RgbLedCtrl * pRgbCtrl;
     switch(pFrame->index){
         case 0: pRgbCtrl = pRgbCtrl1; break;
+        case 1: pRgbCtrl = pRgbCtrl2; break;
         default:
-            pFrame->res=F_CONST("unknown index");
+            pFrame->res=F_CHAR("unknown index");
             return false;
     }
 
@@ -83,7 +86,7 @@ bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)
         case 0: pStripeCtrl = pNeoStripeCtrl1; break;
         case 1: pStripeCtrl = pNeoStripeCtrl2; break;
         default:
-            pFrame->res=F_CONST("unknown index");
+            pFrame->res=F_CHAR("unknown index");
             return false;
     }
     int res;
@@ -106,7 +109,7 @@ bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame)
         case 0: pMatrixCtrl = pNeoMatrixCtrl1; break;
         case 1: pMatrixCtrl = pNeoMatrixCtrl2; break;
         default:
-            pFrame->res=F_CONST("unknown index");
+            pFrame->res=F_CHAR("unknown index");
             return false;
     }
     int res;
