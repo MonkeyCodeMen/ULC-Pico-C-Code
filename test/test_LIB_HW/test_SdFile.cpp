@@ -43,7 +43,7 @@ String createTestData(){
 
 void test_SD_open(void) {
 
-    TEST_ASSERT_TRUE(SD.begin(PIN_SPI0_CS_SD));
+    TEST_ASSERT_TRUE(SD.begin(PIN_SD_CS));
     SDFile root = SD.open("/");
 
     TEST_ASSERT_TRUE(root.available());

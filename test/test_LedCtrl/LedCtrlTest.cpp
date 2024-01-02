@@ -216,7 +216,7 @@ void test_LedCtrl_blink(void){
   object.loop(1001);
   TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
 
-  object.setup(123,100,100,100,10"",0,NULL);
+  object.setup(123,100,100,100,"",0,NULL);
   TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
 
   object.loop(1002);

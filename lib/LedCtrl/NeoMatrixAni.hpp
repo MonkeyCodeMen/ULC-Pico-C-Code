@@ -724,20 +724,22 @@ class MatrixGifFileAni : public NeoMatrixAni{
 
 
         int _checkFile(){
-            SDFile file;
-            globalSPI0_mutex.lock();
-            if (globalSDcard0.exists(_fileName.c_str())){
-                file = globalSDcard0.open(_fileName.c_str(),FILE_READ);
-                if (file.isDirectory()) {
+            #ifdef WITH_SD_CARD
+                SDFile file;
+                globalSPI0_mutex.lock();
+                if (globalSDcard0.exists(_fileName.c_str())){
+                    file = globalSDcard0.open(_fileName.c_str(),FILE_READ);
+                    if (file.isDirectory()) {
+                        globalSPI0_mutex.unlock();
+                        return ANI_ERROR_FILE_NOT_FOUND;
+                    }
+                    // was just fpr test _gif will open file later
+                    file.close();      
                     globalSPI0_mutex.unlock();
-                    return ANI_ERROR_FILE_NOT_FOUND;
-                }
-                // was just fpr test _gif will open file later
-                file.close();      
+                    return ANI_OK;
+                } 
                 globalSPI0_mutex.unlock();
-                return ANI_OK;
-            } 
-            globalSPI0_mutex.unlock();
+            #endif
             return ANI_ERROR_FILE_NOT_FOUND;
         }
 
@@ -745,17 +747,19 @@ class MatrixGifFileAni : public NeoMatrixAni{
 
         static void * _GIFOpenFile(const char *fname, int32_t *pSize)
         {
-            SDFile * pFile = new SDFile();
-            globalSPI0_mutex.lock();
-            *pFile = globalSDcard0.open(fname,FILE_READ);
+            #ifdef WITH_SD_CARD
+                SDFile * pFile = new SDFile();
+                globalSPI0_mutex.lock();
+                *pFile = globalSDcard0.open(fname,FILE_READ);
 
-            if (*pFile)
-            {
-                *pSize = pFile->size();
+                if (*pFile)
+                {
+                    *pSize = pFile->size();
+                    globalSPI0_mutex.unlock();
+                    return (void*)pFile;
+                }
                 globalSPI0_mutex.unlock();
-                return (void*)pFile;
-            }
-            globalSPI0_mutex.unlock();
+            #endif
             return NULL;
         } /* GIFOpenFile() */
 

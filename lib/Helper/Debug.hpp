@@ -3,6 +3,11 @@
 #include <Arduino.h>
 #include <Mutex.hpp>
 
+#ifndef F_CHAR
+    #define F_CHAR (const char *) F
+#endif
+
+
 // USB serial port
 //#define DEBUG_PORT  Serial  
 // same like debugger
@@ -22,7 +27,16 @@ public:
     static void assertTrue(bool cond ,char * text);
     static void assertTrue(bool cond ,char * file,int line,char * text);
 
-    static inline void stop() {while(1){delay(1);}};
+    void stop(const char * file,int line,const char * message);
+
+    void dump(const char * pName,void *p, u8_t length);
+    void dump(const char * pName,u32_t value);
+    void dump(const char * pName,u32_t value, int base);
+    void dump(const char * pName,String value);
+
+
+    String hexDump(u8_t  * p,u8_t length,const char * sep=" ", const char * prefix="");
+
 
 private:
     static void _out(char * text);
@@ -30,7 +44,7 @@ private:
     static bool _check();
 
     volatile static bool    _initDone;
-    static HardwareSerial * _pSerial;
+    static Stream *         _pOut;
     static Mutex            _mutex;
 
 };
@@ -43,11 +57,13 @@ extern Debug debug;
     #define LOG(text)           Debug::log((char*)__FILE__,__LINE__,(char*)text)
     #define LOG_MEM(text)       Debug::logMem((char*)__FILE__,__LINE__,(char*)text)
     #define ASSERT(cond,text)   Debug::assertTrue(cond,(char*)__FILE__,__LINE__,(char*)text)
-    #define STOP()              Debug::stop()
+    #define STOP()              Debug::stop((char*)__FILE__,__LINE__,(char*)text)
+    #define DUMP(...)           Debug::dump( __VA_ARGS__)
 #else
     #define LOG(text)
     #define LOG_MEM(text)
     #define ASSERT(cond,text)   
-    #define STOP()              Debug::stop()
+    #define STOP()              Debug::stop((char*)__FILE__,__LINE__,(char*)text)
+    #define DUMP(...)
 #endif
 
