@@ -1,7 +1,5 @@
 #include <Arduino.h>
 #include <MenuEntry.hpp>
-
-
 #include <unity.h>
 
 
@@ -19,11 +17,38 @@ void test_Menu_staticEntry(void) {
   TEST_ASSERT_FALSE(pObj->onEvent(EVENT_DEC));
   TEST_ASSERT_FALSE(pObj->onEvent(EVENT_ENTER));
   
-  
+  for (int i=0; i < 10;i++)  
+    TEST_ASSERT_FALSE(pObj->hasChanged());
 
+  pObj->setNewText("new text");
+  TEST_ASSERT_EQUAL_STRING("new text",pObj->getText().c_str());
+  TEST_ASSERT_TRUE(pObj->hasChanged());
+  TEST_ASSERT_FALSE(pObj->hasChanged());
+  TEST_ASSERT_FALSE(pObj->hasChanged());
+
+
+  MenuEntry obj;
+  TEST_ASSERT_EQUAL_STRING("",obj.getText().c_str());
+  TEST_ASSERT_FALSE(obj.onEvent(EVENT_NONE));
+  TEST_ASSERT_FALSE(obj.onEvent(EVENT_INC));
+  TEST_ASSERT_FALSE(obj.onEvent(EVENT_DEC));
+  TEST_ASSERT_FALSE(obj.onEvent(EVENT_ENTER));
+  
+  for (int i=0; i < 10;i++)  
+    TEST_ASSERT_FALSE(obj.hasChanged());
+
+  obj = *pObj;
+  TEST_ASSERT_FALSE(obj.hasChanged());
+  TEST_ASSERT_EQUAL_STRING("new text",obj.getText().c_str());
 
 
   // destructor Ctrl
+  delete pObj;
+  pObj = NULL;
+  TEST_ASSERT_EQUAL(NULL,pObj);
+  TEST_ASSERT_FALSE(obj.hasChanged());
+  TEST_ASSERT_EQUAL_STRING("new text",obj.getText().c_str());
+
 }
 
 

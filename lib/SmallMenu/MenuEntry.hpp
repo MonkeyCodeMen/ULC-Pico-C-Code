@@ -7,15 +7,27 @@ enum MENU_Event_Type {EVENT_NONE,EVENT_INC,EVENT_DEC,EVENT_ENTER};
 class MenuEntry{
     // base entry class .. could be used as static text too
     public:
-        MenuEntry():_text("")                           {};
+        MenuEntry():_text(""),_dirty(false)             {};
         MenuEntry(String staticText):_text(staticText)  {};
         ~MenuEntry() = default;
 
-        virtual bool    onEvent(MENU_Event_Type event) {return false;};
-        virtual void    onMenuOpen()                   {};
-        virtual String  getText()                      {return _text;};
+        virtual bool    onEvent(MENU_Event_Type event)  {return false;};
+        virtual void    onMenuOpen()                    {/*** keep state on menu change / reopen ***/};
+        virtual String  getText()                       {return _text;};
+        virtual void    setNewText(String newValue){
+            if (newValue != _text){
+                _text=newValue;
+                _dirty = true;
+            }
+        };
+        virtual bool    hasChanged(){
+            bool temp = _dirty;
+            _dirty = false;
+            return temp;
+        };
     protected:
         String _text;
+        bool   _dirty;
 };
 
 class MenuBoolEntry : public MenuEntry{
