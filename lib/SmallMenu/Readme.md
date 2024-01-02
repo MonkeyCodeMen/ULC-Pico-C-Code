@@ -9,8 +9,10 @@ classDiagram
 
 
     class MenuEntry{
-        #v_onEvent()
-        #v_getText() String
+        +v_onEvent(MENU_Event_Type)
+        +v_getText() String
+        +v_setNewText(String)
+        +v_hasChanged() bool
     }
 
     class MenuIntEntry{

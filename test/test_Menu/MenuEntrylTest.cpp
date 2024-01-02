@@ -1,4 +1,10 @@
 #include <Arduino.h>
+
+#include <Debug.hpp>
+#include <SPI.h>
+#include <Adafruit_NeoMatrix.h>
+#include <TFT_eSPI.h> // Hardware-specific library
+
 #include <MenuEntry.hpp>
 #include <unity.h>
 
@@ -53,7 +59,74 @@ void test_Menu_staticEntry(void) {
 
 
 
+void test_Menu_boolEntry(){
+  MenuBoolEntry obj1("switch : ");
+  MenuBoolEntry obj2("==Flag==:[",false,F_CHAR("TRUE"),F_CHAR("FALSE"),F_CHAR("]"));
 
+  // test init
+  TEST_ASSERT_FALSE(obj1.getValue());
+  TEST_ASSERT_FALSE(obj2.getValue());
+
+  // test text output
+  TEST_ASSERT_EQUAL_STRING("switch : off",obj1.getText().c_str());
+  TEST_ASSERT_EQUAL_STRING("==Flag==:[FALSE]",obj2.getText().c_str());
+
+  // test access of deviated virtual member functions over base class
+  MenuEntry *p = &obj1;
+  TEST_ASSERT_EQUAL_STRING("switch : off",p->getText().c_str());
+
+  // test toggle logic  wrap arround
+  TEST_ASSERT_TRUE(p->onEvent(EVENT_INC));
+  TEST_ASSERT_TRUE(obj1.getValue());
+  TEST_ASSERT_EQUAL_STRING("switch : on",p->getText().c_str());
+  
+  TEST_ASSERT_TRUE(obj1.onEvent(EVENT_INC));
+  TEST_ASSERT_FALSE(obj1.getValue());
+
+  TEST_ASSERT_TRUE(obj1.onEvent(EVENT_DEC));
+  TEST_ASSERT_TRUE(obj1.getValue());
+
+  TEST_ASSERT_TRUE(obj1.onEvent(EVENT_ENTER));
+  TEST_ASSERT_FALSE(obj1.getValue());
+
+  TEST_ASSERT_FALSE(obj1.onEvent(EVENT_NONE));
+  TEST_ASSERT_FALSE(obj1.getValue());
+
+
+
+  // test toggle logic without wrap
+  TEST_ASSERT_FALSE(obj2.onEvent(EVENT_ENTER));
+  TEST_ASSERT_FALSE(obj2.getValue());
+  
+  TEST_ASSERT_FALSE(obj2.onEvent(EVENT_NONE));
+  TEST_ASSERT_FALSE(obj2.getValue());
+
+
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_INC));
+  TEST_ASSERT_TRUE(obj2.getValue());
+  TEST_ASSERT_TRUE(obj2.getValue());
+  TEST_ASSERT_EQUAL_STRING("==Flag==:[TRUE]",obj2.getText().c_str());
+  
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_INC));
+  TEST_ASSERT_TRUE(obj2.getValue());
+
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_INC));
+  TEST_ASSERT_TRUE(obj2.getValue());
+
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_DEC));
+  TEST_ASSERT_FALSE(obj2.getValue());
+
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_DEC));
+  TEST_ASSERT_FALSE(obj2.getValue());
+
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_DEC));
+  TEST_ASSERT_FALSE(obj2.getValue());
+
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_DEC));
+  TEST_ASSERT_FALSE(obj2.getValue());
+
+
+}
 
 
 
@@ -72,6 +145,7 @@ void tearDown(void) {
 int runAllCollections(void) {
   UNITY_BEGIN();
   RUN_TEST(test_Menu_staticEntry);
+  RUN_TEST(test_Menu_boolEntry);
   return UNITY_END();
 }
 

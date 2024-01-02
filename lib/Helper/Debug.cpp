@@ -210,7 +210,7 @@ String Debug::hexDump(u8_t  * p,u8_t length,const char * sep,const char * prefix
   return out;
 }
 
-void Debug::stop(const char * file,int line,const char * message){
+void Debug::stop(const char * file,int line,char * message){
   _pOut->print("### critical error - system stop ### file: <");
   _pOut->print(file);
   _pOut->print("> in line :");

@@ -27,12 +27,12 @@ public:
     static void assertTrue(bool cond ,char * text);
     static void assertTrue(bool cond ,char * file,int line,char * text);
 
-    void stop(const char * file,int line,const char * message);
+    static void stop(const char * file,int line,char * message);
 
-    void dump(const char * pName,void *p, u8_t length);
-    void dump(const char * pName,u32_t value);
-    void dump(const char * pName,u32_t value, int base);
-    void dump(const char * pName,String value);
+    static void dump(const char * pName,void *p, u8_t length);
+    static void dump(const char * pName,u32_t value);
+    static void dump(const char * pName,u32_t value, int base);
+    static void dump(const char * pName,String value);
 
 
     String hexDump(u8_t  * p,u8_t length,const char * sep=" ", const char * prefix="");
@@ -57,7 +57,7 @@ extern Debug debug;
     #define LOG(text)           Debug::log((char*)__FILE__,__LINE__,(char*)text)
     #define LOG_MEM(text)       Debug::logMem((char*)__FILE__,__LINE__,(char*)text)
     #define ASSERT(cond,text)   Debug::assertTrue(cond,(char*)__FILE__,__LINE__,(char*)text)
-    #define STOP()              Debug::stop((char*)__FILE__,__LINE__,(char*)text)
+    #define STOP(text)          Debug::stop((char*)__FILE__,__LINE__,(char*)text)
     #define DUMP(...)           Debug::dump( __VA_ARGS__)
 #else
     #define LOG(text)

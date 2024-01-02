@@ -17,8 +17,11 @@
   TFT_eSPI * pTFT;       // Invoke custom library
   #define TFT_DIM     int(255*1.0)
 
-  #include <cube.hpp>
-  Cube * pCube;
+  //#include <cube.hpp>
+  //Cube * pCube;
+  #include <Menu.hpp>
+  MenuHandler menuHandler;
+
 #endif
 
 volatile bool setupStartsecondCore = false;
@@ -62,6 +65,7 @@ void toggleLed(u32_t now){
 
 void renderDisplay(u32_t now){
     #ifdef WITH_DISPLAY
+    /*
     static u32_t lastCycle=0;
 
     if (now-lastCycle > 25){
@@ -69,6 +73,9 @@ void renderDisplay(u32_t now){
         pCube->moveView();
       lastCycle = now;
     }
+    */
+
+   
     #endif
 }
 
@@ -205,7 +212,7 @@ void setup1() {
     globalSPI0_mutex.unlock();
 
     LOG(F_CHAR("setup 1: cube"));
-    pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
+    //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
   #endif
 
 
