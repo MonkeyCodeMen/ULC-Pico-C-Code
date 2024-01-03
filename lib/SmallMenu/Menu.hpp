@@ -51,7 +51,7 @@ class MenuHandler{
             {};
         ~MenuHandler() = default;
 
-        bool begin(MenuEntry ** pEntryList, u8_t listCount, TFT_eSPI * pTFT, Mutex * pDisplaySPImutex);
+        bool begin(const char * headerText,MenuEntry ** pEntryList, u8_t listCount, TFT_eSPI * pTFT, Mutex * pDisplaySPImutex);
 
         void loop();
 
@@ -66,12 +66,13 @@ class MenuHandler{
         MenuEntry** _pEntryList;
         int         _listCount;
         String      _header;
-        u32_t       _headerForegndCol,_headerBackgndCol;
+        u16_t       _headerForegndCol,_headerBackgndCol;
         Mutex       _pTFTmutex;
-
-
-
-
+        u8_t        _currentEntry;
+        u8_t        _font;
+        u8_t        _linesPerPage;
+        u16_t       _fontHeight,_screenHeigth;
+        u16_t       _ox,_oy;
 };
 
     

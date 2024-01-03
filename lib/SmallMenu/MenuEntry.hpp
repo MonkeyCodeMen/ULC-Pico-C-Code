@@ -1,21 +1,21 @@
 #pragma once
 #include <Arduino.h>
 #include <Debug.hpp>
+#include <TFT_eSPI.h>
 
 enum MENU_Event_Type {EVENT_NONE,EVENT_INC,EVENT_DEC,EVENT_ENTER};
 
-class MenuEntry{
+class MenuHeader{
     // base entry class .. could be used as static text too
     public:
-        MenuEntry():_text(""),_dirty(false),_foregndCol_RGB(0xFFFFFF),_backgndCol_RGB(0)                            {};
-        MenuEntry(String staticText):_text(staticText),_dirty(false),_foregndCol_RGB(0xFFFFFF),_backgndCol_RGB(0)   {};
-        ~MenuEntry() = default;
+        MenuHeader():_text(""),_dirty(false),_foregndCol(TFT_WHITE),_backgndCol(TFT_BLACK)                            {};
+        MenuHeader(String staticText):_text(staticText),_dirty(false),_foregndCol(TFT_WHITE),_backgndCol(TFT_BLACK)   {};
+        ~MenuHeader() = default;
 
-        virtual bool    onEvent(MENU_Event_Type event)  {return false;};
         virtual void    onMenuOpen()                    {/*** keep state on menu change / reopen ***/};
-        virtual String  getText()                       {return _text;};
-        virtual u32_t   getForegndCol()                 { return _foregndCol_RGB;};
-        virtual u32_t   getBackgndCol()                 { return _backgndCol_RGB;};
+        virtual String  getText()                       { return _text;         };
+        virtual u32_t   getForegndCol()                 { return _foregndCol;   };
+        virtual u32_t   getBackgndCol()                 { return _backgndCol;   };
         
         virtual void    setNewText(String newValue){
             if (newValue != _text){
@@ -31,8 +31,43 @@ class MenuEntry{
     protected:
         String _text;
         bool   _dirty;
-        u32_t  _foregndCol_RGB,_backgndCol_RGB;
+        u16_t  _foregndCol,_backgndCol;
+
+}
+
+class MenuEntry{
+    // base entry class .. could be used as static text too
+    public:
+        MenuEntry():_text(""),_dirty(false),_foregndCol(TFT_WHITE),_backgndCol(TFT_BLACK)                            {};
+        MenuEntry(String staticText):_text(staticText),_dirty(false),_foregndCol(TFT_WHITE),_backgndCol(TFT_BLACK)   {};
+        ~MenuEntry() = default;
+
+        virtual bool    onEvent(MENU_Event_Type event)  {return false;};
+        virtual void    onMenuOpen()                    {/*** keep state on menu change / reopen ***/};
+        virtual String  getText()                       {return _text;};
+        virtual u32_t   getForegndCol()                 { return _foregndCol;};
+        virtual u32_t   getBackgndCol()                 { return _backgndCol;};
+        
+        virtual void    setNewText(String newValue){
+            if (newValue != _text){
+                _text=newValue;
+                _dirty = true;
+            }
+        };
+        virtual bool    hasChanged(){
+            bool temp = _dirty;
+            _dirty = false;
+            return temp;
+        };
+    protected:
+        String _text;
+        bool   _dirty;
+        u16_t  _foregndCol,_backgndCol;
 };
+
+class MenuHeader : public MenuEntry{
+
+}
 
 class MenuBoolEntry : public MenuEntry{
     public:
