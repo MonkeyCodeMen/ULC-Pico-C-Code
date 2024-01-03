@@ -83,7 +83,7 @@ void Cube::Render(){
             _linesDrawn++;
         }
     }
-    globalSPI0_mutex.unlock();
+    globalSPI0_mutex.free();
 
 }
 

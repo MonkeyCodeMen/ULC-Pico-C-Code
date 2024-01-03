@@ -44,6 +44,6 @@ void NeoMatrixCtrl::loop(u32_t time){
 
     _mutexSetup.lock();
     ((NeoMatrixAni*)_pCurrentAni)->loop(time,_pMatrix);
-    _mutexSetup.unlock();
+    _mutexSetup.free();
 }
 

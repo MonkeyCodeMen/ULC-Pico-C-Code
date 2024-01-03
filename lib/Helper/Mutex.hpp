@@ -7,7 +7,7 @@ public:
 	~Mutex() = default;
 
     void lock();    
-    void unlock();
+    void free();
     bool isLocked();
 
 private:

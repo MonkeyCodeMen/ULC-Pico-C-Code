@@ -36,5 +36,5 @@ void RgbLedCtrl::loop(u32_t time){
     }
     _mutexSetup.lock();
     ((RgbLedAni*)_pCurrentAni)->loop(time,_pRgbLed);
-    _mutexSetup.unlock();
+    _mutexSetup.free();
 }

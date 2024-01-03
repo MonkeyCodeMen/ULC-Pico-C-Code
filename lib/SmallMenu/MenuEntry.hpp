@@ -3,7 +3,7 @@
 #include <Debug.hpp>
 #include <TFT_eSPI.h>
 
-enum MENU_Event_Type {EVENT_NONE,EVENT_INC,EVENT_DEC,EVENT_ENTER};
+enum MENU_Event_Type {EVENT_NONE,EVENT_RIGHT,EVENT_LEFT,EVENT_UP,EVENT_DOWN,EVENT_ENTER};
 #define MENU_STD_FONT 2
 #define MENU_STD_CURSOR "<*>"
 #define MENU_STD_EMPTY_CURSOR "   "
@@ -22,6 +22,7 @@ class MenuItem{
         virtual bool    needsUpdate()           { return _dirty;                                                                            };
         virtual u16_t   getHeight()             { return _objectHeight;                                                                     };
         virtual bool    setup(TFT_eSPI * pTFT)  { return false; /** calc dimension in correlation to display **/                            };
+        virtual bool    draw(TFT_eSPI * pTFT,u16_t x,u16_t y,u16_t dx,u16_t dy)                 { return false;                             };
 
     protected:
         bool    _dirty;
@@ -35,21 +36,33 @@ class MenuHeader:public MenuItem{
             {};
         
         ~MenuHeader() = default;
-
-        virtual bool    draw(TFT_eSPI * pTFT,u16_t x,u16_t y,u16_t dx,u16_t dy) { return false; };
 };
 
 class MenuEntry:public MenuItem{
     public:
         MenuEntry()
-            :MenuItem() 
+            :MenuItem(),
+            _hasFocus(false)
             {};
         
         ~MenuEntry() = default;
 
-        virtual bool    draw(TFT_eSPI * pTFT,u16_t x,u16_t y,u16_t dx,u16_t dy,bool asActive)   { return false; };
-        virtual bool    onEvent(MENU_Event_Type event)                                          { return false; };        
+        virtual bool    onEvent(MENU_Event_Type event)                          { return false; };        
+
+        virtual void    setFocus(){
+            if (_hasFocus == true)  return;
+            _hasFocus = true;
+            _dirty = true;
+        };
+
+        virtual void    clearFocus(){
+            if (_hasFocus == false)  return;
+            _hasFocus = false;
+            _dirty = true;
+        };
+
     protected:
+        bool _hasFocus;
 };
 
 ////////////////////////////////////////////////
@@ -158,9 +171,9 @@ class MenuEntryText: public MenuEntry{
             return true;
         }
 
-        virtual String getText(bool active){
+        virtual String getText(){
             String res;
-            if (active == true) {
+            if (_hasFocus == true) {
                 res = _cursor+_baseText+_valueText+_endText;
             } else {
                 res = _emptyCursor+_baseText+_valueText+_endText;
@@ -196,15 +209,15 @@ class MenuEntryText: public MenuEntry{
             }
         };
 
-        virtual bool draw(TFT_eSPI * pTFT,u16_t x,u16_t y,u16_t dx,u16_t dy,bool active){
-            if (active == true){
+        virtual bool draw(TFT_eSPI * pTFT,u16_t x,u16_t y,u16_t dx,u16_t dy){
+            if (_hasFocus == true){
                 pTFT->fillRect(x,y,dx,dy,_foregndCol);
                 pTFT->setTextColor(_backgndCol,_foregndCol);
-                pTFT->drawString(getText(active),x+_ox,y+_oy,_font);
+                pTFT->drawString(getText(),x+_ox,y+_oy,_font);
             } else {
                 pTFT->fillRect(x,y,dx,dy,_backgndCol);
                 pTFT->setTextColor(_foregndCol,_backgndCol);
-                pTFT->drawString(getText(active),x+_ox,y+_oy,_font);
+                pTFT->drawString(getText(),x+_ox,y+_oy,_font);
             }
             _dirty = false;
             return true;
@@ -255,8 +268,8 @@ class MenuEntryBool : public MenuEntryText{
             bool handled = true;
             if (_wrapAround == true){
                 switch(event){
-                    case EVENT_INC:  
-                    case EVENT_DEC:
+                    case EVENT_RIGHT:  
+                    case EVENT_LEFT:
                     case EVENT_ENTER: 
                         setValue(!_value);
                         break;
@@ -266,8 +279,8 @@ class MenuEntryBool : public MenuEntryText{
                 }
             } else {
                 switch(event){
-                    case EVENT_INC:     setValue(true);         break;
-                    case EVENT_DEC:     setValue(false);        break;
+                    case EVENT_RIGHT:   setValue(true);         break;
+                    case EVENT_LEFT:    setValue(false);        break;
                     case EVENT_ENTER:   setValue(_resetValue);  break;
                     default:
                         /* event not handled by this class but maybe by derived classes*/

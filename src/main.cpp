@@ -112,7 +112,7 @@ void setup() {
 
   LOG(F_CHAR("setup 0: startup SPI"));
   SPI.begin();
-  globalSPI0_mutex.unlock();
+  globalSPI0_mutex.free();
 
 
   #ifdef WITH_SD_CARD
@@ -209,7 +209,7 @@ void setup1() {
         delay(200);
         pTFT->fillScreen(TFT_BLACK);
       #endif
-    globalSPI0_mutex.unlock();
+    globalSPI0_mutex.free();
 
     LOG(F_CHAR("setup 1: cube"));
     //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself

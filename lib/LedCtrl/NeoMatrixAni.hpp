@@ -770,7 +770,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 globalSPI0_mutex.lock();
                 pFile->close();
                 delete pFile;
-                globalSPI0_mutex.unlock();
+                globalSPI0_mutex.free();
             }
                 
         } /* GIFCloseFile() */
@@ -788,7 +788,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
             globalSPI0_mutex.lock();
                 iBytesRead = (int32_t)pFile->read(pBuf, iBytesRead);
                 pGifFile->iPos = pFile->position();
-            globalSPI0_mutex.unlock();
+            globalSPI0_mutex.free();
             return iBytesRead;
         } /* GIFReadFile() */
 
@@ -798,7 +798,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
             globalSPI0_mutex.lock();
                 pFile->seek(iPosition);
                 pGifFile->iPos = (int32_t)pFile->position();
-            globalSPI0_mutex.unlock();
+            globalSPI0_mutex.free();
            return pGifFile->iPos;
         } /* GIFSeekFile() */
 

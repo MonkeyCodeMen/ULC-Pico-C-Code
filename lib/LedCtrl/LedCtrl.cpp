@@ -30,5 +30,5 @@ void LedCtrl::loop(u32_t time){
 
     _mutexSetup.lock();
     ((LedAni*)_pCurrentAni)->loop(time,_pLed);
-    _mutexSetup.unlock();
+    _mutexSetup.free();
 }

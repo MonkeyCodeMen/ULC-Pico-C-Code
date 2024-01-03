@@ -89,14 +89,14 @@ int Ctrl::setup(int nr){
         if (_pCurrentNode->pNext == NULL){
             _pCurrentAni = NULL;
             _pCurrentNode= NULL;
-            _mutexSetup.unlock();
+            _mutexSetup.free();
             return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
         }
         _pCurrentNode = _pCurrentNode->pNext;
     }
     _pCurrentAni = _pCurrentNode->pAni;
     _pCurrentAni->reset();
-    _mutexSetup.unlock();
+    _mutexSetup.free();
     return ANI_OK;
 }
 
@@ -110,14 +110,14 @@ int Ctrl::setup(const char * pName){
         if (_pCurrentNode->pNext == NULL){
             _pCurrentAni = NULL;
             _pCurrentNode= NULL;
-            _mutexSetup.unlock();
+            _mutexSetup.free();
             return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
         }
         _pCurrentNode = _pCurrentNode->pNext;
     }
     _pCurrentAni = _pCurrentNode->pAni;
     _pCurrentAni->reset();
-    _mutexSetup.unlock();
+    _mutexSetup.free();
     return ANI_OK;
 }
 
@@ -128,7 +128,7 @@ int Ctrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t
 
     _mutexSetup.lock();
     int res = _pCurrentAni->setup(p1,p2,p3,p4,str,length,pData);
-    _mutexSetup.unlock();
+    _mutexSetup.free();
     return res;
 }
 

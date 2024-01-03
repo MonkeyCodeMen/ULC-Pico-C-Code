@@ -29,7 +29,7 @@ bool Debug::_check(){
                 if (_pOut == &Serial3)        Serial3.begin(115200);
             #endif
             _initDone = true;
-            _mutex.unlock();
+            _mutex.free();
     }
     return true;
 }
@@ -44,7 +44,7 @@ void Debug::log(char * text){
     _out((char*)F_CHAR(")::"));
     _out(text);
     _outEnd();
-    _mutex.unlock();
+    _mutex.free();
 }
 
 
@@ -63,7 +63,7 @@ void Debug::log(char * file,int line,char * text){
     _out((char*)F_CHAR("::"));
     _out(text);
     _outEnd();
-    _mutex.unlock();
+    _mutex.free();
 }
 
 void Debug::assertTrue(bool cond ,char * text){
@@ -79,7 +79,7 @@ void Debug::assertTrue(bool cond ,char * text){
         _out((char*)F_CHAR(")::"));
         _out(text);
         _outEnd();
-        _mutex.unlock();
+        _mutex.free();
     }
 }
 
@@ -101,7 +101,7 @@ void Debug::assertTrue(bool cond ,char * file,int line,char * text){
         _out((char*)F_CHAR("::"));
         _out(text);
         _outEnd();
-        _mutex.unlock();
+        _mutex.free();
     }
 }
 
@@ -139,7 +139,7 @@ void Debug::logMem(char * file,int line,char * text){
     _out((char *)temp.c_str());
     
     _outEnd();
-    _mutex.unlock();
+    _mutex.free();
 }
 
 

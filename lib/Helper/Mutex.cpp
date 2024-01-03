@@ -10,7 +10,7 @@ void Mutex::lock(){
     _available = false;
 }
 
-void Mutex::unlock(){
+void Mutex::free(){
     _available = true;
 }
 
