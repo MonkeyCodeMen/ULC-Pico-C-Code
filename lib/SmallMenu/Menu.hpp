@@ -15,29 +15,88 @@ class MenuHandler{
         MenuHandler():
             _valid(false),_pTFT(NULL),_pTFTmutex(NULL),
             _pHeader(NULL),_pEntryList(NULL),_entryCountMax(-1),
-            _hasHeader(false),_entryViewportChanged(false),_forceHeaderUpdate(false),_wrapAround(true),
+            _hasHeader(false),_entryViewportChanged(false),_forceHeaderUpdate(false),_wrapAround(true),_placeboMutex(false),
             _activeEntry(-1),_firstVisibleEntry(0),_lastVisibleEntry(0),
             _screenHeight(0),_screenWidth(0),
             _menuX(0),_menuY(0),_menuHeight(0),_menuWidth(0),
             _headerX(0),_headerY(0),_headerHeight(0),_headerWidth(0),
             _entryAreaX(0),_entryAreaY(0),_entryAreaHeight(0),_entryAreaWidth(0),
             _backgroundColor(TFT_BLACK)
-            { };
+            { }
 
-        ~MenuHandler() = default;
+        ~MenuHandler(){
+            _valid = false;
+            if(_placeboMutex == true)  delete _pTFTmutex;
+        }
 
-        bool begin(MenuHeader * pHeader,MenuEntry ** pEntryList, u8_t listCount, TFT_eSPI * pTFT, Mutex * pDisplaySPImutex){
-            if (pHeader==NULL)          STOP(F_CHAR("nobody is only allowed for Odysseus"));
+        bool begin(MenuHeader * pHeader,MenuEntry ** pEntryList, u8_t listCount, TFT_eSPI * pTFT, Mutex * pDisplaySPImutex=NULL){
+            // check ;-) pointer to TFT
             if (pTFT == NULL)           STOP(F_CHAR("invalid display driver"));
-            if (pEntryList == NULL)     STOP(F_CHAR("invalid menu entry list"));
-            if (listCount == 0)         STOP(F_CHAR("empty entry list"));
+            _pTFT = pTFT;
 
-            for (int i=0;i < listCount;i++){
-                if (pEntryList[i] == NULL)     STOP(F_CHAR("invalid entry pointer"));
+            // init entries
+            if ((listCount == 0)||(pEntryList==NULL)){    
+                _pEntryList == NULL;
+                _entryCountMax = 0;
+            } else {
+                _pEntryList = pEntryList;
+                _entryCountMax = listCount;
+                for (int i=0;i < _entryCountMax;i++){
+                    if (pEntryList[i] == NULL)     STOP(F_CHAR("invalid entry pointer"));
+                    pEntryList[i]->setup(_pTFT);
+                }
+            }
+
+            // init header
+            if (pHeader==NULL){
+                _hasHeader = false;
+            } else {
+                _hasHeader = true;
+                _pHeader= pHeader;
+                _pHeader->setup(_pTFT);
+            }
+
+            if (pDisplaySPImutex == NULL){
+                _pTFTmutex = new Mutex;
+                _placeboMutex = true;
+            } else {
+                _pTFTmutex = pDisplaySPImutex;
+                _placeboMutex = false;
+            }
+
+            // calc coordinates
+            _screenHeight   = _pTFT->height();
+            _screenWidth    = _pTFT->width();
+            _menuX          = 0;  // ToDo: offset and limit to dedicated area
+            _menuY          = 0;
+            _menuHeight     = _screenHeight;
+            _menuWidth      = _screenWidth;
+
+            if (_hasHeader){
+                _headerX = _menuX;
+                _headerY = _menuY;
+                _headerHeight = _pHeader->getHeight();
+                _headerWidth = _menuWidth;
+            } else {
+                _headerX = _headerY = 0;
+                _headerHeight = _headerWidth  = 0; 
+            }
+            // rest is reserved as entrie Area
+            _entryAreaX = _menuX;
+            _entryAreaY = _menuY + _headerHeight;
+            _entryAreaHeight = _menuHeight - _headerHeight;
+            _entryAreaWidth  = _menuWidth;
+
+            if (_entryCountMax > 0){
+            // calc visible entries
+                _activeEntry = 0;
+                _firstVisibleEntry = 0;
+                _lastVisibleEntry = _calcLastVisibleEntry(_firstVisibleEntry);
             }
 
             return false;
         }
+
 
         bool setNewBackgroundColor(u16_t value){
             if (value != _backgroundColor){
@@ -65,35 +124,40 @@ class MenuHandler{
             }
 
             // entry section
-            if (_entryViewportChanged == true){
-                // rebuild viewport
-                // lock SPI for TFT
-                _pTFTmutex->lock();
-                    _pTFT->fillRect(_entryAreaX,_entryAreaY,_entryAreaWidth,_entryAreaHeight,_backgroundColor);
+            if (_entryCountMax > 0){
+                if (_entryViewportChanged == true){
+                    // rebuild viewport
+                    // lock SPI for TFT
+                    _pTFTmutex->lock();
+                        _pTFT->fillRect(_entryAreaX,_entryAreaY,_entryAreaWidth,_entryAreaHeight,_backgroundColor);
+                        u16_t y = _entryAreaY;
+                        for (u8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
+                            _pEntryList[line]->draw(_pTFT,_entryAreaX,y,_entryAreaWidth,_entryAreaHeight);
+                        }
+                    _pTFTmutex->free();
+                } else {
+                    // update viewport
                     u16_t y = _entryAreaY;
                     for (u8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
-                        _pEntryList[line]->draw(_pTFT,_entryAreaX,y,_entryAreaWidth,_entryAreaHeight);
-                    }
-                _pTFTmutex->free();
-            } else {
-                // update viewport
-                u16_t y = _entryAreaY;
-                for (u8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
-                    if (_pEntryList[line]->needsUpdate() == true){
-                        // lock SPI for TFT
-                        _pTFTmutex->lock();
-                            _pEntryList[line]->draw(_pTFT,_entryAreaX,y,_entryAreaWidth,_entryAreaHeight);
-                        _pTFTmutex->free();
+                        if (_pEntryList[line]->needsUpdate() == true){
+                            // lock SPI for TFT
+                            _pTFTmutex->lock();
+                                _pEntryList[line]->draw(_pTFT,_entryAreaX,y,_entryAreaWidth,_entryAreaHeight);
+                            _pTFTmutex->free();
+                        }
                     }
                 }
             }
         }
 
-
-
-
-
     private:
+        u8_t        _calcLastVisibleEntry(u8_t startEntry){
+            if (startEntry >= _entryCountMax)   STOP(F_CHAR("invaid start index"));
+            for (u8_t index = startEntry; index < _entryCountMax; index++){
+
+            }
+        }
+
         bool        _valid;
 
         // screen
@@ -106,7 +170,7 @@ class MenuHandler{
         int         _entryCountMax;
 
         // base control flags
-        bool        _hasHeader,_entryViewportChanged,_forceHeaderUpdate,_wrapAround;
+        bool        _hasHeader,_entryViewportChanged,_forceHeaderUpdate,_wrapAround,_placeboMutex;
         
         // control of entry area
         int         _activeEntry;
