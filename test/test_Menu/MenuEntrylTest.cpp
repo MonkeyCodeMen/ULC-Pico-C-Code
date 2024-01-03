@@ -11,74 +11,88 @@
 
 
 void test_Menu_staticEntry(void) {
-  MenuEntry * pObj=NULL;
+  MenuEntryText * pObj=NULL;
 
   TEST_ASSERT_TRUE(pObj == NULL);
-  pObj = new MenuEntry();
+  pObj = new MenuEntryText();
   TEST_ASSERT_TRUE(pObj != NULL);
 
-  TEST_ASSERT_EQUAL_STRING("",pObj->getText().c_str());
-  TEST_ASSERT_FALSE(pObj->onEvent(EVENT_NONE));
-  TEST_ASSERT_FALSE(pObj->onEvent(EVENT_INC));
-  TEST_ASSERT_FALSE(pObj->onEvent(EVENT_DEC));
-  TEST_ASSERT_FALSE(pObj->onEvent(EVENT_ENTER));
-  
-  for (int i=0; i < 10;i++)  
-    TEST_ASSERT_FALSE(pObj->hasChanged());
+  for(int i=0;i < 10; i++){
+    // should be stable
+    TEST_ASSERT_EQUAL_STRING(MENU_STD_EMPTY_CURSOR,pObj->getText(false).c_str());
+    TEST_ASSERT_EQUAL_STRING(MENU_STD_CURSOR,pObj->getText(true).c_str());
+    TEST_ASSERT_FALSE(pObj->onEvent(EVENT_NONE));
+    TEST_ASSERT_FALSE(pObj->onEvent(EVENT_INC));
+    TEST_ASSERT_FALSE(pObj->onEvent(EVENT_DEC));
+    TEST_ASSERT_FALSE(pObj->onEvent(EVENT_ENTER));
+    TEST_ASSERT_TRUE(pObj->needsUpdate());
+  }
 
   pObj->setNewText("new text");
-  TEST_ASSERT_EQUAL_STRING("new text",pObj->getText().c_str());
-  TEST_ASSERT_TRUE(pObj->hasChanged());
-  TEST_ASSERT_FALSE(pObj->hasChanged());
-  TEST_ASSERT_FALSE(pObj->hasChanged());
+  TEST_ASSERT_EQUAL_STRING("   new text",pObj->getText(false).c_str());
+  TEST_ASSERT_EQUAL_STRING("<*>new text",pObj->getText(true).c_str());
+  TEST_ASSERT_TRUE(pObj->needsUpdate());
+  // draw
+  //TEST_ASSERT_FALSE(pObj->needsUpdate());
+  //TEST_ASSERT_FALSE(pObj->needsUpdate());
+
+  pObj->changeCursorOption("","");
+  TEST_ASSERT_EQUAL_STRING("new text",pObj->getText(false).c_str());
+  TEST_ASSERT_EQUAL_STRING("new text",pObj->getText(true).c_str());
+  TEST_ASSERT_TRUE(pObj->needsUpdate());
 
 
-  MenuEntry obj;
-  TEST_ASSERT_EQUAL_STRING("",obj.getText().c_str());
+  MenuEntryText obj;
+  TEST_ASSERT_EQUAL_STRING(MENU_STD_EMPTY_CURSOR,obj.getText(false).c_str());
+  TEST_ASSERT_EQUAL_STRING(MENU_STD_CURSOR,obj.getText(true).c_str());
   TEST_ASSERT_FALSE(obj.onEvent(EVENT_NONE));
   TEST_ASSERT_FALSE(obj.onEvent(EVENT_INC));
   TEST_ASSERT_FALSE(obj.onEvent(EVENT_DEC));
   TEST_ASSERT_FALSE(obj.onEvent(EVENT_ENTER));
   
-  for (int i=0; i < 10;i++)  
-    TEST_ASSERT_FALSE(obj.hasChanged());
 
   obj = *pObj;
-  TEST_ASSERT_FALSE(obj.hasChanged());
-  TEST_ASSERT_EQUAL_STRING("new text",obj.getText().c_str());
+  TEST_ASSERT_TRUE(obj.needsUpdate());
+  TEST_ASSERT_EQUAL_STRING("new text",obj.getText(false).c_str());
+  TEST_ASSERT_EQUAL_STRING("new text",obj.getText(true).c_str());
 
 
   // destructor Ctrl
   delete pObj;
   pObj = NULL;
   TEST_ASSERT_EQUAL(NULL,pObj);
-  TEST_ASSERT_FALSE(obj.hasChanged());
-  TEST_ASSERT_EQUAL_STRING("new text",obj.getText().c_str());
+  TEST_ASSERT_TRUE(obj.needsUpdate());
+  TEST_ASSERT_EQUAL_STRING("new text",obj.getText(false).c_str());
+  TEST_ASSERT_EQUAL_STRING("new text",obj.getText(true).c_str());
 
 }
 
 
 
 void test_Menu_boolEntry(){
-  MenuBoolEntry obj1("switch : ");
-  MenuBoolEntry obj2("==Flag==:[",false,F_CHAR("TRUE"),F_CHAR("FALSE"),F_CHAR("]"));
+  MenuEntryBool obj1("switch : ");
+  MenuEntryBool obj2("==Flag==:[",false,false,F_CHAR("TRUE"),F_CHAR("FALSE"),F_CHAR("]"));
 
+  // we focus now only on text results
+  obj1.changeCursorOption("","");
+  obj2.changeCursorOption("","");
+  
   // test init
   TEST_ASSERT_FALSE(obj1.getValue());
   TEST_ASSERT_FALSE(obj2.getValue());
 
   // test text output
-  TEST_ASSERT_EQUAL_STRING("switch : off",obj1.getText().c_str());
-  TEST_ASSERT_EQUAL_STRING("==Flag==:[FALSE]",obj2.getText().c_str());
+  TEST_ASSERT_EQUAL_STRING("switch : off",obj1.getText(false).c_str());
+  TEST_ASSERT_EQUAL_STRING("==Flag==:[FALSE]",obj2.getText(false).c_str());
 
   // test access of deviated virtual member functions over base class
-  MenuEntry *p = &obj1;
-  TEST_ASSERT_EQUAL_STRING("switch : off",p->getText().c_str());
+  MenuEntryText *p = &obj1;
+  TEST_ASSERT_EQUAL_STRING("switch : off",p->getText(false).c_str());
 
   // test toggle logic  wrap arround
   TEST_ASSERT_TRUE(p->onEvent(EVENT_INC));
   TEST_ASSERT_TRUE(obj1.getValue());
-  TEST_ASSERT_EQUAL_STRING("switch : on",p->getText().c_str());
+  TEST_ASSERT_EQUAL_STRING("switch : on",p->getText(false).c_str());
   
   TEST_ASSERT_TRUE(obj1.onEvent(EVENT_INC));
   TEST_ASSERT_FALSE(obj1.getValue());
@@ -95,37 +109,35 @@ void test_Menu_boolEntry(){
 
 
   // test toggle logic without wrap
-  TEST_ASSERT_FALSE(obj2.onEvent(EVENT_ENTER));
-  TEST_ASSERT_FALSE(obj2.getValue());
-  
   TEST_ASSERT_FALSE(obj2.onEvent(EVENT_NONE));
   TEST_ASSERT_FALSE(obj2.getValue());
-
+  TEST_ASSERT_FALSE(obj2.onEvent(EVENT_NONE));
+  TEST_ASSERT_FALSE(obj2.getValue());
+  TEST_ASSERT_EQUAL_STRING("==Flag==:[FALSE]",obj2.getText(false).c_str());
 
   TEST_ASSERT_TRUE(obj2.onEvent(EVENT_INC));
   TEST_ASSERT_TRUE(obj2.getValue());
-  TEST_ASSERT_TRUE(obj2.getValue());
-  TEST_ASSERT_EQUAL_STRING("==Flag==:[TRUE]",obj2.getText().c_str());
-  
   TEST_ASSERT_TRUE(obj2.onEvent(EVENT_INC));
   TEST_ASSERT_TRUE(obj2.getValue());
+  TEST_ASSERT_EQUAL_STRING("==Flag==:[TRUE]",obj2.getText(false).c_str());
+
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_ENTER));
+  TEST_ASSERT_FALSE(obj2.getValue());
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_ENTER));
+  TEST_ASSERT_FALSE(obj2.getValue());
+  TEST_ASSERT_EQUAL_STRING("==Flag==:[FALSE]",obj2.getText(false).c_str());
 
   TEST_ASSERT_TRUE(obj2.onEvent(EVENT_INC));
   TEST_ASSERT_TRUE(obj2.getValue());
+  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_INC));
+  TEST_ASSERT_TRUE(obj2.getValue());
+  TEST_ASSERT_EQUAL_STRING("==Flag==:[TRUE]",obj2.getText(false).c_str());
 
   TEST_ASSERT_TRUE(obj2.onEvent(EVENT_DEC));
   TEST_ASSERT_FALSE(obj2.getValue());
-
   TEST_ASSERT_TRUE(obj2.onEvent(EVENT_DEC));
   TEST_ASSERT_FALSE(obj2.getValue());
-
-  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_DEC));
-  TEST_ASSERT_FALSE(obj2.getValue());
-
-  TEST_ASSERT_TRUE(obj2.onEvent(EVENT_DEC));
-  TEST_ASSERT_FALSE(obj2.getValue());
-
-
+  TEST_ASSERT_EQUAL_STRING("==Flag==:[FALSE]",obj2.getText(false).c_str());
 }
 
 

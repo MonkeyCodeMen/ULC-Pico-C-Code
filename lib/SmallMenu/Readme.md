@@ -18,57 +18,57 @@ clipping obliegt den elementen
 :::mermaid
 classDiagram
     note "text Menu class diagram"
-    MenuEntry <|-- MenuListEntry
-    MenuEntry <|-- MenuIntEntry
-    MenuEntry <|-- MenuBoolEntry
-    SmallMenu --> MenuEntry
-    SmallMenu --> TFT_eSPI
 
+    MenuItem <|-- MenuHeader
+    MenuItem <|-- MenuEntry
+
+    MenuHeader <|-- MenuHeaderText
+    MenuEntry  <|-- MenuEntryText
+
+    MenuEntryText <|-- MenuEntryBool
+    MenuEntryText <|-- MenuEntryInt
+    MenuEntryText <|-- MenuEntryList
+
+    MenuHandler --> MenuEntry
+    MenuHandler --> TFT_eSPI
+
+
+    class MenuItem{
+        +v_onMenuOpen() bool
+        +v_needsUpdate() bool
+        +v_getHeight() bool
+        +v_setup(pTFT)
+    }
+
+    class MenuHeader{
+        +v_draw(pTFT,x,y)
+    }
 
     class MenuEntry{
-        +v_onEvent(MENU_Event_Type)
-        +v_getText() String
-        +v_setNewText(String)
-        +v_hasChanged() bool
-        +v_needUpdate() bool
-        +v_draw(pTFT,ox,oy,bool active,(dx,dy))
-        +v_getHeight() int
-
-
+        +v_draw(pTFT,x,y,asActive)
+        +v_onEvent(event)
     }
 
-    class MenuIntEntry{
-        -int _min
-        -int _max
-        -int _currentValue
-
-        +getValue() int
-
-        #v_onEvent()
-        #v_getText() String
+    class MenuHeaderText{
+        +draw(pTFT,x,y)
     }
 
-    class MenuBoolEntry{
-        -String _offText
-        -String _onText
+    class MenuEntryText{
+        +draw(pTFT,x,y,asActive)
+    }
+    note for MenuEntryText "implements concrete draw method"
 
-        +setOffText()
-        +setOnText()
-        +getValue() bool
+    class MenuEntryBool{
+        +onEvent(event)
+    }
+    note for MenuEntryBool "implements concrete event logic"
 
-        #v_onEvent()
-        #v_getText() String
+    class MenuEntryList{
+        +onEvent(event)
+    }
+    class MenuEntryInt{
+        +onEvent(event)
     }
 
-    class MenuListEntry{
-        -String[] _entries
-        -bool     _wrapAround
-        -int      _currentIndex
 
-        +getCurrentIndex() int
-        +getCurrentEntry() String
-        
-        #v_onEvent()
-        #v_getText() String
-    }
 :::
