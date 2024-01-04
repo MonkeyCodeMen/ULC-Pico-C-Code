@@ -45,10 +45,6 @@ extern NeoMatrixCtrl *      pNeoMatrixCtrl2;
 // HW mngt. 
 extern Mutex globalSPI0_mutex;
 
-#ifdef WITH_DISPLAY
-    #include <Menu.hpp>
-    extern MenuHandler menuHandler;
-#endif
 
 #ifdef WITH_SD_CARD
     #include <SPI.h>

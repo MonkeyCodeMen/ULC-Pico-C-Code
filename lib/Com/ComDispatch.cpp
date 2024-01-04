@@ -3,6 +3,10 @@
 #include "helper.hpp"
 #include <globalObjects.hpp>
 
+#ifdef WITH_DISPLAY
+    #include <Menu.hpp>
+#endif
+
 
 ComDispatch::ComDispatch()
 {

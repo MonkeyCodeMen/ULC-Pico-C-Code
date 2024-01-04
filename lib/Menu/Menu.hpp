@@ -59,10 +59,24 @@ class MenuHandler{
         }
 
         bool onEvent(MENU_Event_Type event){
-            return false;
+            if (_valid == false)    { return false; }
+            switch (event)   {
+                case EVENT_DOWN:
+                    
+                    break;
+                case EVENT_UP:
+                    /* code */
+                    break;
+                
+                default:
+                    _pEntryList[_activeEntry]->onEvent(event);
+                    break;
+            }
+            return true;
         }
 
-        bool loop(){
+        bool loop(u32_t now){
+            // run as fast as possible (no fixed loop time)
             if (_valid == false) { return false; }
             _updateHeader();
             _updateEntrySection();
@@ -281,6 +295,6 @@ class MenuHandler{
         u16_t       _backgroundColor;
 };
 
- 
+extern MenuHandler menuHandler;
 
 

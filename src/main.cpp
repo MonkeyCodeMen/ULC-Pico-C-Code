@@ -18,6 +18,8 @@
 
   //#include <cube.hpp>
   //Cube * pCube;
+  #include <Menu.hpp>
+  extern MenuHandler menuHandler;
 
   MenuHeaderText menuHeader(F_CHAR("test menu: (c) MonkeyCodeMen"));
   MenuEntryBool entry1("switch : ");
@@ -215,7 +217,7 @@ void setup1() {
 
     LOG(F_CHAR("setup 1: menu"));
     menuHandler.begin(&menuHeader,menu,sizeof(menu)/sizeof(MenuEntry*),pTFT,&globalSPI0_mutex);
-    menuHandler.loop();
+    menuHandler.loop(0);
     //LOG(F_CHAR("setup 1: cube"));
     //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
   #endif
@@ -269,7 +271,7 @@ void loop1(){
       case 3:   pNeoStripeCtrl1->loop(now);       break;
       case 4:   pNeoStripeCtrl1->loop(now);       break;
       #ifdef WITH_DISPLAY
-        case 5:   renderDisplay(now);               break;
+        case 5:   menuHandler.loop(now);          break;
       #endif
       default:  prgState = 0;                     break;
   }
