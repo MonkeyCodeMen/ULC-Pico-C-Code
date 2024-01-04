@@ -5,7 +5,7 @@
 #include <Adafruit_NeoMatrix.h>
 #include <TFT_eSPI.h> // Hardware-specific library
 
-#include <MenuEntry.hpp>
+#include <Menu.hpp>
 #include <unity.h>
 
 

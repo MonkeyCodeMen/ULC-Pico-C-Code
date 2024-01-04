@@ -15,13 +15,13 @@
 class Ani
 {
 	public:
-		Ani(const char * pName)  		{_pName = pName;  reset();	};
+		Ani(const char * pName)  																		{ _pName = pName;  reset();		}
 		~Ani() = default;
-        const char * getName()		{return _pName;};
-		virtual void reset()  	{};
-        virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) {return ANI_OK;};
-		virtual void trigger() 	{};
-		static const char * getErrorText(int error) {
+        const char * getName()																			{ return _pName;				}
+		virtual void reset()  																			{								}
+        virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) 	{ return ANI_OK;				}
+		virtual void trigger() 																			{								}
+		static const char * getErrorText(int error) 													{
 			switch (error){
 				case ANI_OK:							return F_CHAR("OK");
 				case ANI_ERROR_GENERAL:					return F_CHAR("general error");

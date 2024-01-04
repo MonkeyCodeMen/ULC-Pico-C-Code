@@ -28,7 +28,7 @@ class ColorSelector{
                 _index        = startValue;
             }
             backup();
-        };
+        }
 
         u32_t getNextColor(){
             u32_t color24;
@@ -42,7 +42,7 @@ class ColorSelector{
                 _index += _incStep;
             }
             return dimColor255(color24,_dimValue);            
-        };
+        }
 
         void setDim(u8_t dim)           {_dimValue = dim;};
         void setStep(u8_t step)         {_incStep = step;};
@@ -52,13 +52,13 @@ class ColorSelector{
             _backupDim  = _dimValue;
             _backupInc  = _incStep;
             _backupIndex= _index;
-        };
+        }
 
         void restore(){
             _dimValue = _backupDim;
             _incStep  = _backupInc;
             _index    = _backupIndex;
-        };
+        }
 
 
     private:
@@ -70,7 +70,7 @@ class ColorSelector{
         void _clearList(){
             _colorCount = 0;
             memset(_colorList,0,sizeof(_colorList));
-        };
+        }
 
         void _decodeAsciiColorList(const char * listText){
             StringList list(listText,',');
@@ -78,7 +78,7 @@ class ColorSelector{
                 _colorList[_colorCount] = convertStrToInt(list.getNextListEntry());
                 _colorCount++;
             }
-        };
+        }
 
         void _decodeBinColorList(u8_t * pData,u32_t length){
             if (length % 4 != 0){
@@ -97,6 +97,5 @@ class ColorSelector{
                 _colorList[i] = *p;
                 p++;
             }
-        };
-
+        }
 };

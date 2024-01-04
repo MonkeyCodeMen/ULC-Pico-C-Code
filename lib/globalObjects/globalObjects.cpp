@@ -49,8 +49,9 @@ NeoMatrixCtrl  * pNeoMatrixCtrl2;
 
 Mutex globalSPI0_mutex;
 
-
-
+#ifdef WITH_DISPLAY
+    MenuHandler menuHandler;
+#endif
 
 #ifdef WITH_SD_CARD
   SDClass globalSDcard0;

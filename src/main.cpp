@@ -10,7 +10,6 @@
 #include <LoopStats.hpp>
 #include <Com.hpp>
 
-
 #ifdef WITH_DISPLAY
   #include <SPI.h>
   #include <TFT_eSPI.h> // Hardware-specific library
@@ -19,8 +18,11 @@
 
   //#include <cube.hpp>
   //Cube * pCube;
-  #include <Menu.hpp>
-  MenuHandler menuHandler;
+
+  MenuHeaderText menuHeader(F_CHAR("test menu: (c) MonkeyCodeMen"));
+  MenuEntryBool entry1("switch : ");
+  MenuEntryBool entry2("==Flag==:[",false,false,F_CHAR("TRUE"),F_CHAR("FALSE"),F_CHAR("]"));
+  MenuEntry * menu[] = {&entry1,&entry2};
 
 #endif
 
@@ -177,7 +179,7 @@ void setup1() {
     globalSPI0_mutex.lock();   
       pTFT = new TFT_eSPI();
       pTFT->init();
-      pTFT->setRotation(1);
+      pTFT->setRotation(3);
       pTFT->fillScreen(TFT_BLACK);
       pinMode(PIN_TFT_LED, OUTPUT);
       analogWrite(PIN_TFT_LED,TFT_DIM);
@@ -211,7 +213,10 @@ void setup1() {
       #endif
     globalSPI0_mutex.free();
 
-    LOG(F_CHAR("setup 1: cube"));
+    LOG(F_CHAR("setup 1: menu"));
+    menuHandler.begin(&menuHeader,menu,sizeof(menu)/sizeof(MenuEntry*),pTFT,&globalSPI0_mutex);
+    menuHandler.loop();
+    //LOG(F_CHAR("setup 1: cube"));
     //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
   #endif
 

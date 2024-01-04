@@ -15,7 +15,7 @@ class Led
         ~Led() = default;
 
         void set(u8_t value);
-        u8_t get()              {return _value;};
+        u8_t get()              {return _value;}
 
 
     private:

@@ -17,6 +17,7 @@ bool ComDispatch::dispatchFrame(ComFrame * pFrame)
         case('R'):  res = dispatchRgbLedFrame(pFrame);    break;
         case('S'):  res = dispatchNeoStripeFrame(pFrame); break;
         case('M'):  res = dispatchNeoMatrixFrame(pFrame); break;
+        case('E'):  res = dispatchMenuFrame(pFrame);      break;
         
         default:
             pFrame->res=F_CHAR("unknown module");
@@ -30,8 +31,7 @@ bool ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
 }
 
 
-bool ComDispatch::dispatchLedFrame(ComFrame * pFrame)
-{
+bool ComDispatch::dispatchLedFrame(ComFrame * pFrame){
     LedCtrl * pLedCtrl;
     int res;
     switch(pFrame->index){
@@ -55,8 +55,7 @@ bool ComDispatch::dispatchLedFrame(ComFrame * pFrame)
     return res==ANI_OK?true:false;
 }
 
-bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
-{
+bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame){
     RgbLedCtrl * pRgbCtrl;
     switch(pFrame->index){
         case 0: pRgbCtrl = pRgbCtrl1; break;
@@ -79,8 +78,7 @@ bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame)
     return res==ANI_OK?true:false;
 }
 
-bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)
-{
+bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame){
     NeoStripeCtrl * pStripeCtrl;
     switch(pFrame->index){
         case 0: pStripeCtrl = pNeoStripeCtrl1; break;
@@ -102,8 +100,7 @@ bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame)
     return res==ANI_OK?true:false;
 }
 
-bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame)
-{
+bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame){
     NeoMatrixCtrl * pMatrixCtrl;
     switch(pFrame->index){
         case 0: pMatrixCtrl = pNeoMatrixCtrl1; break;
@@ -123,4 +120,24 @@ bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame)
     }
     pFrame->res = Ani::getErrorText(res);
     return res==ANI_OK?true:false;
+}
+
+bool ComDispatch::dispatchMenuFrame(ComFrame * pFrame){
+    // ignore index 
+    pFrame->command.toUpperCase();
+    if (pFrame->command == "UP"){
+        menuHandler.onEvent(EVENT_UP);
+    } else if (pFrame->command == "DOWN"){
+        menuHandler.onEvent(EVENT_DOWN);
+    } else if (pFrame->command == "LEFT"){
+        menuHandler.onEvent(EVENT_LEFT);
+    } else if (pFrame->command == "RIGHT"){
+        menuHandler.onEvent(EVENT_RIGHT);
+    } else if (pFrame->command == "ENTER"){
+        menuHandler.onEvent(EVENT_ENTER);
+    } else {
+        pFrame->res = "unknown command for menu";
+        return false;
+    }   
+    return true;
 }

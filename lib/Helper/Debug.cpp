@@ -19,15 +19,9 @@ bool Debug::_check(){
     if (_initDone == false){
             _mutex.lock();
             _pOut=&DEBUG_PORT;   
-            #ifdef Serial1
-                if (_pOut == &Serial1)        Serial1.begin(115200);
-            #endif
-            #ifdef Serial2
-                if (_pOut == &Serial2)        Serial2.begin(115200);
-            #endif
-            #ifdef Serial3
-                if (_pOut == &Serial3)        Serial3.begin(115200);
-            #endif
+            if (_pOut == &Serial1)        Serial1.begin(115200);
+            else if (_pOut == &Serial2)   Serial2.begin(115200);
+            //else if (_pOut == &Serial3)        Serial3.begin(115200);
             _initDone = true;
             _mutex.free();
     }
@@ -45,6 +39,13 @@ void Debug::log(char * text){
     _out(text);
     _outEnd();
     _mutex.free();
+}
+
+void Debug::log(char * file,int line,char * text,int value){
+    String str;
+    str = text;
+    str += String(value);
+    Debug::log(file,line,(char *)str.c_str());
 }
 
 
@@ -217,7 +218,5 @@ void Debug::stop(const char * file,int line,char * message){
   _pOut->print(line);
   _pOut->print(" :: ");
   _pOut->print(message);
-  while (1){
-
-  };
+  while (1){ };
 }

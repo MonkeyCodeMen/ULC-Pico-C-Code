@@ -15,5 +15,6 @@ private:
     bool dispatchRgbLedFrame(ComFrame * pFrame);
     bool dispatchNeoStripeFrame(ComFrame * pFrame);
     bool dispatchNeoMatrixFrame(ComFrame * pFrame);
+    bool dispatchMenuFrame(ComFrame * pFrame);
 
 };
