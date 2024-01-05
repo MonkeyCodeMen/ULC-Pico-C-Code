@@ -130,18 +130,16 @@ bool ComDispatch::dispatchMenuFrame(ComFrame * pFrame){
     // ignore index 
     pFrame->command.toUpperCase();
     if (pFrame->command == "UP"){
-        menuHandler.onEvent(EVENT_UP);
+        return menuHandler.onEvent(EVENT_UP);
     } else if (pFrame->command == "DOWN"){
-        menuHandler.onEvent(EVENT_DOWN);
+        return menuHandler.onEvent(EVENT_DOWN);
     } else if (pFrame->command == "LEFT"){
-        menuHandler.onEvent(EVENT_LEFT);
+        return menuHandler.onEvent(EVENT_LEFT);
     } else if (pFrame->command == "RIGHT"){
-        menuHandler.onEvent(EVENT_RIGHT);
+        return menuHandler.onEvent(EVENT_RIGHT);
     } else if (pFrame->command == "ENTER"){
-        menuHandler.onEvent(EVENT_ENTER);
-    } else {
-        pFrame->res = "unknown command for menu";
-        return false;
-    }   
-    return true;
+        return menuHandler.onEvent(EVENT_ENTER);
+    } 
+    pFrame->res = "unknown command for menu";
+    return false;
 }

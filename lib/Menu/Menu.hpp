@@ -62,17 +62,30 @@ class MenuHandler{
             if (_valid == false)    { return false; }
             switch (event)   {
                 case EVENT_DOWN:
-                    
+                    if (_activeEntry < _entryCountMax-1){
+                        _pEntryList[_activeEntry]->clearFocus();
+                        _activeEntry++;
+                        _pEntryList[_activeEntry]->setFocus();
+                        if(_activeEntry > _lastVisibleEntry){
+                            _setViewportFromBottom(_activeEntry);
+                        }
+                    }
+                    return true;
                     break;
                 case EVENT_UP:
-                    /* code */
-                    break;
-                
-                default:
-                    _pEntryList[_activeEntry]->onEvent(event);
+                    if (_activeEntry > 0){
+                        _pEntryList[_activeEntry]->clearFocus();
+                        _activeEntry--;
+                        _pEntryList[_activeEntry]->setFocus();
+                        if(_activeEntry < _firstVisibleEntry){
+                            _setViewportFromTop(_activeEntry);
+                        }
+                    }
+                    return true;
                     break;
             }
-            return true;
+            // event will be handled by entries 
+            return _pEntryList[_activeEntry]->onEvent(event);
         }
 
         bool loop(u32_t now){
@@ -96,6 +109,12 @@ class MenuHandler{
             }
             return true;
         }
+
+        bool _setViewportFromBottom(u8_t startIndex){
+
+            return false;
+        }
+
 
         u8_t _calcLastVisibleEntry(u8_t startEntry){
             if (startEntry >= _entryCountMax)   STOP(F_CHAR("invaid start index"));
@@ -234,7 +253,6 @@ class MenuHandler{
             if (_entryCountMax > 0){
                 if (_entryViewportChanged == true){
                     // rebuild viewport
-                    // lock SPI for TFT
                     _pTFTmutex->lock();
                         _pTFT->fillRect(_entryAreaX,_entryAreaY,_entryAreaWidth,_entryAreaHeight,_backgroundColor);
                         u16_t y = _entryAreaY;
@@ -245,15 +263,15 @@ class MenuHandler{
                             y+=_pEntryList[line]->getHeight();
                         }
                     _pTFTmutex->free();
+                    _entryViewportChanged = false;
                 } else {
                     // update viewport (did not moved)
                     u16_t y = _entryAreaY;
                     for (u8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
                         if (_pEntryList[line]->needsUpdate() == true){
-                            // lock SPI for TFT
                             _pTFTmutex->lock();
                                 _pTFT->setViewport(_entryAreaX,y,_pEntryList[line]->getWidth(),_pEntryList[line]->getHeight()); // until now we trust the the object for height and width
-                                _pEntryList[line]->draw(_pTFT,_entryAreaX,y);
+                                _pEntryList[line]->draw(_pTFT,0,0);
                                 _pTFT->resetViewport();
                             _pTFTmutex->free();
                         }

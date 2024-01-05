@@ -160,29 +160,22 @@ class MenuEntryBool : public MenuEntryText{
 
         virtual bool onEvent(MENU_Event_Type event) {
             // handle Event based on selected logic
-            bool handled = true;
             if (_wrapAround == true){
                 switch(event){
                     case EVENT_RIGHT:  
                     case EVENT_LEFT:
                     case EVENT_ENTER: 
                         setValue(!_value);
-                        break;
-                    default:
-                        /* event not handled by this class but maybe by derived classes*/
-                        handled = false;
+                        return true;    break;
                 }
             } else {
                 switch(event){
-                    case EVENT_RIGHT:   setValue(true);         break;
-                    case EVENT_LEFT:    setValue(false);        break;
-                    case EVENT_ENTER:   setValue(_resetValue);  break;
-                    default:
-                        /* event not handled by this class but maybe by derived classes*/
-                        handled = false;
+                    case EVENT_RIGHT:   setValue(true);         return true;    break;
+                    case EVENT_LEFT:    setValue(false);        return true;    break;
+                    case EVENT_ENTER:   setValue(_resetValue);  return true;    break;
                 }
             }
-            return handled;
+            return false;
         }
 
     protected:
