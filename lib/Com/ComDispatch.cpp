@@ -1,11 +1,9 @@
 #include "ComDispatch.hpp"
 #include "Debug.hpp"
 #include "helper.hpp"
-#include <globalObjects.hpp>
 
-#ifdef WITH_DISPLAY
-    #include <Menu.hpp>
-#endif
+#include <LedObjects.hpp>
+#include <MenuObjects.hpp>
 
 
 ComDispatch::ComDispatch()
@@ -21,7 +19,7 @@ bool ComDispatch::dispatchFrame(ComFrame * pFrame)
         case('R'):  res = dispatchRgbLedFrame(pFrame);    break;
         case('S'):  res = dispatchNeoStripeFrame(pFrame); break;
         case('M'):  res = dispatchNeoMatrixFrame(pFrame); break;
-        case('E'):  res = dispatchMenuFrame(pFrame);      break;
+        case('E'):  res = dispatchMenuFrame(pFrame);      break;        // remote control of menu
         
         default:
             pFrame->res=F_CHAR("unknown module");

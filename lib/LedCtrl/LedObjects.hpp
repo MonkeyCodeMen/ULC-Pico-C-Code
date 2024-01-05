@@ -2,15 +2,12 @@
 
 #include <Arduino.h>
 #include <MainConfig.h>
-#include <Debug.hpp>
-#include <helper.hpp>
 #include <Adafruit_NeoMatrix.h>
 #include <WS2812FX.h>
 #include <LedCtrl.hpp>
 #include <RgbLedCtrl.hpp>
 #include <NeoStripeCtrl.hpp>
 #include <NeoMatrixCtrl.hpp>
-#include <Mutex.hpp>
 
 
 
@@ -42,13 +39,6 @@ extern Adafruit_NeoMatrix   neoMatrix2;
 extern NeoMatrixCtrl *      pNeoMatrixCtrl1;
 extern NeoMatrixCtrl *      pNeoMatrixCtrl2;
 
-// HW mngt. 
-extern Mutex globalSPI0_mutex;
+bool setupLed();
 
-
-#ifdef WITH_SD_CARD
-    #include <SPI.h>
-    #include <SD.h>
-    extern SDClass globalSDcard0;
-#endif 
 

@@ -1,39 +1,72 @@
 #include <Arduino.h>
 #include <MainConfig.h>
 #include <PinMapping.h>
-#include <SPI.h>
 
+#include <SPI.h>
 #include <Debug.hpp>
 #include <helper.hpp>
 
-#include <globalObjects.hpp>
+#include <LedObjects.hpp>
+#include <MenuObjects.hpp>
+
 #include <LoopStats.hpp>
 #include <Com.hpp>
 
+/*****************************************************************
+ * 
+ *    ToDo'S / aufräumen
+ * 
+ ******************************************************************
+  + implement startup test mode
+  + implement boot screen
+ */
+
+
+
+
+Mutex globalSPI0_mutex;   // ToDo: wo den anlegen ... HelprObjects ... HwObjects ????
+Com * pCom;   // ToDo: class auf begin method umbauen und dann nach ComObjects auslagern 
+
+
+// ==> WITH DISPLAY macht keinen sinn mehr oder muss in COM auch eingebaut werden 
+// toDo change this to DisplayObjects (contains TFT )  and TFT_begin   to rotate display etc 
 #ifdef WITH_DISPLAY
   #include <SPI.h>
   #include <TFT_eSPI.h> // Hardware-specific library
   TFT_eSPI * pTFT;       // Invoke custom library
+
   #define TFT_DIM     int(255*1.0)
 
   //#include <cube.hpp>
   //Cube * pCube;
-  #include <Menu.hpp>
-  extern MenuHandler menuHandler;
-
-  MenuHeaderText menuHeader(F_CHAR("test menu: (c) MonkeyCodeMen"));
-  MenuEntryBool entry1("switch : ");
-  MenuEntryBool entry2("==Flag==:[",false,false,F_CHAR("TRUE"),F_CHAR("FALSE"),F_CHAR("]"));
-  MenuEntry * menu[] = {&entry1,&entry2};
-
 #endif
 
-volatile bool setupStartsecondCore = false;
-volatile bool waitForsecondCore    = true;
-
-Com * pCom;
 
 
+
+
+#ifdef WITH_SD_CARD
+    #include <SPI.h>
+    #include <SD.h>
+    extern SDClass globalSDcard0;
+#endif 
+
+#ifdef WITH_SD_CARD
+  SDClass globalSDcard0;
+#endif
+
+extern void gifSetup();
+extern void gifLoop();
+
+/*****************************************************************
+ * 
+ *    VAR's
+ * 
+ ******************************************************************
+ */
+
+volatile bool setupStartsecondCore = false;   // false:  first core0 setup .. then core1 setup      || true: core0 and core1 setup in parallel
+volatile bool waitForsecondCore    = true;    // false:  core0 starts with loop directly after setup|| true: core0 waits for core1 to finish setup first, then start loop
 
 /*****************************************************************
  * 
@@ -42,8 +75,7 @@ Com * pCom;
  ******************************************************************
  */
 
-extern void gifSetup();
-extern void gifLoop();
+
 
 
 void toggleLed(u32_t now){
@@ -67,9 +99,11 @@ void toggleLed(u32_t now){
   }
 }
 
+/* 
+
+ToDo: no longer used, but where should we place this
 void renderDisplay(u32_t now){
     #ifdef WITH_DISPLAY
-    /*
     static u32_t lastCycle=0;
 
     if (now-lastCycle > 25){
@@ -77,15 +111,14 @@ void renderDisplay(u32_t now){
         pCube->moveView();
       lastCycle = now;
     }
-    */
-
-   
     #endif
 }
-
+*/
 
 void TestDebug(){
-  // place code to debug here (single core before startup)
+  // place code to debug here 
+  // will be called early in setup of core 0
+
 }
 
 
@@ -111,8 +144,10 @@ void setup() {
   TestDebug();
 
   LOG(F_CHAR("setup 0: COM interface"));
+  // ToDo : change this to ARDUINO Style com.begin()
+  // is com and arduino name ???  
   pCom = new Com();
-  pCom->setup();
+  pCom->setup();  // ==> COM.begin !!!
 
   LOG(F_CHAR("setup 0: startup SPI"));
   SPI.begin();
@@ -131,35 +166,8 @@ void setup() {
     globalSPI0_mutex.unlock();  
   #endif
 
-
-
-  LOG(F_CHAR("setup 0: LED switch"));
-  pLedCtrl1 = new LedCtrl(&ledStripe1);
-  pLedCtrl2 = new LedCtrl(&ledStripe2);
-  pLedCtrl3 = new LedCtrl(&ledStripe3);
-  pLedCtrl4 = new LedCtrl(&ledStripe4);
-  pLedCtrl1->setup(F_CHAR("breath"));
-  pLedCtrl2->setup(F_CHAR("breath"));
-  pLedCtrl3->setup(F_CHAR("breath"));
-  pLedCtrl4->setup(F_CHAR("breath"));
-
-  LOG(F_CHAR("setup 0: RGB LED"));
-  pRgbCtrl1 = new RgbLedCtrl(&rgbLedStrip1);
-  pRgbCtrl2 = new RgbLedCtrl(&rgbLedStrip2);
-  pRgbCtrl1->setup(F_CHAR("rainbow"));  
-  pRgbCtrl2->setup(F_CHAR("rainbow"));  
-
-  LOG(F_CHAR("setup 0: Neo stripe"));
-  pNeoStripeCtrl1 = new NeoStripeCtrl(&ws2812strip1);
-  pNeoStripeCtrl2 = new NeoStripeCtrl(&ws2812strip2);
-  pNeoStripeCtrl1->setup(13);  
-  pNeoStripeCtrl2->setup(13);  
-
-  LOG(F_CHAR("setup 0: Neo matrix"));
-  pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
-  pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
-  pNeoMatrixCtrl1->setup("gif");
-  pNeoMatrixCtrl2->setup("off");
+  LOG(F_CHAR("setup 0: LED"));
+  setupLed();
 
   setupStartsecondCore = true;
   while(waitForsecondCore == true){
@@ -178,6 +186,9 @@ void setup1() {
 
   #ifdef WITH_DISPLAY
     LOG(F_CHAR("setup 1: TFT"));
+    // ToDo: aufräumne test auslagern .....  sub Function irgendwo anders (DisplayObjects??)  in einem anderen File das muss kürzer werden
+    // toDo change this to DisplayObjects (contains TFT )  and TFT_begin   to rotate,test , logo  display etc 
+
     globalSPI0_mutex.lock();   
       pTFT = new TFT_eSPI();
       pTFT->init();
@@ -216,7 +227,7 @@ void setup1() {
     globalSPI0_mutex.free();
 
     LOG(F_CHAR("setup 1: menu"));
-    menuHandler.begin(&menuHeader,menu,sizeof(menu)/sizeof(MenuEntry*),pTFT,&globalSPI0_mutex);
+    menuHandler.begin(&menuTestHeader,menuTest,sizeof(menuTest)/sizeof(MenuEntry*),pTFT,&globalSPI0_mutex);
     menuHandler.loop(0);
     //LOG(F_CHAR("setup 1: cube"));
     //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself

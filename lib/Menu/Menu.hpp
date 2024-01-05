@@ -313,6 +313,5 @@ class MenuHandler{
         u16_t       _backgroundColor;
 };
 
-extern MenuHandler menuHandler;
 
 

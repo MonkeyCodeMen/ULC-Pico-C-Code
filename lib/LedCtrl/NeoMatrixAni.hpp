@@ -4,10 +4,10 @@
 #include "helper.hpp"
 #include "Debug.hpp"
 #include <ColorSelector.hpp>
-
 #include <AnimatedGIF.h>
 #include <SD.h>
-#include "globalObjects.hpp"
+#include "PinMapping.h"
+
 
 #define matrix_default_brightness   0xA0
 
