@@ -19,6 +19,10 @@
  ******************************************************************
   + implement startup test mode
   + implement boot screen
+  + split bool class in two differnt class
+  + add new second class functionaliyt with reset or not
+  + add menuEntryInt
+  + add menuEntryList
  */
 
 
@@ -40,10 +44,6 @@ Com * pCom;   // ToDo: class auf begin method umbauen und dann nach ComObjects a
   //#include <cube.hpp>
   //Cube * pCube;
 #endif
-
-
-
-
 
 #ifdef WITH_SD_CARD
     #include <SPI.h>
@@ -227,7 +227,7 @@ void setup1() {
     globalSPI0_mutex.free();
 
     LOG(F_CHAR("setup 1: menu"));
-    menuHandler.begin(&menuTestHeader,menuTest,sizeof(menuTest)/sizeof(MenuEntry*),pTFT,&globalSPI0_mutex);
+    menuHandler.begin(&menuTestHeader,(MenuEntry **)&menuTest,12,pTFT,&globalSPI0_mutex);
     menuHandler.loop(0);
     //LOG(F_CHAR("setup 1: cube"));
     //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself

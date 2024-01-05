@@ -21,6 +21,8 @@ extern LedCtrl *    pLedCtrl2;
 extern LedCtrl *    pLedCtrl3;
 extern LedCtrl *    pLedCtrl4;
 
+/* ToDo .. instead of pointer and new .. change to LedObjects class with begin functonality */
+
 // RGB LED
 extern RgbLed       rgbLedStrip1;
 extern RgbLed       rgbLedStrip2;

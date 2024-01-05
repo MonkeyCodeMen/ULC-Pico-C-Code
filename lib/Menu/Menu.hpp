@@ -44,6 +44,7 @@ class MenuHandler{
             if ((res = _checkHeaderSize())                  != 0)   { LOG_INT(F_CHAR("invalid header dimension line:"),res);    return false;   }
             if ((res = _checkEntriesSize())                 != 0)   { LOG_INT(F_CHAR("invalid entry dimension line:"),res);     return false;   }
             if ((_hasHeader == false) && (_entryCountMax == 0))     { LOG(F_CHAR("WARNING empty menu"));                                        }
+            setActiveEntry(0);
             _setViewportFromTop(0);
             _valid = true;
             return true;
@@ -63,9 +64,7 @@ class MenuHandler{
             switch (event)   {
                 case EVENT_DOWN:
                     if (_activeEntry < _entryCountMax-1){
-                        _pEntryList[_activeEntry]->clearFocus();
-                        _activeEntry++;
-                        _pEntryList[_activeEntry]->setFocus();
+                        setActiveEntry(_activeEntry+1);
                         if(_activeEntry > _lastVisibleEntry){
                             _setViewportFromBottom(_activeEntry);
                         }
@@ -74,9 +73,7 @@ class MenuHandler{
                     break;
                 case EVENT_UP:
                     if (_activeEntry > 0){
-                        _pEntryList[_activeEntry]->clearFocus();
-                        _activeEntry--;
-                        _pEntryList[_activeEntry]->setFocus();
+                        setActiveEntry(_activeEntry-1);
                         if(_activeEntry < _firstVisibleEntry){
                             _setViewportFromTop(_activeEntry);
                         }
@@ -95,43 +92,67 @@ class MenuHandler{
             _updateEntrySection();
             return true;
         }
+        
+        bool setActiveEntry(u8_t activeEntry){
+            if (_entryCountMax == 0)            return false; // no menu entries 
+            if (activeEntry == _activeEntry)    return true;  // nothing to do
+            if (activeEntry >= _entryCountMax)  return false; // invalid entry selected
+
+            if ((_activeEntry >= 0) && (_activeEntry < _entryCountMax)) _pEntryList[_activeEntry]->clearFocus();
+            _activeEntry = activeEntry;
+            _pEntryList[_activeEntry]->setFocus();
+            return true;
+        }
 
     private:
-        bool _setViewportFromTop(u8_t startIndex){
+        bool _setViewportFromTop(u8_t firstVisibleEntry){
             if (_entryCountMax > 0){
             // calc visible entries
-                _firstVisibleEntry = startIndex;
-                _lastVisibleEntry = _calcLastVisibleEntry(_firstVisibleEntry);
-                _entryViewportChanged = true;
+                if (firstVisibleEntry >= _entryCountMax)   return false;
+                _valid = false;
 
-                _activeEntry = 0;
-                _pEntryList[_activeEntry]->setFocus();
+                _firstVisibleEntry = _lastVisibleEntry = firstVisibleEntry;
+
+                u16_t dy = _pEntryList[_firstVisibleEntry]->getHeight();
+                u16_t nextHeight;
+                while (_lastVisibleEntry+1 < _entryCountMax){
+                    nextHeight = _pEntryList[_lastVisibleEntry+1]->getHeight();
+                    if (dy +  nextHeight < _entryAreaHeight){
+                        _lastVisibleEntry++;
+                        dy+=nextHeight;
+                    } else {
+                        break; // no more space for next entry
+                    }
+                }
+                _entryViewportChanged = true;
+                _valid = true;
             }
             return true;
         }
 
-        bool _setViewportFromBottom(u8_t startIndex){
+        bool _setViewportFromBottom(u8_t lastVisibleEntry){
+            if (_entryCountMax > 0){
+            // calc visible entries
+                if (lastVisibleEntry >= _entryCountMax)   return false;
+                _valid = false;
 
-            return false;
-        }
+                _firstVisibleEntry = _lastVisibleEntry = lastVisibleEntry;
 
-
-        u8_t _calcLastVisibleEntry(u8_t startEntry){
-            if (startEntry >= _entryCountMax)   STOP(F_CHAR("invaid start index"));
-            u8_t endEntry = startEntry;
-            u16_t dy = _pEntryList[startEntry]->getHeight();
-            u16_t nextHeight;
-            while (endEntry+1 < _entryCountMax){
-                nextHeight = _pEntryList[endEntry+1]->getHeight();
-                if (dy +  nextHeight < _entryAreaHeight){
-                    endEntry++;
-                    dy+=nextHeight;
-                } else {
-                    // no more space for next entry
-                    return endEntry;
+                u16_t dy = _pEntryList[_lastVisibleEntry]->getHeight();
+                u16_t nextHeight;
+                while (_firstVisibleEntry > 1){
+                    nextHeight = _pEntryList[_firstVisibleEntry-1]->getHeight();
+                    if (dy +  nextHeight < _entryAreaHeight){
+                        _firstVisibleEntry--;
+                        dy+=nextHeight;
+                    } else {
+                        break; // no more space for next entry
+                    }
                 }
+                _entryViewportChanged = true;
+                _valid = true;
             }
-            return endEntry;
+            return true;
         }
 
         int _initMenuArea(){
@@ -292,7 +313,7 @@ class MenuHandler{
 
         // Menu objects
         MenuHeader* _pHeader;
-        MenuEntry** _pEntryList;
+        MenuEntry ** _pEntryList;
         int         _entryCountMax;
 
         // base control flags
