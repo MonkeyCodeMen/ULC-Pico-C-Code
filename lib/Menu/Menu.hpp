@@ -275,7 +275,6 @@ class MenuHandler{
                 if (_entryViewportChanged == true){
                     // rebuild viewport
                     _pTFTmutex->lock();
-                        _pTFT->fillRect(_entryAreaX,_entryAreaY,_entryAreaWidth,_entryAreaHeight,_backgroundColor);
                         u16_t y = _entryAreaY;
                         for (u8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
                             _pTFT->setViewport(_entryAreaX,y,_pEntryList[line]->getWidth(),_pEntryList[line]->getHeight()); // until now we trust the the object for height and width
@@ -283,6 +282,7 @@ class MenuHandler{
                             _pTFT->resetViewport();
                             y+=_pEntryList[line]->getHeight();
                         }
+                        // ToDo clear remaining rest of ENtry Area
                     _pTFTmutex->free();
                     _entryViewportChanged = false;
                 } else {
