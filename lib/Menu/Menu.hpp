@@ -277,12 +277,24 @@ class MenuHandler{
                     _pTFTmutex->lock();
                         u16_t y = _entryAreaY;
                         for (u8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
-                            _pTFT->setViewport(_entryAreaX,y,_pEntryList[line]->getWidth(),_pEntryList[line]->getHeight()); // until now we trust the the object for height and width
+                            _pTFT->setViewport(_entryAreaX,y,_entryAreaWidth,_pEntryList[line]->getHeight()); // until now we trust the the object for height and width
                             _pEntryList[line]->draw(_pTFT,0,0);
                             _pTFT->resetViewport();
                             y+=_pEntryList[line]->getHeight();
                         }
-                        // ToDo clear remaining rest of ENtry Area
+                        // check for half visible entries
+                        if (y < _entryAreaY+_entryAreaHeight-1) {
+                            u16_t restHeight =  _entryAreaY+_entryAreaHeight - y;
+                            if (_lastVisibleEntry+1 < _entryCountMax){
+                                // draw a part of the next entry_
+                                _pTFT->setViewport(_entryAreaX,y,_entryAreaWidth,restHeight);
+                                _pEntryList[_lastVisibleEntry+1]->draw(_pTFT,0,0);
+                                _pTFT->resetViewport();
+                            } else {
+                                // just erase the area, ther is no more entry
+                                _pTFT->fillRect(_entryAreaX,y,_entryAreaWidth,restHeight,_backgroundColor);
+                            }
+                        }
                     _pTFTmutex->free();
                     _entryViewportChanged = false;
                 } else {
@@ -291,12 +303,23 @@ class MenuHandler{
                     for (u8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
                         if (_pEntryList[line]->needsUpdate() == true){
                             _pTFTmutex->lock();
-                                _pTFT->setViewport(_entryAreaX,y,_pEntryList[line]->getWidth(),_pEntryList[line]->getHeight()); // until now we trust the the object for height and width
+                                _pTFT->setViewport(_entryAreaX,y,_entryAreaWidth,_pEntryList[line]->getHeight()); // until now we trust the the object for height and width
                                 _pEntryList[line]->draw(_pTFT,0,0);
                                 _pTFT->resetViewport();
                             _pTFTmutex->free();
                         }
                         y+=_pEntryList[line]->getHeight();
+                    }
+                    // check update for half visible entries
+                    if ((y < _entryAreaY+_entryAreaHeight-1) && (_lastVisibleEntry+1 < _entryCountMax)){
+                        if (_pEntryList[_lastVisibleEntry+1]->needsUpdate() == true){
+                            u16_t restHeight =  _entryAreaY+_entryAreaHeight - y;
+                            _pTFTmutex->lock();
+                                _pTFT->setViewport(_entryAreaX,y,_entryAreaWidth,restHeight);
+                                _pEntryList[_lastVisibleEntry+1]->draw(_pTFT,0,0);
+                                _pTFT->resetViewport();
+                            _pTFTmutex->free();
+                        }
                     }
                 }
             }
