@@ -4,7 +4,7 @@
 // implementation for text lines
 
 #define MENU_STD_FONT           2
-#define MENU_STD_FONT_SCALE     2
+#define MENU_STD_FONT_SCALE     1
 #define WITH_VIEWPORT           1
 
 class MenuHeaderText: public MenuHeader{

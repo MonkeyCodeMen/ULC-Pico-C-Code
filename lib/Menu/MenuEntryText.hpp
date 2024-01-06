@@ -4,7 +4,7 @@
 // implementation for text lines
 
 #define MENU_STD_FONT           2
-#define MENU_STD_FONT_SIZE      2
+#define MENU_STD_FONT_SIZE      1
 #define MENU_STD_CURSOR         "<*>"
 #define MENU_STD_EMPTY_CURSOR   "   "
 
