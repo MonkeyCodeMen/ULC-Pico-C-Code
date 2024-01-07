@@ -4,11 +4,10 @@
 // implementation for text lines
 
 #define MENU_STD_FONT           2
-#define MENU_STD_FONT_SIZE      1
+#define MENU_STD_FONT_SIZE      2
 #define MENU_STD_CURSOR         "<*>"
 #define MENU_STD_EMPTY_CURSOR   "   "
 
-#define WITH_VIEWPORT           1
 
 /*
     a class to process and render simple text menu on small display
@@ -35,7 +34,7 @@ class MenuEntryText: public MenuEntry{
                         u16_t foregndcol = TFT_WHITE, 
                         u16_t backgndCol=TFT_BLACK,
                         u16_t offsetX = 5,
-                        u16_t offsetY = 0)
+                        u16_t offsetY = 1)
             :MenuEntry(),
             _cursor(MENU_STD_CURSOR),_emptyCursor(MENU_STD_EMPTY_CURSOR),
             _baseText(text),_valuePre(valuePre),_valueText(value),_valuePost(valuePost),
