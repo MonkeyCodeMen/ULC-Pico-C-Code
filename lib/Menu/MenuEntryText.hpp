@@ -195,7 +195,7 @@ class MenuEntryBool : public MenuEntryText{
 
     protected:
         bool    _value,_resetValue,_withReset;
-        String  _onText,_offText,_endText;
+        String  _onText,_offText;
 };
 
 class MenuEntryBoolToggle : public MenuEntryText{
@@ -248,5 +248,71 @@ class MenuEntryBoolToggle : public MenuEntryText{
 
     protected:
         bool    _value;
-        String  _onText,_offText,_endText;
+        String  _onText,_offText;
+};
+
+class MenuEntryInt : public MenuEntryText{
+    public:
+        MenuEntryInt(  const char * text,
+                        int initValue = 0,
+                        int upperLimit = 10,
+                        int lowerLimit = -10,
+                        int step = 1,
+                        bool withReset = true,
+                        const char * valuePre = F_CHAR("["),
+                        const char * valuePost = F_CHAR("]"),
+                        u8_t font=MENU_STD_FONT, 
+                        u8_t fontSize = MENU_STD_FONT_SCALE,
+                        u16_t foregndcol = TFT_WHITE, 
+                        u16_t backgndCol=TFT_BLACK,
+                        u16_t offsetX = 5,
+                        u16_t offsetY = 0)
+            :MenuEntryText(text,String(initValue).c_str(),valuePre,valuePost,font,fontSize,foregndcol,backgndCol,offsetX,offsetY),
+            _value(initValue),_resetValue(initValue),
+            _upperLimit(upperLimit),_lowerLimit(lowerLimit),_step(step),
+            _withReset(withReset)
+            {   }
+        
+        ~MenuEntryInt() = default;
+
+        virtual int getValue(){ 
+            return _value;
+        }
+
+        virtual void setValue(int newValue){
+            if (newValue != _value){
+                _value = newValue;
+                setNewValueText(String(_value).c_str());
+                _dirty = true;
+            }            
+        }
+
+        virtual bool onEvent(MENU_Event_Type event) {
+            // handle Event based on selected logic
+            switch(event){
+                case EVENT_RIGHT: 
+                    if (_value + _step <= _upperLimit){
+                        setValue(_value+_step);
+                    }
+                    return true;
+                    break;
+                case EVENT_LEFT:
+                    if (_value - _step >= _lowerLimit){
+                        setValue(_value-_step);
+                    }
+                    return true;
+                    break;
+                case EVENT_ENTER: 
+                    if (_withReset == true){
+                        setValue(_resetValue);
+                        return true;    
+                    }
+                    break;
+            }
+            return false;
+        }
+
+    protected:
+        int    _value,_resetValue,_upperLimit,_lowerLimit,_step;
+        bool   _withReset;
 };

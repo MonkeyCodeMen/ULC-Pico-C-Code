@@ -9,7 +9,7 @@ extern MenuEntryBoolToggle  menuTestEntryBool1;
 extern MenuEntryBool        menuTestEntryBool2;
 extern MenuEntryText        menuTestTime;
 
-#define MENU_TEST_COUNT 13
+#define MENU_TEST_COUNT 14
 extern MenuEntry *      menuTest[MENU_TEST_COUNT];
 
 
