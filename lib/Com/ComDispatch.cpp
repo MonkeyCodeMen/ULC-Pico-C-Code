@@ -3,7 +3,7 @@
 #include "helper.hpp"
 
 #include <LedObjects.hpp>
-#include <MenuObjects.hpp>
+#include <Menu.hpp>
 
 
 ComDispatch::ComDispatch()

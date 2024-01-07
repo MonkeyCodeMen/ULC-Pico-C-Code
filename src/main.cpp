@@ -7,7 +7,7 @@
 #include <helper.hpp>
 
 #include <LedObjects.hpp>
-#include <MenuObjects.hpp>
+#include <Menu.hpp>
 
 #include <LoopStats.hpp>
 #include <Com.hpp>
@@ -227,7 +227,7 @@ void setup1() {
     globalSPI0_mutex.free();
 
     LOG(F_CHAR("setup 1: menu"));
-    menuHandler.begin(&menuTestHeader,(MenuEntry **)&menuTest,12,pTFT,&globalSPI0_mutex);
+    menuHandler.begin(&menuTestHeader,(MenuEntry **)&menuTest,MENU_TEST_COUNT,pTFT,&globalSPI0_mutex);
     menuHandler.loop(0);
     //LOG(F_CHAR("setup 1: cube"));
     //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
@@ -270,6 +270,7 @@ void loop() {
 void loop1(){
   static u8_t prgState=1;
   u32_t now = millis();
+  String time(now/1000);
 
   #ifdef PRINT_LOOP_STATS
     static LoopStats stats(20,5);
@@ -282,7 +283,10 @@ void loop1(){
       case 3:   pNeoStripeCtrl1->loop(now);       break;
       case 4:   pNeoStripeCtrl1->loop(now);       break;
       #ifdef WITH_DISPLAY
-        case 5:   menuHandler.loop(now);          break;
+        case 5:  
+            menuTestTime.setNewValueText(time.c_str());
+            menuHandler.loop(now);          
+            break;
       #endif
       default:  prgState = 0;                     break;
   }
