@@ -5,7 +5,7 @@ MenuHandler menuHandler;
 MenuHeaderText menuTestHeader(F_CHAR("test menu: (c) MonkeyCodeMen"));
 
 MenuEntryBoolToggle menuTestEntryBool1("switch : ");
-MenuEntryBool menuTestEntryBool2("==Flag==:",false,true,"TRUE","FALSE","[ "," ]");
+MenuEntryBool menuTestEntryBool2("==Flag==:",false,false,"TRUE","FALSE","[ "," ]");
 MenuEntryText menuTestLine0("== Line 0 ==","","","",1,1,TFT_WHITE,TFT_BLACK,0,0);
 MenuEntryText menuTestLine1("== Line 1 ==","","","",2,1,TFT_WHITE,TFT_BLACK,0,0);
 MenuEntryText menuTestLine2("== Line 2 ==","","","",4,1,TFT_WHITE,TFT_BLACK,0,0);
