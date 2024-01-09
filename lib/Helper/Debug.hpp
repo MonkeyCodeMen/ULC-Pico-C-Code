@@ -11,7 +11,7 @@
 // USB serial port
 //#define DEBUG_PORT  Serial  
 // same like debugger
-#define DEBUG_PORT  Serial1
+#define DEBUG_PORT  Serial
 
 class Debug
 {
@@ -30,13 +30,13 @@ public:
 
     static void stop(const char * file,int line,char * message);
 
-    static void dump(const char * pName,void *p, u8_t length);
-    static void dump(const char * pName,u32_t value);
-    static void dump(const char * pName,u32_t value, int base);
+    static void dump(const char * pName,void *p, uint8_t length);
+    static void dump(const char * pName,uint32_t value);
+    static void dump(const char * pName,uint32_t value, int base);
     static void dump(const char * pName,String value);
 
 
-    String hexDump(u8_t  * p,u8_t length,const char * sep=" ", const char * prefix="");
+    String hexDump(uint8_t  * p,uint8_t length,const char * sep=" ", const char * prefix="");
 
 
 private:

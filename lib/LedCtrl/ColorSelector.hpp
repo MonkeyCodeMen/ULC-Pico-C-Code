@@ -1,7 +1,7 @@
 #pragma once
 #include <Arduino.h>
 #include <Debug.hpp>
-#include "helper.hpp"
+#include "helper.h"
 
 
 class ColorSelector{
@@ -10,7 +10,7 @@ class ColorSelector{
         ColorSelector() {  setup();    };       // setup with default values 
         ~ColorSelector() = default;
 
-        void setup(u8_t dimValue=255,u8_t startValue=0,u8_t incStep=1,String str="",u32_t length=0,u8_t * pData=NULL){
+        void setup(uint8_t dimValue=255,uint8_t startValue=0,uint8_t incStep=1,String str="",uint32_t length=0,uint8_t * pData=NULL){
             _clearList();
             _dimValue = dimValue;
             _incStep = incStep;
@@ -30,8 +30,8 @@ class ColorSelector{
             backup();
         }
 
-        u32_t getNextColor(){
-            u32_t color24;
+        uint32_t getNextColor(){
+            uint32_t color24;
             if (_useColorList){
                 color24 = _colorList[_index];
                 _index += _incStep;
@@ -44,9 +44,9 @@ class ColorSelector{
             return dimColor255(color24,_dimValue);            
         }
 
-        void setDim(u8_t dim)           {_dimValue = dim;};
-        void setStep(u8_t step)         {_incStep = step;};
-        u32_t getNextColor(u8_t dim)    { setDim(dim); return getNextColor();};
+        void setDim(uint8_t dim)           {_dimValue = dim;};
+        void setStep(uint8_t step)         {_incStep = step;};
+        uint32_t getNextColor(uint8_t dim)    { setDim(dim); return getNextColor();};
 
         void backup(){
             _backupDim  = _dimValue;
@@ -62,10 +62,10 @@ class ColorSelector{
 
 
     private:
-        u8_t  _dimValue,_incStep,_index,_colorCount;
-        u8_t  _backupDim,_backupInc,_backupIndex;
+        uint8_t  _dimValue,_incStep,_index,_colorCount;
+        uint8_t  _backupDim,_backupInc,_backupIndex;
         bool _useColorList;
-        u32_t _colorList[COLOR_LIST_LENGTH];
+        uint32_t _colorList[COLOR_LIST_LENGTH];
 
         void _clearList(){
             _colorCount = 0;
@@ -80,7 +80,7 @@ class ColorSelector{
             }
         }
 
-        void _decodeBinColorList(u8_t * pData,u32_t length){
+        void _decodeBinColorList(uint8_t * pData,uint32_t length){
             if (length % 4 != 0){
                 LOG(F_CHAR("_decodeBinColorList  invalid length (%4 = 0!!) list skipped"));
                 return;
@@ -92,7 +92,7 @@ class ColorSelector{
                 LOG(F_CHAR("_decodeBinColorList  list to long, list truncated"));
             }
 
-            u32_t * p=(u32_t*)pData;
+            uint32_t * p=(uint32_t*)pData;
             for(int i=0;i < _colorCount;i++){
                 _colorList[i] = *p;
                 p++;

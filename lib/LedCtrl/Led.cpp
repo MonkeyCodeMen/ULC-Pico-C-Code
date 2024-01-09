@@ -8,7 +8,7 @@ Led::Led(int pin,bool invers)
     set(LED_OFF);
 }
 
-void Led::set(u8_t value){
+void Led::set(uint8_t value){
     if(_invers == true){
         analogWrite(_pin, 255-value);
     } else {

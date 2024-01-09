@@ -1,7 +1,7 @@
 #include <Arduino.h>
 
 #include <Debug.hpp>
-#include <helper.hpp>
+#include <helper.h>
 #include <SPI.h>
 #include <Adafruit_NeoMatrix.h>
 #include <TFT_eSPI.h> // Hardware-specific library

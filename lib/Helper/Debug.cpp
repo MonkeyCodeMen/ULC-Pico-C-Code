@@ -1,6 +1,6 @@
 #include "Debug.hpp"
-#include "helper.hpp"
-#include <malloc.h>
+#include "helper.h"
+#include "malloc.h"
 
 
 volatile bool   Debug::_initDone = false;
@@ -14,13 +14,16 @@ Debug::Debug()
 {
 }
 
-extern bool setupStarted;
 bool Debug::_check(){
     if (_initDone == false){
             _mutex.lock();
-            _pOut=&DEBUG_PORT;   
-            if (_pOut == &Serial1)        Serial1.begin(115200);
-            else if (_pOut == &Serial2)   Serial2.begin(115200);
+            _pOut=&DEBUG_PORT;
+            #ifdef Serial1
+              if (_pOut == &Serial)         Serial.begin(115200);
+            #endif
+
+            if (_pOut == &Serial)         Serial.begin(115200);
+            //else if (_pOut == &Serial2)   Serial2.begin(115200);
             //else if (_pOut == &Serial3)        Serial3.begin(115200);
             _initDone = true;
             _mutex.free();
@@ -120,8 +123,17 @@ void Debug::_outEnd(){
 
 void Debug::logMem(char * file,int line,char * text){
     if (_check() == false) return;
-    int usedHeap = rp2040.getUsedHeap();
-    int freeHeap = rp2040.getFreeHeap();
+    int usedHeap = 0; 
+    int freeHeap = 0; 
+     #if defined(ESP_PLATFORM) || defined(ARDUINO_ARCH_ESP8266)
+
+    #elif defined(ARDUINO_ARDUINO_NANO33BLE) || defined(ARDUINO_ARCH_MBED_RP2040)|| defined(ARDUINO_ARCH_RP2040)
+      usedHeap = rp2040.getUsedHeap();
+      freeHeap = rp2040.getFreeHeap();
+    
+    #else
+    
+    #endif
     String temp(millis());
 
     _mutex.lock();
@@ -146,18 +158,18 @@ void Debug::logMem(char * file,int line,char * text){
 
 
 
-void Debug::dump(const char * pName,void *pIn, u8_t length){
-  u8_t * p=(u8_t*)pIn;
+void Debug::dump(const char * pName,void *pIn, uint8_t length){
+  uint8_t * p=(uint8_t*)pIn;
   _pOut->print(pName);
   _pOut->print(" : ");
-  for(u8_t i=0;i < length;i++) {
+  for(uint8_t i=0;i < length;i++) {
     _pOut->print(p[i],HEX);  
     _pOut->print('.');
   }
   _pOut->println();
 }
 
-void Debug::dump(const char * pName,u32_t value){
+void Debug::dump(const char * pName,uint32_t value){
   _pOut->print(pName);
   _pOut->print(" : ");
   _pOut->print(value);  
@@ -165,7 +177,7 @@ void Debug::dump(const char * pName,u32_t value){
 }
 
 
-void Debug::dump(const char * pName,u32_t value, int base){
+void Debug::dump(const char * pName,uint32_t value, int base){
   _pOut->print(pName);
   _pOut->print(" : ");
   _pOut->print(value,base);  
@@ -180,14 +192,14 @@ void Debug::dump(const char * pName,String value){
 }
 
 
-String Debug::hexDump(u8_t  * p,u8_t length,const char * sep,const char * prefix){
+String Debug::hexDump(uint8_t  * p,uint8_t length,const char * sep,const char * prefix){
   const char * transTable = "0123456789ABCDEF";
   bool first = true;
-  u8_t value,index;
+  uint8_t value,index;
 
   String out = "";
   
-  for(u8_t i=0;i < length;i++){
+  for(uint8_t i=0;i < length;i++){
     // interspace (not at first byte)
     if (first == true){
       first = false;

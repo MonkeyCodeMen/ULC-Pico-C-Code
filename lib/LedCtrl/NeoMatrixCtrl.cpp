@@ -37,7 +37,7 @@ NeoMatrixCtrl::~NeoMatrixCtrl()
 }
 
 
-void NeoMatrixCtrl::loop(u32_t time){
+void NeoMatrixCtrl::loop(uint32_t time){
     if (_pCurrentAni == NULL)           return;
     if (_pMatrix == NULL)               return;
     if (_mutexSetup.isLocked()==true)   return;  // do not wait 

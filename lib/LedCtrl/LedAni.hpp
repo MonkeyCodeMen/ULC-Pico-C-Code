@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include "Led.hpp"
 #include "Ani.hpp"
-#include "helper.hpp"
+#include "helper.h"
 
 class LedAni : public Ani
 {
@@ -11,12 +11,12 @@ class LedAni : public Ani
         LedAni(const char * pName) : Ani(pName) {}
         ~LedAni() = default;
 
-        virtual void loop(u32_t time,Led * pLed) {}
+        virtual void loop(uint32_t time,Led * pLed) {}
 
     // base class
         //String getName()		{return _name;};
 		//virtual void reset()  {};
-        //virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) {};
+        //virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {};
         // if nothing to do for this member functions you can stay with the default implentation from base class
 
 };
@@ -40,7 +40,7 @@ class LedOffAni : public LedAni{
     */
     public:
         LedOffAni()  : LedAni((const char *) F("off"))          {                       }
-        void loop(u32_t time,Led * pLed)                        {pLed->set(LED_OFF);    }
+        void loop(uint32_t time,Led * pLed)                        {pLed->set(LED_OFF);    }
 };
 
 class LedOnAni : public LedAni{
@@ -62,7 +62,7 @@ class LedOnAni : public LedAni{
     */
     public:
         LedOnAni()  : LedAni((const char *) F("on"))            {                       }
-        void loop(u32_t time,Led * pLed)                        {pLed->set(LED_MAX);    }
+        void loop(uint32_t time,Led * pLed)                        {pLed->set(LED_MAX);    }
 };
 
 class LedDimAni : public LedAni{
@@ -87,11 +87,11 @@ class LedDimAni : public LedAni{
     public:
         LedDimAni()  : LedAni((const char *) F("dim"))          {                                               }
         void reset()                                            { setup(0x80,0,0,0,"",0,NULL);                  }
-        void loop(u32_t time,Led * pLed)                        { pLed->set(_dimValue);                         }
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  
+        void loop(uint32_t time,Led * pLed)                        { pLed->set(_dimValue);                         }
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  
                                                                 { _dimValue = L_BYTE(p1); return ANI_OK;        } 
     private:
-        u8_t _dimValue;
+        uint8_t _dimValue;
 };
 
 class LedBlinkAni : public LedAni{
@@ -115,7 +115,7 @@ class LedBlinkAni : public LedAni{
     public:
         LedBlinkAni() :LedAni((const char *) F("blink"))        {                                           }
         void reset()                                            {  setup(0x80,250,250,0,"",0,NULL);         }
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  { 
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  { 
             _state = stop;
             _dimValue = L_BYTE(p1);
             _onTime_ms = p2;
@@ -125,8 +125,8 @@ class LedBlinkAni : public LedAni{
         }
 
 
-        void loop(u32_t time,Led * pLed){
-            u32_t diff;
+        void loop(uint32_t time,Led * pLed){
+            uint32_t diff;
             switch (_state){
                 case stop: break;       // do nothing parameters are content of change
                 case init:
@@ -158,9 +158,9 @@ class LedBlinkAni : public LedAni{
     private:
         enum BlinkState {stop,init,on,off};
         BlinkState _state;
-        u8_t _dimValue;
-        u32_t _onTime_ms,_offTime_ms;
-        u32_t _lastSwitchTime;
+        uint8_t _dimValue;
+        uint32_t _onTime_ms,_offTime_ms;
+        uint32_t _lastSwitchTime;
 };
 
 class LedMultiFlashAni : public LedAni{
@@ -188,7 +188,7 @@ class LedMultiFlashAni : public LedAni{
     public:
         LedMultiFlashAni():LedAni((const char *) F("multi flash"))                          {                                                   }
         void reset()                                                                        { setup(0xFF,0,0x00200060,0x000201F4,"",0,NULL);    }
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData){
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData){
             _state      = stop;
             _dim        = L_BYTE(p1);
             _onTime     = H_WORD(p3);
@@ -199,8 +199,8 @@ class LedMultiFlashAni : public LedAni{
             return ANI_OK;
         }
  
-        void loop(u32_t time,Led * pLed){
-            u32_t diff,color;
+        void loop(uint32_t time,Led * pLed){
+            uint32_t diff,color;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -252,11 +252,11 @@ class LedMultiFlashAni : public LedAni{
     private:
         enum MultiFlashState {stop,init,flashOn,flashOff,pause};
         volatile MultiFlashState _state;
-        u32_t _lastCallTime;
-        u8_t _dim;
-        u16_t _onTime,_offTime;
-        u16_t _pauseTime;
-        u16_t _flashCount,_count;
+        uint32_t _lastCallTime;
+        uint8_t _dim;
+        uint16_t  _onTime,_offTime;
+        uint16_t  _pauseTime;
+        uint16_t  _flashCount,_count;
 };
 
 class LedBreathAni : public LedAni{
@@ -288,7 +288,7 @@ class LedBreathAni : public LedAni{
     public:
         LedBreathAni():LedAni(F_CHAR("breath"))                                             {                                               }
         void reset()                                                                        { setup(0x00204040,0x0000FF10,0,0,"",0,NULL);   }
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData){
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData){
             _state = stop; 
             _stepTime  = H_WORD(p1);
             _upSteps   = H_BYTE(p1);
@@ -298,7 +298,7 @@ class LedBreathAni : public LedAni{
 
             // do some basic checks/correction of parameter set
             if (_lowerLimit > _upperLimit){
-                u8_t temp = _upperLimit;
+                uint8_t temp = _upperLimit;
                 _upperLimit = _lowerLimit;
                 _lowerLimit = temp;
             }
@@ -310,9 +310,9 @@ class LedBreathAni : public LedAni{
             return ANI_OK;
         }
  
-        void loop(u32_t time,Led * pLed){
-            u32_t diff;
-            u8_t dim;
+        void loop(uint32_t time,Led * pLed){
+            uint32_t diff;
+            uint8_t dim;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -364,8 +364,8 @@ class LedBreathAni : public LedAni{
     private:
         enum BreathState {stop,init,up,down};
         volatile BreathState _state;
-        u32_t   _stepTime,_upSteps,_downSteps;
-        u32_t   _stepCounter,_lastUpdate;
-        u8_t    _upperLimit,_lowerLimit;
-        u8_t    _dimDiff;
+        uint32_t   _stepTime,_upSteps,_downSteps;
+        uint32_t   _stepCounter,_lastUpdate;
+        uint8_t    _upperLimit,_lowerLimit;
+        uint8_t    _dimDiff;
 };

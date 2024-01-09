@@ -8,7 +8,7 @@ class NeoMatrixCtrl : public Ctrl
         NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix);
         ~NeoMatrixCtrl();
 
-        void loop(u32_t time);
+        void loop(uint32_t time);
     
     private:
         Adafruit_NeoMatrix * _pMatrix;

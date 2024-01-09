@@ -14,14 +14,14 @@ class NeoStripeCtrl : public Ctrl
         // overwrite virtuals    
         int setup(int nr);         // change programm
         int setup(const char *pName);   // change programm
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData); // config program
-        void loop(u32_t time);
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData); // config program
+        void loop(uint32_t time);
 
         const char * getName();
     
     private:
         WS2812FX *  _pNeoStripe;
-        u8_t        _current;
+        uint8_t        _current;
 
         void setStdParameter();
         void setOff();

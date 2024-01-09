@@ -1,7 +1,7 @@
 #include "StringList.hpp"
-#include "Debug.hpp"
 
-StringList::StringList(const char * pList, char sep):_text(pList),_sep(sep),_len(0),_nextStart(0),_endReached(false)
+StringList::StringList(const char * pList, char sep):
+_text(pList),_sep(sep),_len(0),_nextStart(0),_endReached(false)
 {
     _len = strlen(_text);
     if (_len==0){
@@ -19,15 +19,15 @@ void StringList::rewind(){
     _nextStart = 0;
 }
 
-int StringList::_findNextSep(u32_t startPos){
-    u32_t pos = startPos;
+int StringList::_findNextSep(uint32_t startPos){
+    int pos = startPos;
     while(pos < _len){
         if (_text[pos] == _sep){
             return pos;
         }
         pos++;
     }
-    return -1; // no more spe found
+    return -1; // no more sep found
 }
     
 

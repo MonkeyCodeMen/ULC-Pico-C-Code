@@ -1,7 +1,7 @@
 #pragma once
 #include "Ani.hpp"
 #include "RgbLed.hpp"
-#include "helper.hpp"
+#include "helper.h"
 
 #include "ColorSelector.hpp"
 
@@ -11,12 +11,12 @@ class RgbLedAni:public Ani
 		RgbLedAni(const char * pName) : Ani(pName) {}
 		~RgbLedAni() = default;
 		
-		virtual void loop(u32_t time,RgbLed * pLed) {}
+		virtual void loop(uint32_t time,RgbLed * pLed) {}
 
     // base class
         //String getName()		{return _name;};
 		//virtual void reset()  {};
-        //virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) {};
+        //virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {};
         // if nothing to do for this member functions you can stay with the default implentation from base class
 
 };
@@ -24,7 +24,7 @@ class RgbLedAni:public Ani
 class RgbLedOffAni : public RgbLedAni{
     public:
         RgbLedOffAni():RgbLedAni(F_CHAR("off"))     {}
-        void loop(u32_t time,RgbLed * pLed)         {pLed->set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);}
+        void loop(uint32_t time,RgbLed * pLed)         {pLed->set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);}
 };
 
 class RgbLedOnAni : public RgbLedAni{
@@ -50,11 +50,11 @@ class RgbLedOnAni : public RgbLedAni{
     public:
         RgbLedOnAni()  : RgbLedAni(F_CHAR("on"))   {};
         void reset()                                        {setup(0x00FFFFFF,0,0,0,"",0,NULL);}
-        void loop(u32_t time,RgbLed * pLed)                 {pLed->set(_r,_g,_b);}
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) 
+        void loop(uint32_t time,RgbLed * pLed)                 {pLed->set(_r,_g,_b);}
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) 
                                                             {_r=HH_BYTE(p1);_g=H_BYTE(p1);_b=L_BYTE(p1);return ANI_OK;}
 	private:
-		u8_t _r,_g,_b;
+		uint8_t _r,_g,_b;
 };
 
 class RgbLedBlinkAni : public RgbLedAni{
@@ -84,7 +84,7 @@ class RgbLedBlinkAni : public RgbLedAni{
         RgbLedBlinkAni()  : RgbLedAni(F_CHAR("blink")) {}
         
         void reset()    { setup(0x0,0x00FFFFFF,250,250,"",0,NULL);  }
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state = stop; 
 			_r1 = HH_BYTE(p1);
 			_g1 = H_BYTE(p1);
@@ -99,8 +99,8 @@ class RgbLedBlinkAni : public RgbLedAni{
             return ANI_OK;
         }
  
-        void loop(u32_t time,RgbLed * pLed){
-            u32_t diff;
+        void loop(uint32_t time,RgbLed * pLed){
+            uint32_t diff;
             switch (_state){
                 case stop:
                     // do nothing parameters are loopd by other thread
@@ -136,9 +136,9 @@ class RgbLedBlinkAni : public RgbLedAni{
     private:
         enum BlinkState {stop,init,state1,state2};
         volatile BlinkState _state;
-        u8_t _r1,_g1,_b1,_r2,_g2,_b2;
+        uint8_t _r1,_g1,_b1,_r2,_g2,_b2;
         int _onTime1_ms,_onTime2_ms;
-        u32_t _lastSwitchTime;
+        uint32_t _lastSwitchTime;
 };
 
 class RgbLedBreathAni : public RgbLedAni{
@@ -183,7 +183,7 @@ class RgbLedBreathAni : public RgbLedAni{
         RgbLedBreathAni()  : RgbLedAni(F_CHAR("breath")) {}
         
         void reset() {  setup(0x00204040,0x0000FF10,1,0,"",0,NULL); }
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state = stop; 
             _stepTime  = H_WORD(p1);
             _upSteps   = H_BYTE(p1);
@@ -194,7 +194,7 @@ class RgbLedBreathAni : public RgbLedAni{
 
             // do some basic checks/correction of parameter set
             if (_lowerLimit > _upperLimit){
-                u8_t temp = _upperLimit;
+                uint8_t temp = _upperLimit;
                 _upperLimit = _lowerLimit;
                 _lowerLimit = temp;
             }
@@ -206,9 +206,9 @@ class RgbLedBreathAni : public RgbLedAni{
             return ANI_OK;
         }
  
-        void loop(u32_t time,RgbLed * pLed){
-            u32_t diff,color24;
-            u8_t dim;
+        void loop(uint32_t time,RgbLed * pLed){
+            uint32_t diff,color24;
+            uint8_t dim;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -263,10 +263,10 @@ class RgbLedBreathAni : public RgbLedAni{
     private:
         enum BreathState {stop,init,up,down};
         volatile BreathState _state;
-        u32_t   _stepTime,_upSteps,_downSteps;
-        u32_t   _stepCounter,_lastUpdate;
-        u8_t    _upperLimit,_lowerLimit;
-        u8_t    _dimDiff;
+        uint32_t   _stepTime,_upSteps,_downSteps;
+        uint32_t   _stepCounter,_lastUpdate;
+        uint8_t    _upperLimit,_lowerLimit;
+        uint8_t    _dimDiff;
         ColorSelector _colorGen;
 };
 
@@ -296,7 +296,7 @@ class RgbLedRainbowAni : public RgbLedAni{
         RgbLedRainbowAni()  : RgbLedAni(F_CHAR("rainbow")) {}
         
         void reset() {  setup(0x0040,0,0xFF01,0,"",0,NULL); }
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
             _timeInc    = clamp(1,p1,100000);
             _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);            
@@ -304,8 +304,8 @@ class RgbLedRainbowAni : public RgbLedAni{
             return ANI_OK;
         }
  
-        void loop(u32_t time,RgbLed * pLed){
-            u32_t diff;
+        void loop(uint32_t time,RgbLed * pLed){
+            uint32_t diff;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -332,7 +332,7 @@ class RgbLedRainbowAni : public RgbLedAni{
     private:
         enum RainbowState {stop,init,run};
         volatile RainbowState _state;
-        u32_t _timeInc,_lastCallTime;
+        uint32_t _timeInc,_lastCallTime;
         ColorSelector _colorGen;
 };
 
@@ -367,7 +367,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
         RgbLedMultiFlashAni()  : RgbLedAni(F_CHAR("multi flash")) {}
         
         void reset() { setup(0x00200060,0x000201F4,0xFF01,0,"0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF",0,NULL);}
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
             _onTime     = H_WORD(p1);
             _offTime    = L_WORD(p1);
@@ -378,8 +378,8 @@ class RgbLedMultiFlashAni : public RgbLedAni{
             return ANI_OK;
         }
  
-        void loop(u32_t time,RgbLed * pLed){
-            u32_t diff,color;
+        void loop(uint32_t time,RgbLed * pLed){
+            uint32_t diff,color;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -431,10 +431,10 @@ class RgbLedMultiFlashAni : public RgbLedAni{
     private:
         enum MultiFlashState {stop,init,flashOn,flashOff,pause};
         volatile MultiFlashState _state;
-        u32_t _lastCallTime;
-        u16_t _onTime,_offTime;
-        u16_t _pauseTime;
-        u16_t _flashCount,_count;
+        uint32_t _lastCallTime;
+        uint16_t  _onTime,_offTime;
+        uint16_t  _pauseTime;
+        uint16_t  _flashCount,_count;
         ColorSelector _colorGen;
 
 };

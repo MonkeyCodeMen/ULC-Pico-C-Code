@@ -1,6 +1,6 @@
 #include "NeoStripeCtrl.hpp"
 #include "Debug.hpp"
-#include "helper.hpp"
+#include "helper.h"
 
 
 NeoStripeCtrl::NeoStripeCtrl(WS2812FX * pNeoStripe) : Ctrl()
@@ -48,7 +48,7 @@ const char * NeoStripeCtrl::getName(){
     return (const char *)_pNeoStripe->getModeName(_current-1);
 }
 
-void NeoStripeCtrl::loop(u32_t time){
+void NeoStripeCtrl::loop(uint32_t time){
     if (_pNeoStripe == NULL)            return;
     if (_mutexSetup.isLocked()==true)   return;  // do not wait 
 
@@ -97,7 +97,7 @@ int NeoStripeCtrl::setup(const char *pName){
 
 
 
-int NeoStripeCtrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData){
+int NeoStripeCtrl::setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData){
     _mutexSetup.lock();
     _pNeoStripe->setColor(p1);
     _pNeoStripe->setBrightness(p2 & 0xFF);

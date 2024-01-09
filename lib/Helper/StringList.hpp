@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include <Debug.hpp>
 
 class StringList
 {
@@ -9,14 +10,15 @@ class StringList
         ~StringList() = default;
 
         void   rewind();
-        bool   isEndReached()     {return _endReached;};
+        bool   isEndReached()     {return _endReached;}
         String getNextListEntry();
 
     private:
-        int     _findNextSep(u32_t startPos);
+        int     _findNextSep(uint32_t startPos);
         const char *    _text;
         char            _sep;
         int             _len;
         int             _nextStart;
         bool            _endReached;
 };
+

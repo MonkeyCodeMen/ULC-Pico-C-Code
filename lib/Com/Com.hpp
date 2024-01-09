@@ -37,14 +37,14 @@ private:
     void getData();
     void frameDone();
 
-    bool getByte(u8_t * pBuffer);
-    bool getBytes(u32_t count,u8_t * pBuffer);
+    bool getByte(uint8_t * pBuffer);
+    bool getBytes(uint32_t count,uint8_t * pBuffer);
     bool collectField();
     
-    u8_t    _byte;
+    uint8_t    _byte;
     String  _field;
-    u32_t   _maxFieldLength;
-    u32_t   _dataReceived;
+    uint32_t   _maxFieldLength;
+    uint32_t   _dataReceived;
     bool    _endFound;
 
     ComFrame _frame;

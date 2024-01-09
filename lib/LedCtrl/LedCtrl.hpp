@@ -12,7 +12,7 @@ class LedCtrl : public Ctrl
         LedCtrl(Led *pLed);
         ~LedCtrl();
 
-        void loop(u32_t time);
+        void loop(uint32_t time);
     
     private:
         Led *   _pLed;

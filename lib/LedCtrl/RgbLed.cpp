@@ -1,6 +1,6 @@
 #include "RgbLed.hpp"
 #include "Debug.hpp"
-#include "helper.hpp"
+#include "helper.h"
 
 RgbLed::RgbLed(int pinRed,int pinGreen,int pinBlue,bool invers)
 {
@@ -17,7 +17,7 @@ RgbLed::RgbLed(int pinRed,int pinGreen,int pinBlue,bool invers)
     set(RGB_LED_OFF,RGB_LED_OFF,RGB_LED_OFF);
 }
 
-void RgbLed::set(u8_t r,u8_t g,u8_t b){
+void RgbLed::set(uint8_t r,uint8_t g,uint8_t b){
     // all set methods should use this method as backend
     // it handles invers etc.
     if (_invers == true) {

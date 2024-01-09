@@ -31,7 +31,7 @@ class MenuHandler{
             if(_placeboMutex == true)  delete _pTFTmutex;
         }
 
-        bool begin(MenuHeader * pHeader,MenuEntry ** pEntryList, u8_t listCount, TFT_eSPI * pTFT, Mutex * pDisplaySPImutex=NULL){
+        bool begin(MenuHeader * pHeader,MenuEntry ** pEntryList, uint8_t listCount, TFT_eSPI * pTFT, Mutex * pDisplaySPImutex=NULL){
             int res;
             _valid = false;
             _pTFT = pTFT;
@@ -51,7 +51,7 @@ class MenuHandler{
             return true;
         }
 
-        bool setNewBackgroundColor(u16_t value){
+        bool setNewBackgroundColor(uint16_t  value){
             if (value != _backgroundColor){
                 _backgroundColor = value;
                 _entryViewportChanged = true;
@@ -86,7 +86,7 @@ class MenuHandler{
             return _pEntryList[_activeEntry]->onEvent(event);
         }
 
-        bool loop(u32_t now){
+        bool loop(uint32_t now){
             // run as fast as possible (no fixed loop time)
             if (_valid == false) { return false; }
             _updateHeader();
@@ -94,7 +94,7 @@ class MenuHandler{
             return true;
         }
         
-        bool setActiveEntry(u8_t activeEntry){
+        bool setActiveEntry(uint8_t activeEntry){
             if (_entryCountMax == 0)            return false; // no menu entries 
             if (activeEntry == _activeEntry)    return true;  // nothing to do
             if (activeEntry >= _entryCountMax)  return false; // invalid entry selected
@@ -106,7 +106,7 @@ class MenuHandler{
         }
 
     private:
-        bool _setViewportFromTop(u8_t firstVisibleEntry){
+        bool _setViewportFromTop(uint8_t firstVisibleEntry){
             if (_entryCountMax > 0){
             // calc visible entries
                 if (firstVisibleEntry >= _entryCountMax)   return false;
@@ -114,8 +114,8 @@ class MenuHandler{
 
                 _firstVisibleEntry = _lastVisibleEntry = firstVisibleEntry;
 
-                u16_t dy = _pEntryList[_firstVisibleEntry]->getHeight();
-                u16_t nextHeight;
+                uint16_t  dy = _pEntryList[_firstVisibleEntry]->getHeight();
+                uint16_t  nextHeight;
                 while (_lastVisibleEntry+1 < _entryCountMax){
                     nextHeight = _pEntryList[_lastVisibleEntry+1]->getHeight();
                     if (dy +  nextHeight < _entryAreaHeight){
@@ -131,7 +131,7 @@ class MenuHandler{
             return true;
         }
 
-        bool _setViewportFromBottom(u8_t lastVisibleEntry){
+        bool _setViewportFromBottom(uint8_t lastVisibleEntry){
             if (_entryCountMax > 0){
             // calc visible entries
                 if (lastVisibleEntry >= _entryCountMax)   return false;
@@ -139,8 +139,8 @@ class MenuHandler{
 
                 _firstVisibleEntry = _lastVisibleEntry = lastVisibleEntry;
 
-                u16_t dy = _pEntryList[_lastVisibleEntry]->getHeight();
-                u16_t nextHeight;
+                uint16_t  dy = _pEntryList[_lastVisibleEntry]->getHeight();
+                uint16_t  nextHeight;
                 while (_firstVisibleEntry > 1){
                     nextHeight = _pEntryList[_firstVisibleEntry-1]->getHeight();
                     if (dy +  nextHeight < _entryAreaHeight){
@@ -180,7 +180,7 @@ class MenuHandler{
             return 0;
         }
 
-        int _initEntries(MenuEntry ** pEntryList, u8_t listCount){
+        int _initEntries(MenuEntry ** pEntryList, uint8_t listCount){
             // init entries
             if ((listCount == 0)||(pEntryList==NULL)){    
                 _pEntryList == NULL;
@@ -251,7 +251,7 @@ class MenuHandler{
             if (_entryAreaY      <= _headerY+_headerHeight-1)       { return __LINE__; }   // must start after header section
             if (_entryAreaY+_entryAreaHeight-1>_menuY+_menuHeight-1){ return __LINE__; }    // must end inside menu area
             // idea every element must fit in _entryArea
-            for(u8_t i=0; i < _entryCountMax;i++){
+            for(uint8_t i=0; i < _entryCountMax;i++){
                 if (_pEntryList[i]->getHeight() > _entryAreaHeight){
                     return __LINE__;
                 }
@@ -276,8 +276,8 @@ class MenuHandler{
                 if (_entryViewportChanged == true){
                     // rebuild viewport
                     _pTFTmutex->lock();
-                        u16_t y = _entryAreaY;
-                        for (u8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
+                        uint16_t  y = _entryAreaY;
+                        for (uint8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
                             _pTFT->setViewport(_entryAreaX,y,_entryAreaWidth,_pEntryList[line]->getHeight()); // until now we trust the the object for height and width
                             _pEntryList[line]->draw(_pTFT,0,0);
                             _pTFT->resetViewport();
@@ -285,7 +285,7 @@ class MenuHandler{
                         }
                         // check for half visible entries
                         if (y < _entryAreaY+_entryAreaHeight-1) {
-                            u16_t restHeight =  _entryAreaY+_entryAreaHeight - y;
+                            uint16_t  restHeight =  _entryAreaY+_entryAreaHeight - y;
                             if (_lastVisibleEntry+1 < _entryCountMax){
                                 // draw a part of the next entry_
                                 _pTFT->setViewport(_entryAreaX,y,_entryAreaWidth,restHeight);
@@ -300,8 +300,8 @@ class MenuHandler{
                     _entryViewportChanged = false;
                 } else {
                     // update viewport (did not moved)
-                    u16_t y = _entryAreaY;
-                    for (u8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
+                    uint16_t  y = _entryAreaY;
+                    for (uint8_t line=_firstVisibleEntry; line <= _lastVisibleEntry; line++){
                         if (_pEntryList[line]->needsUpdate() == true){
                             _pTFTmutex->lock();
                                 _pTFT->setViewport(_entryAreaX,y,_entryAreaWidth,_pEntryList[line]->getHeight()); // until now we trust the the object for height and width
@@ -314,7 +314,7 @@ class MenuHandler{
                     // check update for half visible entries
                     if ((y < _entryAreaY+_entryAreaHeight-1) && (_lastVisibleEntry+1 < _entryCountMax)){
                         if (_pEntryList[_lastVisibleEntry+1]->needsUpdate() == true){
-                            u16_t restHeight =  _entryAreaY+_entryAreaHeight - y;
+                            uint16_t  restHeight =  _entryAreaY+_entryAreaHeight - y;
                             _pTFTmutex->lock();
                                 _pTFT->setViewport(_entryAreaX,y,_entryAreaWidth,restHeight);
                                 _pEntryList[_lastVisibleEntry+1]->draw(_pTFT,0,0);
@@ -345,17 +345,17 @@ class MenuHandler{
         
         // control of entry area
         int         _activeEntry;
-        u8_t        _firstVisibleEntry;
-        u8_t        _lastVisibleEntry;
+        uint8_t        _firstVisibleEntry;
+        uint8_t        _lastVisibleEntry;
         
         // coordinates & dimension
-        u16_t       _screenHeight,_screenWidth;                                 // screen  (assumed to be starte at 0,0)
-        u16_t       _menuX,_menuY,_menuHeight,_menuWidth;                       // area for menu
-        u16_t       _headerX,_headerY,_headerHeight,_headerWidth;               // area for header
-        u16_t       _entryAreaX,_entryAreaY,_entryAreaHeight,_entryAreaWidth;   // area for handling / scrolling menu entries
+        uint16_t        _screenHeight,_screenWidth;                                 // screen  (assumed to be starte at 0,0)
+        uint16_t        _menuX,_menuY,_menuHeight,_menuWidth;                       // area for menu
+        uint16_t        _headerX,_headerY,_headerHeight,_headerWidth;               // area for header
+        uint16_t        _entryAreaX,_entryAreaY,_entryAreaHeight,_entryAreaWidth;   // area for handling / scrolling menu entries
 
         // colors
-        u16_t       _backgroundColor;
+        uint16_t        _backgroundColor;
 };
 
 

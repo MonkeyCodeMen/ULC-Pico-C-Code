@@ -18,14 +18,14 @@ class MenuItem{
 
         virtual bool    onMenuOpen()                                            { return false;         } // overwrite this to manipulate/reset object state in very menu open 
         virtual bool    needsUpdate()                                           { return _dirty;        }
-        virtual u16_t   getHeight()                                             { return _objectHeight; }
-        virtual u16_t   getWidth()                                              { return _objectWidth;  }
-        virtual bool    setup(TFT_eSPI * pTFT,u16_t menuHeight,u16_t menuWidth) { return false;         } // calc dimension in correlation to display 
-        virtual bool    draw(TFT_eSPI * pTFT,u16_t x,u16_t y)                   { return false;         }
+        virtual uint16_t    getHeight()                                             { return _objectHeight; }
+        virtual uint16_t    getWidth()                                              { return _objectWidth;  }
+        virtual bool    setup(TFT_eSPI * pTFT,uint16_t  menuHeight,uint16_t  menuWidth) { return false;         } // calc dimension in correlation to display 
+        virtual bool    draw(TFT_eSPI * pTFT,uint16_t  x,uint16_t  y)                   { return false;         }
 
     protected:
         bool    _dirty;
-        u16_t   _objectHeight,_objectWidth;
+        uint16_t    _objectHeight,_objectWidth;
 };
 
 class MenuHeader:public MenuItem{

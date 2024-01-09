@@ -1,6 +1,6 @@
 #pragma once
 #include <Arduino.h>
-#include "helper.hpp"
+#include "helper.h"
 
 #define ANI_OK								0
 #define ANI_ERROR_GENERAL 					1
@@ -19,7 +19,7 @@ class Ani
 		~Ani() = default;
         const char * getName()																			{ return _pName;				}
 		virtual void reset()  																			{								}
-        virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) 	{ return ANI_OK;				}
+        virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) 	{ return ANI_OK;				}
 		virtual void trigger() 																			{								}
 		static const char * getErrorText(int error) 													{
 			switch (error){

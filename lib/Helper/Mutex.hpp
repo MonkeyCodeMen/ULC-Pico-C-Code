@@ -2,15 +2,15 @@
 
 class Mutex
 {
-public:
-	Mutex();
-	~Mutex() = default;
+    public:
+        Mutex():_available(true) {}
+        ~Mutex() = default;
 
-    void lock();    
-    void free();
-    bool isLocked();
+        void lock()             { while(_available == false){};    _available = false;    }
+        void free()             { _available = true;  }
+        bool isLocked()         { return (_available==true)?false:true;}
 
-private:
-    volatile bool _available;
+    private:
+        volatile bool _available;
 
 };

@@ -1,5 +1,5 @@
 #include "Com.hpp"
-#include "helper.hpp"
+#include "helper.h"
 #include "Debug.hpp"
 
 Com::Com()
@@ -46,7 +46,7 @@ void Com::reset(){
 }
 
 void Com::doWaiting(){
-    u8_t buffer;
+    uint8_t buffer;
     if (getByte(&buffer) == false)  {
         return;             
     }
@@ -57,7 +57,7 @@ void Com::doWaiting(){
 }
 
 void Com::getStartOfFrame(){
-    u8_t buffer;
+    uint8_t buffer;
     if (getByte(&buffer) == false)  {
         return;            
     } 
@@ -71,7 +71,7 @@ void Com::getStartOfFrame(){
 }
 
 void Com::getModule(){
-    u8_t buffer[3];
+    uint8_t buffer[3];
     if (getBytes(3,buffer)== false)   {
         return;
     }
@@ -157,12 +157,12 @@ void Com::getPar4(){
         _state = STR_START;
         _frame.length=0;
         _field = "";
-        _frame.pData = (u8_t *) new String();
+        _frame.pData = (uint8_t *) new String();
     }
 }
 
 void Com::getStrStart(){
-    u8_t buffer;
+    uint8_t buffer;
     if (getByte(&buffer) == false)  {
         return;            
     } 
@@ -182,7 +182,7 @@ void Com::getStrStart(){
 }
 
 void Com::getStrData(){
-    u8_t buffer;
+    uint8_t buffer;
     if (getByte(&buffer) == false)  {
         return;            
     } 
@@ -198,7 +198,7 @@ void Com::getStrData(){
 }
 
 void Com::getStrEnd(){
-    u8_t buffer;
+    uint8_t buffer;
     if (getByte(&buffer) == false)  {
         return;            
     } 
@@ -225,12 +225,12 @@ void Com::getLength(){
         _state = DATA;
         _dataReceived = 0;
         ASSERT(_frame.pData == NULL,F_CHAR("frame binary buffer must be cleared at this point"));
-        _frame.pData = new u8_t[_frame.length];
+        _frame.pData = new uint8_t[_frame.length];
     }
 }
 
 void Com::getData(){
-    u8_t buffer;
+    uint8_t buffer;
     if (getByte(&buffer) == false)  {
         return;            
     }
@@ -297,8 +297,8 @@ void Com::sendAnswer(bool res,ComFrame * pFrame){
 
 
 
-bool Com::getByte(u8_t * pBuffer){
-    u8_t value;
+bool Com::getByte(uint8_t * pBuffer){
+    uint8_t value;
     if (_pPort->available() >= 1) {
         value = _pPort->read();
         *pBuffer= value;
@@ -307,8 +307,8 @@ bool Com::getByte(u8_t * pBuffer){
     return false;    
 }
 
-bool Com::getBytes(u32_t count,u8_t * pBuffer){
-    u8_t value;
+bool Com::getBytes(uint32_t count,uint8_t * pBuffer){
+    uint8_t value;
     if (_pPort->available() >= count) {
         for(int i=0;i < count; i++){
             value = _pPort->read();
@@ -320,7 +320,7 @@ bool Com::getBytes(u32_t count,u8_t * pBuffer){
 }
 
 bool Com::collectField(){
-    u8_t __byte;
+    uint8_t __byte;
     if (getByte(&__byte)== false) { return false;}
 
     if (__byte == COM_FRAME_END){

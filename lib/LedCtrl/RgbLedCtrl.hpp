@@ -12,7 +12,7 @@ class RgbLedCtrl : public Ctrl
         RgbLedCtrl(RgbLed * pRgbLed);
         ~RgbLedCtrl();
 
-        void loop(u32_t time);
+        void loop(uint32_t time);
     
     private:
         RgbLed *   _pRgbLed;

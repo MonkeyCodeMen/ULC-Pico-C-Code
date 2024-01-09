@@ -1,12 +1,12 @@
-#include "helper.hpp"
+#include "helper.h"
 #include "unity.h"
 
 /*
 
 
 // color wheel / rainbow
-u32_t getColorWheel24Bit(u8_t pos);
-u16_t getColorWheel565(u8_t pos);
+uint32_t getColorWheel24Bit(uint8_t pos);
+uint16_t  getColorWheel565(uint8_t pos);
 
 */
 
@@ -156,17 +156,17 @@ void test_helper_convertStrToIntHex(void){
 
 
 void test_helper_convertStrToIntNeg(void){
-    TEST_ASSERT_EQUAL_INT32(          -1,   (s32_t) convertStrToInt("-1"));
-    TEST_ASSERT_EQUAL_INT32(        -233,   (s32_t) convertStrToInt("  - 233 "));
-    TEST_ASSERT_EQUAL_INT32(       -1233,   (s32_t) convertStrToInt("-  1 233"));
+    TEST_ASSERT_EQUAL_INT32(          -1,   (int32_t ) convertStrToInt("-1"));
+    TEST_ASSERT_EQUAL_INT32(        -233,   (int32_t ) convertStrToInt("  - 233 "));
+    TEST_ASSERT_EQUAL_INT32(       -1233,   (int32_t ) convertStrToInt("-  1 233"));
 
-    TEST_ASSERT_EQUAL_INT32(           0,   (s32_t) convertStrToInt("-0"));
-    TEST_ASSERT_EQUAL_INT32(           0,   (s32_t) convertStrToInt("-1233-"));
+    TEST_ASSERT_EQUAL_INT32(           0,   (int32_t ) convertStrToInt("-0"));
+    TEST_ASSERT_EQUAL_INT32(           0,   (int32_t ) convertStrToInt("-1233-"));
 }
 
 
-void test_helper_u32_byteAcess(void) {
-    union u32_byteAcess obj;
+void test_helper_uint32_t_byteAcess(void) {
+    union uint32_t_byteAcess obj;
 
     obj.ival = 0x44332211;
 
@@ -219,7 +219,7 @@ void test_helper_u16_byteAcess(void) {
 
 
 void test_helper_HHH_BYTE(void) {
-    u32_t value = 0x44332211;
+    uint32_t value = 0x44332211;
   
     TEST_ASSERT_EQUAL_UINT32(HHH_BYTE(value) , 0x44);
     TEST_ASSERT_EQUAL_UINT32(HH_BYTE(value)  , 0x33);
@@ -243,7 +243,7 @@ void test_helper_HHH_BYTE(void) {
 
 
 void test_helper_H_WORD(void) {
-    u32_t value = 0x44332211;
+    uint32_t value = 0x44332211;
   
     TEST_ASSERT_EQUAL_UINT16(0x4433 , H_WORD(value));
     TEST_ASSERT_EQUAL_UINT16(0x2211 , L_WORD(value));
@@ -271,7 +271,7 @@ void test_helper_H_WORD(void) {
 void test_collection_helper(void) {
   RUN_TEST(test_helper_HHH_BYTE);
   RUN_TEST(test_helper_H_WORD);
-  RUN_TEST(test_helper_u32_byteAcess);
+  RUN_TEST(test_helper_uint32_t_byteAcess);
   RUN_TEST(test_helper_u16_byteAcess);
 
   RUN_TEST(test_helper_convertStrToIntDec1);

@@ -1,7 +1,7 @@
 #pragma once
 #include "Ani.hpp"
 #include <Adafruit_NeoMatrix.h>
-#include "helper.hpp"
+#include "helper.h"
 #include "Debug.hpp"
 #include <ColorSelector.hpp>
 #include <AnimatedGIF.h>
@@ -17,9 +17,9 @@ class NeoMatrixAni:public Ani
 		NeoMatrixAni(const char * pName) : Ani(pName) {};
 		~NeoMatrixAni() = default;
 		
-		virtual void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {};
+		virtual void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix) {};
         virtual void reset()                            {};
-        virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) {return ANI_OK;};
+        virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {return ANI_OK;};
 
 };
 
@@ -27,7 +27,7 @@ class MatrixOffAni : public NeoMatrixAni{
     public:
         MatrixOffAni():NeoMatrixAni(F_CHAR("off"))      {};
         void reset() {_color = 0; _needUpdate = true;};
-        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
+        void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix) {
             if (_needUpdate == true){
                 pMatrix->fillScreen(_color);
                 pMatrix->show();
@@ -36,7 +36,7 @@ class MatrixOffAni : public NeoMatrixAni{
         };
     private:
         bool    _needUpdate;
-        u16_t   _color;
+        uint16_t    _color;
 
 };
 
@@ -66,15 +66,15 @@ class MatrixStaticAni : public NeoMatrixAni{
         MatrixStaticAni():NeoMatrixAni(F_CHAR("static"))      {};
         void reset() {  setup(0xFF,0,0,0,"",0,NULL); };
 
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData) {
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {
             _state = stop;
             _color = p1&0xFFFFFF;
             _state = init;
             return ANI_OK;
         };
 
-        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix) {
-            u16_t color565; 
+        void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix) {
+            uint16_t  color565; 
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -98,8 +98,8 @@ class MatrixStaticAni : public NeoMatrixAni{
     private:
         enum StaticState {stop,init,run};
         volatile StaticState _state;
-        u32_t   _color;
-        u8_t    _dim;
+        uint32_t   _color;
+        uint8_t    _dim;
 
 };
 
@@ -129,7 +129,7 @@ class MatrixRainbowAni : public NeoMatrixAni{
         MatrixRainbowAni()  : NeoMatrixAni(F_CHAR("rainbow")) {};
         
         void reset() {  setup(0x0040,0,0x5001,0,"",0,NULL); };
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
             _timeInc    = clamp(1,p1,100000);
             _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);            
@@ -137,8 +137,8 @@ class MatrixRainbowAni : public NeoMatrixAni{
             return ANI_OK;
         };
  
-        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
-            u32_t diff;
+        void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
+            uint32_t diff;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -167,7 +167,7 @@ class MatrixRainbowAni : public NeoMatrixAni{
     private:
         enum RainbowState {stop,init,run};
         volatile RainbowState _state;
-        u32_t _timeInc,_lastCallTime;
+        uint32_t _timeInc,_lastCallTime;
         ColorSelector _colorGen;
 };
 
@@ -213,7 +213,7 @@ class MatrixBreathAni : public NeoMatrixAni{
         MatrixBreathAni():NeoMatrixAni(F_CHAR("breath"))      {};
         
         void reset() {  setup(0x00204040,0x0000FF10,1,0,"",0,NULL); };
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state = stop; 
             _stepTime  = H_WORD(p1);
             _upSteps   = H_BYTE(p1);
@@ -224,7 +224,7 @@ class MatrixBreathAni : public NeoMatrixAni{
 
             // do some basic checks/correction of parameter set
             if (_lowerLimit > _upperLimit){
-                u8_t temp = _upperLimit;
+                uint8_t temp = _upperLimit;
                 _upperLimit = _lowerLimit;
                 _lowerLimit = temp;
             }
@@ -236,9 +236,9 @@ class MatrixBreathAni : public NeoMatrixAni{
             return ANI_OK;
         };
  
-        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
-            u32_t diff,color24;
-            u8_t dim;
+        void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
+            uint32_t diff,color24;
+            uint8_t dim;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -295,10 +295,10 @@ class MatrixBreathAni : public NeoMatrixAni{
     private:
         enum BreathState {stop,init,up,down};
         volatile BreathState _state;
-        u32_t   _stepTime,_upSteps,_downSteps;
-        u32_t   _stepCounter,_lastUpdate;
-        u8_t    _upperLimit,_lowerLimit;
-        u8_t    _dimDiff;
+        uint32_t   _stepTime,_upSteps,_downSteps;
+        uint32_t   _stepCounter,_lastUpdate;
+        uint8_t    _upperLimit,_lowerLimit;
+        uint8_t    _dimDiff;
         ColorSelector _colorGen;
 
 };
@@ -337,7 +337,7 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
 
         void reset() { setup(0x00200060,0x000201F4,0xFF01,0,"0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF",0,NULL); };
        
-        virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+        virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
             _onTime     = H_WORD(p1);
             _offTime    = L_WORD(p1);
@@ -348,8 +348,8 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
             return ANI_OK;
         };
 
-        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
-            u32_t diff;
+        void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
+            uint32_t diff;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -403,16 +403,16 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
     protected:
         enum MultiFlashState {stop,init,flashOn,flashOff,pause};
         volatile MultiFlashState _state;
-        u32_t _lastCallTime;
-        u16_t _onTime,_offTime;
-        u16_t _pauseTime;
-        u16_t _flashCount,_count;
+        uint32_t _lastCallTime;
+        uint16_t  _onTime,_offTime;
+        uint16_t  _pauseTime;
+        uint16_t  _flashCount,_count;
         ColorSelector _colorGen;
 
 
         void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
-            u32_t color24  = _colorGen.getNextColor();
-            u16_t color565 = toColor565(color24);
+            uint32_t color24  = _colorGen.getNextColor();
+            uint16_t  color565 = toColor565(color24);
             pMatrix->fillScreen(color565);
             pMatrix->show();
         };
@@ -460,7 +460,7 @@ class MatrixBoxAni : public NeoMatrixAni{
 
         void reset() { setup(0x020,1,0x800A,0,"",0,NULL); };
        
-        virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+        virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
             _incTime    = L_WORD(p1);
             _border     = L_BYTE(p2);
@@ -469,8 +469,8 @@ class MatrixBoxAni : public NeoMatrixAni{
             return ANI_OK;
         };
 
-        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
-            u32_t diff;
+        void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
+            uint32_t diff;
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -503,16 +503,16 @@ class MatrixBoxAni : public NeoMatrixAni{
         volatile BoxState _state;
         enum BoxType {none,rect,circle,hor,ver};
         BoxType _type;        
-        u32_t _lastCallTime;
-        u16_t _incTime;
-        u8_t  _border,_dim,_inc,_start;
-        u32_t _sizeX,_sizeY;
-        s32_t _startX,_startY;
+        uint32_t _lastCallTime;
+        uint16_t  _incTime;
+        uint8_t  _border,_dim,_inc,_start;
+        uint32_t _sizeX,_sizeY;
+        int32_t  _startX,_startY;
         bool _circle;
         ColorSelector _colorGen;
 
         void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
-            u32_t startColor;
+            uint32_t startColor;
             _colorGen.restore();
             startColor = _colorGen.getNextColor();
             _colorGen.backup(); // start next time with this color 
@@ -529,12 +529,12 @@ class MatrixBoxAni : public NeoMatrixAni{
             pMatrix->show();
         };
 
-        void _drawCircles(Adafruit_NeoMatrix * pMatrix,u32_t startColor){
-            u32_t color24 = startColor;
-            u16_t color565;
-            u8_t  borderLine = 0;
-            u16_t steps,x,y;
-            s32_t h,w;
+        void _drawCircles(Adafruit_NeoMatrix * pMatrix,uint32_t startColor){
+            uint32_t color24 = startColor;
+            uint16_t  color565;
+            uint8_t  borderLine = 0;
+            uint16_t  steps,x,y;
+            int32_t  h,w;
             steps = _sizeX/2;
             if (_sizeY/2 < steps){
                 steps = _sizeY/2;
@@ -560,12 +560,12 @@ class MatrixBoxAni : public NeoMatrixAni{
             }
         };
 
-        void _drawRect(Adafruit_NeoMatrix * pMatrix,u32_t startColor){
-            u32_t color24 = startColor;
-            u16_t color565;
-            u8_t  borderLine = 0;
-            u16_t steps,x,y;
-            s32_t h,w;
+        void _drawRect(Adafruit_NeoMatrix * pMatrix,uint32_t startColor){
+            uint32_t color24 = startColor;
+            uint16_t  color565;
+            uint8_t  borderLine = 0;
+            uint16_t  steps,x,y;
+            int32_t  h,w;
             steps = _sizeX/2;
             if (_sizeY/2 < steps){
                 steps = _sizeY/2;
@@ -591,12 +591,12 @@ class MatrixBoxAni : public NeoMatrixAni{
             }
         };
 
-        void _drawHor(Adafruit_NeoMatrix * pMatrix,u32_t startColor){
-            u32_t color24 = startColor;
-            u16_t color565;
-            u8_t  borderLine = 0;
-            u16_t steps = _sizeY;
-            u16_t lastX  = _sizeX-1;
+        void _drawHor(Adafruit_NeoMatrix * pMatrix,uint32_t startColor){
+            uint32_t color24 = startColor;
+            uint16_t  color565;
+            uint8_t  borderLine = 0;
+            uint16_t  steps = _sizeY;
+            uint16_t  lastX  = _sizeX-1;
             for(int i=0; i < _sizeY; i++){
                     color565 = toColor565(color24);
                     pMatrix->drawLine(0,i,lastX,i,color565 );
@@ -609,12 +609,12 @@ class MatrixBoxAni : public NeoMatrixAni{
             }
         };
 
-        void _drawVer(Adafruit_NeoMatrix * pMatrix,u32_t startColor){
-            u32_t color24 = startColor;
-            u16_t color565;
-            u8_t  borderLine = 0;
-            u16_t steps = _sizeX;
-            u16_t lastY  = _sizeY-1;
+        void _drawVer(Adafruit_NeoMatrix * pMatrix,uint32_t startColor){
+            uint32_t color24 = startColor;
+            uint16_t  color565;
+            uint8_t  borderLine = 0;
+            uint16_t  steps = _sizeX;
+            uint16_t  lastY  = _sizeY-1;
             for(int i=0; i < _sizeX; i++){
                     color565 = toColor565(color24);
                     pMatrix->drawLine(i,0,i,lastY,color565 );
@@ -662,7 +662,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
         
         void reset() { setup(0x80,0,0,0,"TEST.GIF",0,NULL); };
 
-        void loop(u32_t time,Adafruit_NeoMatrix * pMatrix){
+        void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -699,7 +699,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
             }
         };
 
-        int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData)  {
+        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
             _gif.close();
             _fileName   = str;  
@@ -717,9 +717,9 @@ class MatrixGifFileAni : public NeoMatrixAni{
         volatile GifState   _state;
 
         AnimatedGIF         _gif; // static instance of the class uses 22.5K of RAM
-        u32_t               _lastFrame;
+        uint32_t               _lastFrame;
         int                 _wait,_repeat,_count;                
-        u8_t                _brightness;
+        uint8_t                _brightness;
         String              _fileName;
 
 

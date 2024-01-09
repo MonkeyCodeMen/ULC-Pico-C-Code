@@ -1,6 +1,6 @@
 #include "Ctrl.hpp"
 #include "Debug.hpp"
-#include "helper.hpp"
+#include "helper.h"
 
 Ctrl::Ctrl()
 {
@@ -123,7 +123,7 @@ int Ctrl::setup(const char * pName){
 
 
 
-int Ctrl::setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData){
+int Ctrl::setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData){
     if (_pCurrentAni == NULL)   return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 
     _mutexSetup.lock();

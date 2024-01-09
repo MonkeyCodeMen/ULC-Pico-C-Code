@@ -10,7 +10,7 @@
  */
 
 list<struct WindowListEntry *>  Window::s_windowList;
-uint16_t                Window::s_desktopColor=TFT_BLACK;
+uint16_t                 Window::s_desktopColor=TFT_BLACK;
 TFT_eSPI *              Window::sp_tft=NULL;
 bool                    Window::s_updateRequest=false;
 bool                    Window::s_updateAll=false;
@@ -348,7 +348,7 @@ void Window::draw(){
 
 
 
-color_t Window::getRainbowColor(uint16_t index){
+color_t Window::getRainbowColor(uint16_t  index){
   byte red,green,blue;
   color_t color;
   uint32_t fraction,band,part;
@@ -579,7 +579,7 @@ bool Window::test(TFT_eSPI * pTft){
   int maxWin = 255;
   color_t color;
   Window * pWins[maxWin];
-  uint16_t colorStep=0xFFFF / maxWin;
+  uint16_t  colorStep=0xFFFF / maxWin;
   for(int i=0;i < maxWin;i++){
     pWins[i]=new Window(pTft,i,i,100,100);
     color = Window::getRainbowColor(i*colorStep);

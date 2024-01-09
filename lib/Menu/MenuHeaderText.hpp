@@ -13,13 +13,13 @@ class MenuHeaderText: public MenuHeader{
         MenuHeaderText( const char * staticText="",
                         bool invers=true, 
                         bool underline=true, 
-                        u8_t font=MENU_STD_FONT, 
-                        u8_t fontSize = MENU_STD_FONT_SCALE,
-                        u16_t foregndcol = TFT_RED, 
-                        u16_t backgndCol=TFT_BLUE,
-                        u16_t offsetX = 5,
-                        u16_t offsetY = 0,
-                        u8_t  lineWidth = MENU_STD_FONT_SCALE)
+                        uint8_t font=MENU_STD_FONT, 
+                        uint8_t fontSize = MENU_STD_FONT_SCALE,
+                        uint16_t  foregndcol = TFT_RED, 
+                        uint16_t  backgndCol=TFT_BLUE,
+                        uint16_t  offsetX = 5,
+                        uint16_t  offsetY = 0,
+                        uint8_t  lineWidth = MENU_STD_FONT_SCALE)
             :MenuHeader(),
             _text(staticText),
             _foregndCol(foregndcol),_backgndCol(backgndCol),_font(font),_fontSize(fontSize),
@@ -30,7 +30,7 @@ class MenuHeaderText: public MenuHeader{
 
         ~MenuHeaderText() = default;
 
-        virtual bool setup(TFT_eSPI * pTFT,u16_t menuHeight,u16_t menuWidth){
+        virtual bool setup(TFT_eSPI * pTFT,uint16_t  menuHeight,uint16_t  menuWidth){
             pTFT->setTextSize(_fontSize);
             _objectHeight = pTFT->fontHeight(_font) + (2 * _oy);  
             if (_underline == true){
@@ -55,14 +55,14 @@ class MenuHeaderText: public MenuHeader{
             }
         }
 
-        virtual void setNewForegroundColor(u16_t newValue){
+        virtual void setNewForegroundColor(uint16_t  newValue){
             if (newValue != _foregndCol){
                 _foregndCol=newValue;
                 _dirty = true;
             }
         }
 
-        virtual void setNewBackgroundColor(u16_t newValue){
+        virtual void setNewBackgroundColor(uint16_t  newValue){
             if (newValue != _backgndCol){
                 _backgndCol=newValue;
                 _dirty = true;
@@ -70,7 +70,7 @@ class MenuHeaderText: public MenuHeader{
         }
 
 
-        virtual bool draw(TFT_eSPI * pTFT,u16_t x,u16_t y){
+        virtual bool draw(TFT_eSPI * pTFT,uint16_t  x,uint16_t  y){
             if (_invers == true){
                 pTFT->fillRect(x,y,_objectWidth,_objectHeight,_foregndCol);
                 pTFT->setTextSize(_fontSize);
@@ -94,11 +94,11 @@ class MenuHeaderText: public MenuHeader{
 
     protected:
         String  _text;
-        u16_t   _foregndCol,_backgndCol;
-        u16_t   _ox,_oy;
-        u8_t    _font,_fontSize;
+        uint16_t    _foregndCol,_backgndCol;
+        uint16_t    _ox,_oy;
+        uint8_t    _font,_fontSize;
         bool    _invers,_underline;
-        u8_t    _lineWidth;
+        uint8_t    _lineWidth;
 
 };
 

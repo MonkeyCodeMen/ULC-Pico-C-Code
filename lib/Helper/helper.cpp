@@ -1,12 +1,10 @@
-#include "helper.hpp"
-#include "Debug.hpp"
+#include <helper.h>
+//extern String emptyString;
 
-//String emptyString(F(""));
-
-u32_t convertHexStrToInt(const char * str,int len){
+uint32_t convertHexStrToInt(const char * str,int len){
     int   digitFound=0;  
-    u32_t sum = 0;
-    u8_t  value;
+    uint32_t sum = 0;
+    uint8_t  value;
     int   i = 0;
 
     while (i < len){
@@ -55,10 +53,10 @@ u32_t convertHexStrToInt(const char * str,int len){
     return sum;     // return sum for hex conversion
 }
 
-u32_t convertDecStrToInt(const char * str,int len){
+uint32_t convertDecStrToInt(const char * str,int len){
     int   digitFound=0;  
-    u32_t sum = 0;
-    u8_t  value;
+    uint32_t sum = 0;
+    uint8_t  value;
     int   i=0;
     int   factor = 1;
 
@@ -104,17 +102,17 @@ u32_t convertDecStrToInt(const char * str,int len){
         }
     }
     if (factor != 1){
-        s32_t val = factor * sum;
-        sum = (u32_t) val;
+        int32_t val = factor * sum;
+        sum = (uint32_t) val;
     }
     return sum;     // return sum for dez convert
 }
 
 
-u32_t convertStrToInt(const char * str){
+uint32_t convertStrToInt(const char * str){
     int   len = strlen(str);
     int   i = 0;
-    u32_t res = 0;
+    uint32_t res = 0;
     
     if (len == 0){
         return res;  // on empty string
@@ -139,42 +137,42 @@ u32_t convertStrToInt(const char * str){
 }
 
 
-u32_t convertStrToInt(String str){
+uint32_t convertStrToInt(String str){
     return convertStrToInt(str.c_str());
 }
 
-u32_t clamp(u32_t lowEnd,u32_t value,u32_t highEnd){
+uint32_t clamp(uint32_t lowEnd,uint32_t value,uint32_t highEnd){
     if (value < lowEnd)     return lowEnd;
     if (value > highEnd)    return highEnd;
     return value;
 }
 
 
-u16_t toColor565(u8_t r,u8_t g,u8_t b,u8_t dim){
+uint16_t toColor565(uint8_t r,uint8_t g,uint8_t b,uint8_t dim){
     return toColor565( dimColorChannel255(r,dim),dimColorChannel255(g,dim),dimColorChannel255(b,dim) );
 }
 
-u16_t toColor565(u8_t r,u8_t g,u8_t b){
+uint16_t toColor565(uint8_t r,uint8_t g,uint8_t b){
   return ((r / 8) << 11) | ((g / 4) << 5) | (b / 8);
 }
 
-u16_t toColor565(u32_t c){
+uint16_t toColor565(uint32_t c){
   return ((((c>>16) & 0xFF) / 8) << 11) | ((((c>>8)& 0xFF) / 4) << 5) | ((c & 0xFF) / 8);
 }
 
-u16_t toColor565Dim(u32_t c){
+uint16_t toColor565Dim(uint32_t c){
     c = dimRgb24ToRgb(c);
     return toColor565(c);
 }
 
-u16_t getColorWheel565(u8_t pos){
-    u32_t res = getColorWheel24Bit(pos);
+uint16_t getColorWheel565(uint8_t pos){
+    uint32_t res = getColorWheel24Bit(pos);
     return toColor565(res);
 }
 
 
-u32_t getColorWheel24Bit(u8_t pos){
-    u32_t res;
+uint32_t getColorWheel24Bit(uint8_t pos){
+    uint32_t res;
     HHH_BYTE(res) = 0;
 
     pos = 255 - pos;
@@ -196,10 +194,10 @@ u32_t getColorWheel24Bit(u8_t pos){
     return res;
 }
 
-u32_t dimRgb24ToRgb(u32_t color){
-    union u32_byteAcess value;
+uint32_t dimRgb24ToRgb(uint32_t color){
+    union uint32_t_byteAcess value;
     value.ival=color;
-    u8_t dim = value.bval.HHH;
+    uint8_t dim = value.bval.HHH;
     value.bval.HH = dimColorChannel255(value.bval.HH,dim); // r
     value.bval.H  = dimColorChannel255(value.bval.H ,dim); // g
     value.bval.L  = dimColorChannel255(value.bval.L ,dim); // b
@@ -207,8 +205,8 @@ u32_t dimRgb24ToRgb(u32_t color){
     return value.ival;
 }
 
-u32_t dimColor255(u32_t color,u8_t dim ){
-    union u32_byteAcess value;
+uint32_t dimColor255(uint32_t color,uint8_t dim ){
+    union uint32_t_byteAcess value;
     value.ival=color;
     value.bval.HH = dimColorChannel255(value.bval.HH,dim); // r
     value.bval.H  = dimColorChannel255(value.bval.H ,dim); // g
@@ -217,8 +215,8 @@ u32_t dimColor255(u32_t color,u8_t dim ){
     return value.ival;
 }
 
-u32_t dimColor255(u8_t r,u8_t g,u8_t b,u8_t dim ){
-    union u32_byteAcess value;
+uint32_t dimColor255(uint8_t r,uint8_t g,uint8_t b,uint8_t dim ){
+    union uint32_t_byteAcess value;
     value.bval.HH = dimColorChannel255(r,dim); // r
     value.bval.H  = dimColorChannel255(g,dim); // g
     value.bval.L  = dimColorChannel255(b,dim); // b
@@ -227,8 +225,8 @@ u32_t dimColor255(u8_t r,u8_t g,u8_t b,u8_t dim ){
 
 }
 
-u32_t color24Bit(u8_t r,u8_t g,u8_t b){
-    union u32_byteAcess value;
+uint32_t color24Bit(uint8_t r,uint8_t g,uint8_t b){
+    union uint32_t_byteAcess value;
     value.bval.HH   = r; // r
     value.bval.H    = g; // g
     value.bval.L    = b; // b

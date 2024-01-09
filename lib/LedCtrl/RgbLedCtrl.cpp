@@ -26,7 +26,7 @@ RgbLedCtrl::~RgbLedCtrl()
 }
 
 
-void RgbLedCtrl::loop(u32_t time){
+void RgbLedCtrl::loop(uint32_t time){
     if (_pCurrentAni == NULL)           return;
     if (_pRgbLed == NULL)               return;
     if (_mutexSetup.isLocked()==true)   return;  // do not wait 

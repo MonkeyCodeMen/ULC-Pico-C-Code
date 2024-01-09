@@ -29,15 +29,15 @@
                 COM_FRAME_START2,COM_FRAME_SEP,COM_FRAME_END ist not allowe as content
 
     Par1,Par2,Par3,Par4:    
-                [u32_t as string] max length: COM_FRAME_MAX_PARAMETER_LENGTH
+                [uint32_t as string] max length: COM_FRAME_MAX_PARAMETER_LENGTH
                 allowed content only: [ 0123456789ABCDEFabcdefxX-]
     
     str:        [string] 
                 text parameter with starting and ending COM_FRAME_TEXT_QUOTES  ==>  COM_FRAME_TEXT_QUOTES are not allowed inside of text
 
     length,data#  
-                length [u32_t as string]
-                data   [u8_t binary]   length bytes of data
+                length [uint32_t as string]
+                data   [uint8_t binary]   length bytes of data
 
 examples:
 
@@ -110,15 +110,15 @@ class ComFrame{
         void reset();
 
         char    module;
-        u8_t    index;
+        uint8_t    index;
         String  command;
 
         // parameter       
         bool    withPar;                
-        u32_t   par1,par2,par3,par4;    // u32_t
+        uint32_t   par1,par2,par3,par4;    // uint32_t
         String  str;                    // string 
-        u32_t   length;                 // binary length
-        u8_t *  pData;                  // binary data
+        uint32_t   length;                 // binary length
+        uint8_t *  pData;                  // binary data
 
         // result
         String res;

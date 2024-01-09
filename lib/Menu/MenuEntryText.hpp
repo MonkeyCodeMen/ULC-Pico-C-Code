@@ -29,12 +29,12 @@ class MenuEntryText: public MenuEntry{
                         const char * value="",
                         const char * valuePre="",
                         const char * valuePost="", 
-                        u8_t font=MENU_STD_FONT, 
-                        u8_t fontSize = MENU_STD_FONT_SCALE,
-                        u16_t foregndcol = TFT_WHITE, 
-                        u16_t backgndCol=TFT_BLACK,
-                        u16_t offsetX = 5,
-                        u16_t offsetY = 1)
+                        uint8_t font=MENU_STD_FONT, 
+                        uint8_t fontSize = MENU_STD_FONT_SCALE,
+                        uint16_t  foregndcol = TFT_WHITE, 
+                        uint16_t  backgndCol=TFT_BLACK,
+                        uint16_t  offsetX = 5,
+                        uint16_t  offsetY = 1)
             :MenuEntry(),
             _cursor(MENU_STD_CURSOR),_emptyCursor(MENU_STD_EMPTY_CURSOR),
             _baseText(text),_valuePre(valuePre),_valueText(value),_valuePost(valuePost),
@@ -43,7 +43,7 @@ class MenuEntryText: public MenuEntry{
             {}
         ~MenuEntryText() = default;
 
-        virtual bool setup(TFT_eSPI * pTFT,u16_t menuHeight,u16_t menuWidth){
+        virtual bool setup(TFT_eSPI * pTFT,uint16_t  menuHeight,uint16_t  menuWidth){
             pTFT->setTextSize(_fontSize);
             _objectHeight = pTFT->fontHeight(_font) + (2*_oy); 
             _objectWidth = menuWidth;
@@ -102,14 +102,14 @@ class MenuEntryText: public MenuEntry{
             }
         }
 
-        virtual void setNewBackgroundColor(u16_t newValue){
+        virtual void setNewBackgroundColor(uint16_t  newValue){
             if (newValue != _backgndCol){
                 _backgndCol=newValue;
                 _dirty = true;
             }
         }
 
-        virtual bool draw(TFT_eSPI * pTFT,u16_t x,u16_t y){
+        virtual bool draw(TFT_eSPI * pTFT,uint16_t  x,uint16_t  y){
             pTFT->setTextSize(_fontSize);
             if (_hasFocus == true){
                 pTFT->fillRect(x,y,_objectWidth,_objectHeight,_foregndCol);
@@ -132,9 +132,9 @@ class MenuEntryText: public MenuEntry{
         String _valuePre;
         String _valueText;
         String _valuePost;
-        u16_t  _foregndCol,_backgndCol;
-        u8_t   _font,_fontSize;
-        u16_t _ox,_oy;
+        uint16_t   _foregndCol,_backgndCol;
+        uint8_t   _font,_fontSize;
+        uint16_t  _ox,_oy;
 };
 
 ////////////////////////////////////////////////
@@ -148,12 +148,12 @@ class MenuEntryBool : public MenuEntryText{
                         const char * offText = F_CHAR("off"),
                         const char * valuePre = F_CHAR("["),
                         const char * valuePost = F_CHAR("]"),
-                        u8_t font=MENU_STD_FONT, 
-                        u8_t fontSize = MENU_STD_FONT_SCALE,
-                        u16_t foregndcol = TFT_WHITE, 
-                        u16_t backgndCol=TFT_BLACK,
-                        u16_t offsetX = 5,
-                        u16_t offsetY = 0)
+                        uint8_t font=MENU_STD_FONT, 
+                        uint8_t fontSize = MENU_STD_FONT_SCALE,
+                        uint16_t  foregndcol = TFT_WHITE, 
+                        uint16_t  backgndCol=TFT_BLACK,
+                        uint16_t  offsetX = 5,
+                        uint16_t  offsetY = 0)
             :MenuEntryText(text,onText,valuePre,valuePost,font,fontSize,foregndcol,backgndCol,offsetX,offsetY),
             _value(initValue),_resetValue(initValue),_withReset(withReset),
             _onText(onText),_offText(offText)
@@ -205,12 +205,12 @@ class MenuEntryBoolToggle : public MenuEntryText{
                         const char * offText = F_CHAR("off"),
                         const char * valuePre = F_CHAR("["),
                         const char * valuePost = F_CHAR("]"),
-                        u8_t font=MENU_STD_FONT, 
-                        u8_t fontSize = MENU_STD_FONT_SCALE,
-                        u16_t foregndcol = TFT_WHITE, 
-                        u16_t backgndCol=TFT_BLACK,
-                        u16_t offsetX = 5,
-                        u16_t offsetY = 0)
+                        uint8_t font=MENU_STD_FONT, 
+                        uint8_t fontSize = MENU_STD_FONT_SCALE,
+                        uint16_t  foregndcol = TFT_WHITE, 
+                        uint16_t  backgndCol=TFT_BLACK,
+                        uint16_t  offsetX = 5,
+                        uint16_t  offsetY = 0)
             :MenuEntryText(text,onText,valuePre,valuePost,font,fontSize,foregndcol,backgndCol,offsetX,offsetY),
             _value(initValue),
             _onText(onText),_offText(offText)
@@ -260,12 +260,12 @@ class MenuEntryInt : public MenuEntryText{
                         bool withReset = true,
                         const char * valuePre = F_CHAR("["),
                         const char * valuePost = F_CHAR("]"),
-                        u8_t font=MENU_STD_FONT, 
-                        u8_t fontSize = MENU_STD_FONT_SCALE,
-                        u16_t foregndcol = TFT_WHITE, 
-                        u16_t backgndCol=TFT_BLACK,
-                        u16_t offsetX = 5,
-                        u16_t offsetY = 0)
+                        uint8_t font=MENU_STD_FONT, 
+                        uint8_t fontSize = MENU_STD_FONT_SCALE,
+                        uint16_t  foregndcol = TFT_WHITE, 
+                        uint16_t  backgndCol=TFT_BLACK,
+                        uint16_t  offsetX = 5,
+                        uint16_t  offsetY = 0)
             :MenuEntryText(text,String(initValue).c_str(),valuePre,valuePost,font,fontSize,foregndcol,backgndCol,offsetX,offsetY),
             _value(initValue),_resetValue(initValue),
             _upperLimit(upperLimit),_lowerLimit(lowerLimit),_step(step),

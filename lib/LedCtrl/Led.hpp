@@ -14,12 +14,12 @@ class Led
         Led(int pin=LED_BUILTIN,bool invers=false);
         ~Led() = default;
 
-        void set(u8_t value);
-        u8_t get()              {return _value;}
+        void set(uint8_t value);
+        uint8_t get()              {return _value;}
 
 
     private:
         int     _pin;
-        u8_t    _value;
+        uint8_t    _value;
         bool    _invers;
 };

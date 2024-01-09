@@ -4,7 +4,7 @@
 
 #include <SPI.h>
 #include <Debug.hpp>
-#include <helper.hpp>
+#include <helper.h>
 
 #include <LedObjects.hpp>
 #include <Menu.hpp>
@@ -78,9 +78,9 @@ volatile bool waitForsecondCore    = true;    // false:  core0 starts with loop 
 
 
 
-void toggleLed(u32_t now){
-  static u32_t timerLED=0;
-  u32_t diff = now-timerLED;
+void toggleLed(uint32_t now){
+  static uint32_t timerLED=0;
+  uint32_t diff = now-timerLED;
 
   if (diff < 250){
     digitalWrite(LED_BUILTIN,HIGH);
@@ -102,9 +102,9 @@ void toggleLed(u32_t now){
 /* 
 
 ToDo: no longer used, but where should we place this
-void renderDisplay(u32_t now){
+void renderDisplay(uint32_t now){
     #ifdef WITH_DISPLAY
-    static u32_t lastCycle=0;
+    static uint32_t lastCycle=0;
 
     if (now-lastCycle > 25){
         pCube->Render();
@@ -246,8 +246,8 @@ void setup1() {
  ******************************************************************
  */
 void loop() {
-  static u8_t prgState=1;
-  u32_t now = millis();
+  static uint8_t prgState=1;
+  uint32_t now = millis();
 
   #ifdef PRINT_LOOP_STATS
     static LoopStats stats(10,1);
@@ -268,8 +268,8 @@ void loop() {
 
 
 void loop1(){
-  static u8_t prgState=1;
-  u32_t now = millis();
+  static uint8_t prgState=1;
+  uint32_t now = millis();
   String time(now/1000);
 
   #ifdef PRINT_LOOP_STATS

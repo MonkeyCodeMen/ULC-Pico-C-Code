@@ -1,6 +1,6 @@
 #include "ComDispatch.hpp"
 #include "Debug.hpp"
-#include "helper.hpp"
+#include "helper.h"
 
 #include <LedObjects.hpp>
 #include <Menu.hpp>

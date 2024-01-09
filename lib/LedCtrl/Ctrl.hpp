@@ -7,7 +7,7 @@
 
 struct Node{
     struct Node *   pNext;
-    u32_t           nr;
+    uint32_t           nr;
     const char  *   pName;    
     Ani         *   pAni; 
 };
@@ -21,9 +21,9 @@ class Ctrl
         virtual const char * getName(); 
         virtual int setup(int nr);                 // change program / animation
         virtual int setup(const char * pName);     // change program / animation
-        virtual int setup(u32_t p1,u32_t p2,u32_t p3,u32_t p4,String str,u32_t length,u8_t ** pData); // config program
+        virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData); // config program
         void addAni(Ani * pAni);
-        u32_t getAniCount()                             { return _count;                                }
+        uint32_t getAniCount()                             { return _count;                                }
         const char * getNameList()                      { return (const char *)_aniNameList.c_str();    }       // like :"0:xxx;1:yyy;..."
     
     protected:
@@ -31,7 +31,7 @@ class Ctrl
         struct Node * _pCurrentNode;
         Ani         * _pCurrentAni;
         String      _aniNameList;   // "0:OFF;1:Static;2:Blink"  ....
-        u32_t       _count;
+        uint32_t       _count;
 
 
         // this objects will be used from two cores 
