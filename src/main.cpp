@@ -136,8 +136,9 @@ void setup() {
   while (millis()  < WAIT_FOR_TERMINAL) {  }; 
   #endif
 
-  Serial.begin(115200);
-  debug.begin(&Serial);
+  Serial1.begin(115200);
+  Serial1.println(" start DEBUG module ");
+  debug.begin(&Serial1);
 
   LOG(F_CHAR("setup 0:"));
   //analogWriteFreq(3200);

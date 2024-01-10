@@ -15,7 +15,7 @@ Debug::Debug()
 }
 
 void Debug::begin(Stream * pOut){
-  if (_pOut == NULL){
+  if (pOut == NULL){
     _initDone = false;
   }else{
     _pOut=pOut;

@@ -8,11 +8,6 @@
 #endif
 
 
-// USB serial port
-//#define DEBUG_PORT  Serial  
-// same like debugger
-#define DEBUG_PORT  Serial
-
 class Debug
 {
 public:
