@@ -1,6 +1,9 @@
 #include "Debug.hpp"
 #include "helper.h"
-#include "malloc.h"
+#if defined(ARDUINO_ARDUINO_NANO33BLE) || defined(ARDUINO_ARCH_MBED_RP2040)|| defined(ARDUINO_ARCH_RP2040)
+  #include "malloc.h"
+#endif
+
 
 
 volatile bool   Debug::_initDone = false;

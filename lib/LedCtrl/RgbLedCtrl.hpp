@@ -4,6 +4,7 @@
 #include "Ctrl.hpp"
 #include "RgbLed.hpp"
 #include "RgbLedAni.hpp"
+#include <Debug.hpp>
 
 
 class RgbLedCtrl : public Ctrl
@@ -39,5 +40,4 @@ class RgbLedCtrl : public Ctrl
                 
     private:
         RgbLed *   _pRgbLed;
-
 };
