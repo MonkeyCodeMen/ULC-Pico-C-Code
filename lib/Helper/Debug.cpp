@@ -14,20 +14,18 @@ Debug::Debug()
 {
 }
 
-bool Debug::_check(){
-    if (_initDone == false){
-            _mutex.lock();
-            _pOut=&DEBUG_PORT;
-            #ifdef Serial1
-              if (_pOut == &Serial)         Serial.begin(115200);
-            #endif
+void Debug::begin(Stream * pOut){
+  if (_pOut == NULL){
+    _initDone = false;
+  }else{
+    _pOut=pOut;
+    _mutex.free();
+    _initDone = true;
+  }
+}
 
-            if (_pOut == &Serial)         Serial.begin(115200);
-            //else if (_pOut == &Serial2)   Serial2.begin(115200);
-            //else if (_pOut == &Serial3)        Serial3.begin(115200);
-            _initDone = true;
-            _mutex.free();
-    }
+bool Debug::_check(){
+    if (_initDone == false){ return false;    }
     return true;
 }
 

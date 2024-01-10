@@ -19,6 +19,8 @@ public:
 	Debug();
 	~Debug() = default;
 
+    void begin(Stream * pOut);
+
     static void log(char * text);
     static void log(char * file,int line,char * text);
     static void log(char * file,int line,char * text,int value);

@@ -136,6 +136,9 @@ void setup() {
   while (millis()  < WAIT_FOR_TERMINAL) {  }; 
   #endif
 
+  Serial.begin(115200);
+  debug.begin(&Serial);
+
   LOG(F_CHAR("setup 0:"));
   //analogWriteFreq(3200);
   //analogWriteRange(255);

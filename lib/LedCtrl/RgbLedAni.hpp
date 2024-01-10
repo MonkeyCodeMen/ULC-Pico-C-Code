@@ -2,7 +2,6 @@
 #include "Ani.hpp"
 #include "RgbLed.hpp"
 #include "helper.h"
-
 #include "ColorSelector.hpp"
 
 class RgbLedAni:public Ani
@@ -10,15 +9,8 @@ class RgbLedAni:public Ani
 	public:
 		RgbLedAni(const char * pName) : Ani(pName) {}
 		~RgbLedAni() = default;
-		
+
 		virtual void loop(uint32_t time,RgbLed * pLed) {}
-
-    // base class
-        //String getName()		{return _name;};
-		//virtual void reset()  {};
-        //virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {};
-        // if nothing to do for this member functions you can stay with the default implentation from base class
-
 };
 
 class RgbLedOffAni : public RgbLedAni{

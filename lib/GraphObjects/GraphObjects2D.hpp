@@ -49,29 +49,21 @@ class Line{
         void newEnd(int32_t  x,int32_t  y)        {_p1=Point(x,y,_color);  }
         void newEnd(Point& p)               {_p1=p;    }
 
-        void moveLineToStart(Point& p);
-        void moveLineToEnd(Point& p);
+        void moveLineToStart(Point& p){
+                int32_t  dx = _p1.getX() - _p0.getX();
+                int32_t  dy = _p1.getY() - _p0.getY();
+                _p0 = p;
+                _p1 = Point(p.getX()+dx,p.getY()+dy,_color);
+            }
+        void moveLineToEnd(Point& p){
+                int32_t  dx = _p0.getX() - _p1.getX();
+                int32_t  dy = _p0.getY() - _p1.getY();
+                _p1 = p;
+                _p0 = Point(p.getX()+dx,p.getY()+dy,_color);
+            }
 
         // draw & erase
-        void draw(TFT_eSPI * pDisplay)              {pDisplay->drawLine(_p0.getX(),_p0.getY(),_p1.getX(),_p1.getY(),_color);       }
-        void erase(TFT_eSPI * pDisplay,uint32_t color) {pDisplay->drawLine(_p0.getX(),_p0.getY(),_p1.getX(),_p1.getY(),color);   }
+        void draw(TFT_eSPI * pDisplay)                  { pDisplay->drawLine(_p0.getX(),_p0.getY(),_p1.getX(),_p1.getY(),_color);       }
+        void erase(TFT_eSPI * pDisplay,uint32_t color)  { pDisplay->drawLine(_p0.getX(),_p0.getY(),_p1.getX(),_p1.getY(),color);        }
 };
-
-
-
-void Line::moveLineToStart(Point& p){
-    int32_t  dx = _p1.getX() - _p0.getX();
-    int32_t  dy = _p1.getY() - _p0.getY();
-
-    _p0 = p;
-    _p1 = Point(p.getX()+dx,p.getY()+dy,_color);
-}
-
-void Line::moveLineToEnd(Point& p){
-    int32_t  dx = _p0.getX() - _p1.getX();
-    int32_t  dy = _p0.getY() - _p1.getY();
-
-    _p1 = p;
-    _p0 = Point(p.getX()+dx,p.getY()+dy,_color);
-}
 

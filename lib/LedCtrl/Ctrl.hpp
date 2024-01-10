@@ -39,5 +39,4 @@ class Ctrl
         // core 1 : Led's  
         // so there must be an access control to local parameters to avoid race conditions
         Mutex       _mutexSetup;
-
 };
