@@ -8,7 +8,7 @@ MenuEntryBoolToggle menuTestEntryBool1("switch : ");
 MenuEntryBool menuTestEntryBool2("==Flag==:",false,false,"TRUE","FALSE","[ "," ]");
 MenuEntryText menuTestTime("Time ","000","[ "," sec] ",2,1,TFT_GREEN,TFT_BLACK,0,0);
 MenuEntryInt  menuTestInt1("gain (-20,20) : ",1,20,-20,1,true,"{","}");
-MenuEntryText menuTestLine0("== Line 0 ==","","","",1,1,TFT_WHITE,TFT_BLACK,0,0);
+MenuEntryText menuTestLine0("== Line 0 ==","","","",2,1,TFT_WHITE,TFT_BLACK,0,0);
 MenuEntryText menuTestLine1("== Line 1 ==","","","",2,1,TFT_WHITE,TFT_BLACK,0,0);
 MenuEntryText menuTestLine2("== Line 2 ==","","","",4,1,TFT_WHITE,TFT_BLACK,0,0);
 MenuEntryText menuTestLine3("== Line 3 ==","","","",2,1,TFT_WHITE,TFT_BLACK,0,0);

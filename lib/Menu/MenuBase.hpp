@@ -292,7 +292,7 @@ class MenuHandler{
                                 _pEntryList[_lastVisibleEntry+1]->draw(_pTFT,0,0);
                                 _pTFT->resetViewport();
                             } else {
-                                // just erase the area, ther is no more entry
+                                // just erase the area, there is no more entry
                                 _pTFT->fillRect(_entryAreaX,y,_entryAreaWidth,restHeight,_backgroundColor);
                             }
                         }
