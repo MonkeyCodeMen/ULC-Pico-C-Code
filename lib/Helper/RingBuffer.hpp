@@ -48,12 +48,12 @@ template<class T> RingBuffer<T>::RingBuffer(uint8_t size) {
     _size = size+1;
 
     if (size == 0){
-        STOP(F_CHAR("invalid Buffer size"));
+        STOP(F("invalid Buffer size"));
     }
     _array = new T[_size];
 
     if (_array == NULL){
-        STOP(F_CHAR("not enough memory for Buffer"));
+        STOP(F("not enough memory for Buffer"));
     }
     // init read / write index 
     _write = 0;

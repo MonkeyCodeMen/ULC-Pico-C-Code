@@ -1,13 +1,13 @@
 #include "Debug.hpp"
 #include "helper.h"
+
 #if defined(ARDUINO_ARDUINO_NANO33BLE) || defined(ARDUINO_ARCH_MBED_RP2040)|| defined(ARDUINO_ARCH_RP2040)
   #include "malloc.h"
 #endif
 
 
-
 volatile bool   Debug::_initDone = false;
-Stream *        Debug::_pOut = NULL;
+HardwareSerial *Debug::_pOut = NULL;
 Mutex           Debug::_mutex;
 
 Debug debug;
@@ -17,61 +17,66 @@ Debug::Debug()
 {
 }
 
-void Debug::begin(Stream * pOut){
+void Debug::begin(HardwareSerial * pOut,uint32_t baud){
   if (pOut == NULL){
     _initDone = false;
   }else{
     _pOut=pOut;
+    _pOut->begin(baud);
     _mutex.free();
     _initDone = true;
   }
 }
+
 
 bool Debug::_check(){
     if (_initDone == false){ return false;    }
     return true;
 }
 
-void Debug::log(char * text){
+void Debug::log(const char * text){
     if (_check() == false) return;
     String time(millis());
 
     _mutex.lock();
-    _out((char*)F_CHAR("LOG("));
-    _out((char *)time.c_str());
-    _out((char*)F_CHAR(")::"));
+    _out(F("LOG("));
+    _out(time.c_str());
+    _out(F(")::"));
     _out(text);
     _outEnd();
     _mutex.free();
 }
 
-void Debug::log(char * file,int line,char * text,int value){
+
+void Debug::log(const char * file,int line,const char * text,int value){
     String str;
     str = text;
     str += String(value);
-    Debug::log(file,line,(char *)str.c_str());
+    Debug::log(file,line,str.c_str());
 }
 
 
-void Debug::log(char * file,int line,char * text){
+void Debug::log(const char * file,int line,const char * text){
     if (_check() == false) return;
     String time(millis());
 
     _mutex.lock();
-    _out((char*)F_CHAR("LOG("));
+    _out(F("LOG("));
     _out((char *)time.c_str());
-    _out((char*)F_CHAR("):"));
+    _out(F("):"));
     _out(file);
-    _out((char*)F_CHAR(":"));
+    _out(F(":"));
     String lineStr(line);
     _out((char *)lineStr.c_str());
-    _out((char*)F_CHAR("::"));
+    _out(F("::"));
     _out(text);
     _outEnd();
     _mutex.free();
 }
 
-void Debug::assertTrue(bool cond ,char * text){
+
+
+void Debug::assertTrue(bool cond ,const char * text){
     if (_check() == false) return;
     if (cond == true){
         return;
@@ -79,16 +84,16 @@ void Debug::assertTrue(bool cond ,char * text){
         String time(millis());
 
         _mutex.lock();
-        _out((char*)F_CHAR("ASSERT failed("));
-        _out((char *)time.c_str());
-        _out((char*)F_CHAR(")::"));
+        _out(F("ASSERT failed("));
+        _out(time);
+        _out(F(")::"));
         _out(text);
         _outEnd();
         _mutex.free();
     }
 }
 
-void Debug::assertTrue(bool cond ,char * file,int line,char * text){
+void Debug::assertTrue(bool cond ,const char * file,int line,const char * text){
     if (_check() == false) return;
     if (cond == true){
         return;
@@ -96,24 +101,18 @@ void Debug::assertTrue(bool cond ,char * file,int line,char * text){
         String time(millis());
         
         _mutex.lock();
-        _out((char*)F_CHAR("ASSERT failed("));
-        _out((char *)time.c_str());
-        _out((char*)F_CHAR("):"));
+        _out(F("ASSERT failed("));
+        _out(time);
+        _out(F("):"));
         _out(file);
-        _out((char*)F_CHAR(":"));
+        _out(F(":"));
         String lineStr(line);
-        _out((char *)lineStr.c_str());
-        _out((char*)F_CHAR("::"));
+        _out(lineStr);
+        _out(F("::"));
         _out(text);
         _outEnd();
         _mutex.free();
     }
-}
-
-
-void Debug::_out(char * text){
-    // at the moment only simply dump to terminal
-    _pOut->print(text);
 }
 
 void Debug::_outEnd(){
@@ -122,7 +121,7 @@ void Debug::_outEnd(){
     _pOut->flush();
 }
 
-void Debug::logMem(char * file,int line,char * text){
+void Debug::logMem(const char * file,int line,const char * text){
     if (_check() == false) return;
     int usedHeap = 0; 
     int freeHeap = 0; 
@@ -131,7 +130,6 @@ void Debug::logMem(char * file,int line,char * text){
     #elif defined(ARDUINO_ARDUINO_NANO33BLE) || defined(ARDUINO_ARCH_MBED_RP2040)|| defined(ARDUINO_ARCH_RP2040)
       usedHeap = rp2040.getUsedHeap();
       freeHeap = rp2040.getFreeHeap();
-    
     #else
     
     #endif
@@ -139,18 +137,18 @@ void Debug::logMem(char * file,int line,char * text){
 
     _mutex.lock();
     
-    _out((char*)F_CHAR("LOG memory("));
-    _out((char *)temp.c_str());
-    _out((char*)F_CHAR("):"));
+    _out(F("LOG memory("));
+    _out(temp);
+    _out(F("):"));
     _out(file);
-    _out((char*)F_CHAR(":"));
+    _out(F(":"));
     //temp = String(line);
     temp = line;
-    _out((char *)temp.c_str());
-    _out((char*)F_CHAR("::"));
+    _out(temp);
+    _out(F("::"));
     _out(text);
     temp="-memory status:\n\tused heap: "+String(usedHeap)+"\n\tfree heap: "+String(freeHeap);
-    _out((char *)temp.c_str());
+    _out(temp);
     
     _outEnd();
     _mutex.free();
@@ -160,19 +158,15 @@ void Debug::logMem(char * file,int line,char * text){
 
 
 void Debug::dump(const char * pName,void *pIn, uint8_t length){
-  uint8_t * p=(uint8_t*)pIn;
+  String out = debug.hexDump((uint8_t*)pIn,length);
   _pOut->print(pName);
-  _pOut->print(" : ");
-  for(uint8_t i=0;i < length;i++) {
-    _pOut->print(p[i],HEX);  
-    _pOut->print('.');
-  }
-  _pOut->println();
+  _pOut->print(F(" : "));
+  _pOut->println(out);
 }
 
 void Debug::dump(const char * pName,uint32_t value){
   _pOut->print(pName);
-  _pOut->print(" : ");
+  _pOut->print(F(" : "));
   _pOut->print(value);  
   _pOut->println();
 }
@@ -180,14 +174,14 @@ void Debug::dump(const char * pName,uint32_t value){
 
 void Debug::dump(const char * pName,uint32_t value, int base){
   _pOut->print(pName);
-  _pOut->print(" : ");
+  _pOut->print(F(" : "));
   _pOut->print(value,base);  
   _pOut->println();
 }
 
-void Debug::dump(const char * pName,String value){
+void Debug::dump(const char * pName,const char * value){
   _pOut->print(pName);
-  _pOut->print(" : ");
+  _pOut->print(F(" : "));
   _pOut->print(value);  
   _pOut->println();
 }
@@ -224,12 +218,12 @@ String Debug::hexDump(uint8_t  * p,uint8_t length,const char * sep,const char * 
   return out;
 }
 
-void Debug::stop(const char * file,int line,char * message){
-  _pOut->print("### critical error - system stop ### file: <");
+void Debug::stop(const char * file,int line,const char * message){
+  _pOut->print(F("### critical error - system stop ### file: <"));
   _pOut->print(file);
-  _pOut->print("> in line :");
+  _pOut->print(F("> in line :"));
   _pOut->print(line);
-  _pOut->print(" :: ");
+  _pOut->print(F(" :: "));
   _pOut->print(message);
   while (1){ };
 }

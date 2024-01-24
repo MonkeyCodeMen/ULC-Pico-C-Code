@@ -52,11 +52,11 @@
 //#define TFT_BL   17            // LED back-light control pin
 //#define TFT_BACKLIGHT_ON HIGH  // Level to turn ON back-light (HIGH or LOW)
 
-#define TFT_MISO  PIN_SPI0_MISO 
-#define TFT_MOSI  PIN_SPI0_MOSI
-#define TFT_SCLK  PIN_SPI0_SCK
+#define TFT_MISO  PIN_SPI1_MISO 
+#define TFT_MOSI  PIN_SPI1_MOSI
+#define TFT_SCLK  PIN_SPI1_SCK
 
-#define TFT_CS    PIN_SPI0_CS_TFT   
+#define TFT_CS    PIN_SPI1_CS_TFT   
 #define TFT_DC    PIN_TFT_DC   
 #define TFT_RST   PIN_TFT_RST   
 

@@ -5,7 +5,7 @@
 #include "Debug.hpp"
 #include <ColorSelector.hpp>
 #include <AnimatedGIF.h>
-#include <SD.h>
+#include <SDcard.hpp>
 #include "PinMapping.h"
 
 
@@ -14,12 +14,12 @@
 class NeoMatrixAni:public Ani
 {
 	public:
-		NeoMatrixAni(const char * pName) : Ani(pName) {};
+		NeoMatrixAni(const char * pName) : Ani(pName) {}
 		~NeoMatrixAni() = default;
 		
-		virtual void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix) {};
-        virtual void reset()                            {};
-        virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {return ANI_OK;};
+		virtual void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix) {}
+        virtual void reset() {}
+        virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {return ANI_OK;}
 
 };
 
@@ -726,19 +726,15 @@ class MatrixGifFileAni : public NeoMatrixAni{
         int _checkFile(){
             #ifdef WITH_SD_CARD
                 SDFile file;
-                globalSPI0_mutex.lock();
                 if (globalSDcard0.exists(_fileName.c_str())){
                     file = globalSDcard0.open(_fileName.c_str(),FILE_READ);
                     if (file.isDirectory()) {
-                        globalSPI0_mutex.unlock();
                         return ANI_ERROR_FILE_NOT_FOUND;
                     }
                     // was just fpr test _gif will open file later
                     file.close();      
-                    globalSPI0_mutex.unlock();
                     return ANI_OK;
                 } 
-                globalSPI0_mutex.unlock();
             #endif
             return ANI_ERROR_FILE_NOT_FOUND;
         }
@@ -749,16 +745,13 @@ class MatrixGifFileAni : public NeoMatrixAni{
         {
             #ifdef WITH_SD_CARD
                 SDFile * pFile = new SDFile();
-                globalSPI0_mutex.lock();
                 *pFile = globalSDcard0.open(fname,FILE_READ);
 
                 if (*pFile)
                 {
                     *pSize = pFile->size();
-                    globalSPI0_mutex.unlock();
                     return (void*)pFile;
                 }
-                globalSPI0_mutex.unlock();
             #endif
             return NULL;
         } /* GIFOpenFile() */
@@ -767,10 +760,8 @@ class MatrixGifFileAni : public NeoMatrixAni{
         {
             SDFile *pFile = static_cast<SDFile *>(pHandle);
             if (pFile != NULL){
-                globalSPI0_mutex.lock();
                 pFile->close();
                 delete pFile;
-                globalSPI0_mutex.free();
             }
                 
         } /* GIFCloseFile() */
@@ -785,20 +776,16 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 iBytesRead = pGifFile->iSize - pGifFile->iPos - 1; // <-- ugly work-around
             if (iBytesRead <= 0)
                 return 0;
-            globalSPI0_mutex.lock();
-                iBytesRead = (int32_t)pFile->read(pBuf, iBytesRead);
-                pGifFile->iPos = pFile->position();
-            globalSPI0_mutex.free();
+            iBytesRead = (int32_t)pFile->read(pBuf, iBytesRead);
+            pGifFile->iPos = pFile->position();
             return iBytesRead;
         } /* GIFReadFile() */
 
         static int32_t _GIFSeekFile(GIFFILE *pGifFile, int32_t iPosition)
         { 
             SDFile *pFile = static_cast<SDFile *>(pGifFile->fHandle);
-            globalSPI0_mutex.lock();
-                pFile->seek(iPosition);
-                pGifFile->iPos = (int32_t)pFile->position();
-            globalSPI0_mutex.free();
+            pFile->seek(iPosition);
+            pGifFile->iPos = (int32_t)pFile->position();
            return pGifFile->iPos;
         } /* GIFSeekFile() */
 

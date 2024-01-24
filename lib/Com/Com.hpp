@@ -7,13 +7,12 @@
 class Com
 {
 public:
-	Com();
+	Com(){}
 	~Com() = default;
 
-    void setup();
+    void begin(HardwareSerial * pPort, int baudRate = 115200, uint16_t config = SERIAL_8N1 );
     void loop();
     void reset();
-
     void sendAnswer(bool res,ComFrame * pFrame);
 
 private:
@@ -41,12 +40,15 @@ private:
     bool getBytes(uint32_t count,uint8_t * pBuffer);
     bool collectField();
     
-    uint8_t    _byte;
-    String  _field;
-    uint32_t   _maxFieldLength;
-    uint32_t   _dataReceived;
-    bool    _endFound;
+    uint8_t     _byte;
+    String      _field;
+    uint32_t    _maxFieldLength;
+    uint32_t    _dataReceived;
+    bool        _endFound;
 
-    ComFrame _frame;
+    ComFrame    _frame;
     ComDispatch _dispatcher;
 };
+
+
+extern Com com;   

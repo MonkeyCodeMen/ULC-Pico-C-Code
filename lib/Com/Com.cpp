@@ -2,13 +2,13 @@
 #include "helper.h"
 #include "Debug.hpp"
 
-Com::Com()
-{
-    _pPort = &Serial;
-}
+Com com;
 
-void Com::setup(){
-    _pPort->begin(115200,SERIAL_8N1);
+
+void Com::begin(HardwareSerial * pPort, int baudRate , uint16_t config){
+    ASSERT(pPort != NULL, "invalid serial port");
+    _pPort = pPort;
+    _pPort->begin(baudRate,config);
     _pPort->println("ULC-Pico V1.0 ready");
     reset();
 }

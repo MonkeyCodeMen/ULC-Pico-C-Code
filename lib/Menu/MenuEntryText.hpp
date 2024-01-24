@@ -144,10 +144,10 @@ class MenuEntryBool : public MenuEntryText{
         MenuEntryBool(  const char * text,
                         bool initValue = false,
                         bool withReset = true,
-                        const char * onText = F_CHAR("on"),
-                        const char * offText = F_CHAR("off"),
-                        const char * valuePre = F_CHAR("["),
-                        const char * valuePost = F_CHAR("]"),
+                        const char * onText = "on",
+                        const char * offText = "off",
+                        const char * valuePre = "[",
+                        const char * valuePost = "]",
                         uint8_t font=MENU_STD_FONT, 
                         uint8_t fontSize = MENU_STD_FONT_SCALE,
                         uint16_t  foregndcol = TFT_WHITE, 
@@ -160,7 +160,7 @@ class MenuEntryBool : public MenuEntryText{
             {   // init value text 
                 setNewValueText((_value == true) ? _onText : _offText); 
                 if (_withReset == false){
-                    changeCursorOption(F_CHAR("< >"),F_CHAR("   "));
+                    changeCursorOption("< >","   ");
                 }
             }
         
@@ -201,10 +201,10 @@ class MenuEntryBoolToggle : public MenuEntryText{
     public:
         MenuEntryBoolToggle(  const char * text,
                         bool initValue = false,
-                        const char * onText = F_CHAR("on"),
-                        const char * offText = F_CHAR("off"),
-                        const char * valuePre = F_CHAR("["),
-                        const char * valuePost = F_CHAR("]"),
+                        const char * onText = "on",
+                        const char * offText = "off",
+                        const char * valuePre = "[",
+                        const char * valuePost = "]",
                         uint8_t font=MENU_STD_FONT, 
                         uint8_t fontSize = MENU_STD_FONT_SCALE,
                         uint16_t  foregndcol = TFT_WHITE, 
@@ -258,8 +258,8 @@ class MenuEntryInt : public MenuEntryText{
                         int lowerLimit = -10,
                         int step = 1,
                         bool withReset = true,
-                        const char * valuePre = F_CHAR("["),
-                        const char * valuePost = F_CHAR("]"),
+                        const char * valuePre = "[",
+                        const char * valuePost = "]",
                         uint8_t font=MENU_STD_FONT, 
                         uint8_t fontSize = MENU_STD_FONT_SCALE,
                         uint16_t  foregndcol = TFT_WHITE, 

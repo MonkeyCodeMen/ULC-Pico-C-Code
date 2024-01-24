@@ -19,44 +19,19 @@
  ******************************************************************
   + implement startup test mode
   + implement boot screen
-  + split bool class in two differnt class
-  + add new second class functionaliyt with reset or not
-  + add menuEntryInt
+  + add new second class functionality with reset or not
   + add menuEntryList
  */
 
-
-
-
-Mutex globalSPI0_mutex;   // ToDo: wo den anlegen ... HelprObjects ... HwObjects ????
-Com * pCom;   // ToDo: class auf begin method umbauen und dann nach ComObjects auslagern 
-
-
-// ==> WITH DISPLAY macht keinen sinn mehr oder muss in COM auch eingebaut werden 
-// toDo change this to DisplayObjects (contains TFT )  and TFT_begin   to rotate display etc 
 #ifdef WITH_DISPLAY
-  #include <SPI.h>
-  #include <TFT_eSPI.h> // Hardware-specific library
-  TFT_eSPI * pTFT;       // Invoke custom library
-
-  #define TFT_DIM     int(255*1.0)
-
-  //#include <cube.hpp>
-  //Cube * pCube;
+  #include <Display.hpp>
 #endif
 
 #ifdef WITH_SD_CARD
-    #include <SPI.h>
-    #include <SD.h>
-    extern SDClass globalSDcard0;
-#endif 
-
-#ifdef WITH_SD_CARD
-  SDClass globalSDcard0;
+  #include <SDcard.hpp>
 #endif
 
-extern void gifSetup();
-extern void gifLoop();
+
 
 /*****************************************************************
  * 
@@ -140,44 +115,35 @@ void setup() {
   Serial1.println(" start DEBUG module ");
   debug.begin(&Serial1);
 
-  LOG(F_CHAR("setup 0:"));
+  LOG(F("setup 0:"));
   //analogWriteFreq(3200);
   //analogWriteRange(255);
 
-  LOG(F_CHAR("setup 0: Test functions"));
+  LOG(F("setup 0: Test functions"));
   TestDebug();
 
-  LOG(F_CHAR("setup 0: COM interface"));
-  // ToDo : change this to ARDUINO Style com.begin()
-  // is com and arduino name ???  
-  pCom = new Com();
-  pCom->setup();  // ==> COM.begin !!!
+  LOG(F("setup 0: COM interface"));
+  com.begin(&Serial1,115200,SERIAL_8N1);
 
-  LOG(F_CHAR("setup 0: startup SPI"));
-  SPI.begin();
-  globalSPI0_mutex.free();
-
-
-  #ifdef WITH_SD_CARD
-    LOG(F_CHAR("setup 0: test for  SD card..."));
-    globalSPI0_mutex.lock();   
+    #ifdef WITH_SD_CARD
+    LOG(F("setup 0: SD card on SPI 1..."));
+    SPI1.begin();
       if (!globalSDcard0.begin(PIN_SD_CS)) {
-        LOG(F_CHAR("setup 0: SD card initialization failed!"));
+        LOG(F("setup 0: SD card initialization failed!"));
       } else {
-        LOG(F_CHAR("setup 0: SD card initialization done."));
+        LOG(F("setup 0: SD card initialization done."));
       }
       globalSDcard0.end();
-    globalSPI0_mutex.unlock();  
   #endif
 
-  LOG(F_CHAR("setup 0: LED"));
+  LOG(F("setup 0: LED"));
   setupLed();
 
   setupStartsecondCore = true;
   while(waitForsecondCore == true){
   }
 
-  LOG(F_CHAR("setup 0: done"));
+  LOG(F("setup 0: done"));
   digitalWrite(LED_BUILTIN, LOW);
 }
 
@@ -185,60 +151,26 @@ void setup1() {
   while(setupStartsecondCore == false){
   }
 
-  LOG(F_CHAR("setup 1:"));
+  LOG(F("setup 1:"));
 
 
   #ifdef WITH_DISPLAY
-    LOG(F_CHAR("setup 1: TFT"));
+    LOG(F("setup 1: TFT"));
     // ToDo: aufräumne test auslagern .....  sub Function irgendwo anders (DisplayObjects??)  in einem anderen File das muss kürzer werden
     // toDo change this to DisplayObjects (contains TFT )  and TFT_begin   to rotate,test , logo  display etc 
 
-    globalSPI0_mutex.lock();   
-      pTFT = new TFT_eSPI();
-      pTFT->init();
-      pTFT->setRotation(3);
-      pTFT->fillScreen(TFT_BLACK);
-      pinMode(PIN_TFT_LED, OUTPUT);
-      analogWrite(PIN_TFT_LED,TFT_DIM);
-      #ifdef WITH_DSIPLAY_STARTUP_TEST
-        setup_t cfg;
-        pTFT->getSetup(cfg);
-        String out="";
-        out+="\nTFT_eSPI version:  "+cfg.version;
-        out+="\nTFT_eSPI setup:    "+cfg.setup_info;
-        out+="\nTFT_eSPI id:       "+String(cfg.setup_id);
-        out+="\nTFT_eSPI pin_mosi: "+String(cfg.pin_tft_mosi);
-        out+="\nTFT_eSPI pin_miso: "+String(cfg.pin_tft_miso);
-        out+="\nTFT_eSPI pin_clk:  "+String(cfg.pin_tft_clk);
-        out+="\nTFT_eSPI pin_cs:   "+String(cfg.pin_tft_cs);
-        out+="\nTFT_eSPI pin_dc:   "+String(cfg.pin_tft_dc);
-        out+="\nTFT_eSPI spi port: "+String(cfg.port);
-        out+="\nTFT_eSPI f spi:    "+String(cfg.tft_spi_freq);
-        out+="\nTFT_eSPI f rd:     "+String(cfg.tft_rd_freq);
-        out+="\nTFT_eSPI f touch:  "+String(cfg.tch_spi_freq);
-        out+="\nTFT_eSPI width:    "+String(cfg.tft_width);
-        out+="\nTFT_eSPI height:   "+String(cfg.tft_height);
-        LOG(out.c_str());
+    SPI.begin();
+    display.begin();
 
-        pTFT->fillScreen(TFT_RED);
-        delay(200);
-        pTFT->fillScreen(TFT_GREEN);
-        delay(200);
-        pTFT->fillScreen(TFT_BLUE);
-        delay(200);
-        pTFT->fillScreen(TFT_BLACK);
-      #endif
-    globalSPI0_mutex.free();
-
-    LOG(F_CHAR("setup 1: menu"));
-    menuHandler.begin(&menuTestHeader,(MenuEntry **)&menuTest,MENU_TEST_COUNT,pTFT,&globalSPI0_mutex);
+    LOG(F("setup 1: menu"));
+    menuHandler.begin(&menuTestHeader,(MenuEntry **)&menuTest,MENU_TEST_COUNT,&display);
     menuHandler.loop(0);
-    //LOG(F_CHAR("setup 1: cube"));
+    //LOG(F("setup 1: cube"));
     //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
   #endif
 
 
-  LOG(F_CHAR("setup 1: done"));
+  LOG(F("setup 1: done"));
   waitForsecondCore = false;
 }
 
@@ -261,7 +193,7 @@ void loop() {
       case 1:   pLedCtrl1->loop(now);             break;
       case 2:   pLedCtrl2->loop(now);             break;
       case 3:   pRgbCtrl1->loop(now);             break;
-      case 4:   pCom->loop();                     break;
+      case 4:   com.loop();                       break;
       case 5:   toggleLed(now);                   break;
       default:  prgState = 0;                     break;
   }

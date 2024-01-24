@@ -1,6 +1,5 @@
 #pragma once
 
-#include <TFT_eSPI.h> // Hardware-specific library
 #include <GraphObjects2D.hpp>
 #include <GraphObjects3D.hpp>
 

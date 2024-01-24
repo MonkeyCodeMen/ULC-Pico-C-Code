@@ -65,7 +65,7 @@ void Cube::Render(){
         }
     }
 
-    globalSPI0_mutex.lock();
+    
     // remove old lines
     for (int i=0; i < _linesDrawn; i++ ){
         _drawnLines[i].erase(_pDisplay,TFT_BLACK);
@@ -81,8 +81,6 @@ void Cube::Render(){
             _linesDrawn++;
         }
     }
-    globalSPI0_mutex.free();
-
 }
 
 void Cube::moveView(){

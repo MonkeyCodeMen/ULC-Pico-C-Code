@@ -238,13 +238,6 @@ SD card has special SPI operation
 
 
 
-////////////////////////////////////////
-// HW access control elements
-#include <Mutex.hpp>
-extern Mutex globalSPI0_mutex;
-
-
-
 
 
 

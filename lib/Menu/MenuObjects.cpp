@@ -2,7 +2,7 @@
 
 MenuHandler menuHandler;
 
-MenuHeaderText menuTestHeader(F_CHAR("test menu: (c) MonkeyCodeMen"));
+MenuHeaderText menuTestHeader("test menu: (c) MonkeyCodeMen");
 
 MenuEntryBoolToggle menuTestEntryBool1("switch : ");
 MenuEntryBool menuTestEntryBool2("==Flag==:",false,false,"TRUE","FALSE","[ "," ]");

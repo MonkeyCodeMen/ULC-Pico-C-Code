@@ -35,16 +35,16 @@ class MenuHandler{
             int res;
             _valid = false;
             _pTFT = pTFT;
-            if (_pTFT == NULL)                                      { LOG(F_CHAR("invalid display driver"));                    return false;   }
-            if ((res = _initMenuArea())                     != 0)   { LOG_INT(F_CHAR("invalid menu area line:"),res);           return false;   }
-            if ((res = _initHeader(pHeader))                != 0)   { LOG_INT(F_CHAR("invalid header object line:"),res);       return false;   }
-            if ((res = _initEntries(pEntryList,listCount))  != 0)   { LOG_INT(F_CHAR("invalid entry pointer line:"),res);       return false;   }
-            if ((res = _initMutex(pDisplaySPImutex))        != 0)   { LOG_INT(F_CHAR("MUTEX for SPI access error line:"),res);  return false;   }
-            if ((res = _calcCoordinates())                  != 0)   { LOG_INT(F_CHAR("faile to calc sections line:"),res);      return false;   }
-            if ((res = _checkMenuSize())                    != 0)   { LOG_INT(F_CHAR("invalid menu dimension line:"),res);      return false;   }
-            if ((res = _checkHeaderSize())                  != 0)   { LOG_INT(F_CHAR("invalid header dimension line:"),res);    return false;   }
-            if ((res = _checkEntriesSize())                 != 0)   { LOG_INT(F_CHAR("invalid entry dimension line:"),res);     return false;   }
-            if ((_hasHeader == false) && (_entryCountMax == 0))     { LOG(F_CHAR("WARNING empty menu"));                                        }
+            if (_pTFT == NULL)                                      { LOG(F("invalid display driver"));                    return false;   }
+            if ((res = _initMenuArea())                     != 0)   { LOG_INT(F("invalid menu area line:"),res);           return false;   }
+            if ((res = _initHeader(pHeader))                != 0)   { LOG_INT(F("invalid header object line:"),res);       return false;   }
+            if ((res = _initEntries(pEntryList,listCount))  != 0)   { LOG_INT(F("invalid entry pointer line:"),res);       return false;   }
+            if ((res = _initMutex(pDisplaySPImutex))        != 0)   { LOG_INT(F("MUTEX for SPI access error line:"),res);  return false;   }
+            if ((res = _calcCoordinates())                  != 0)   { LOG_INT(F("faile to calc sections line:"),res);      return false;   }
+            if ((res = _checkMenuSize())                    != 0)   { LOG_INT(F("invalid menu dimension line:"),res);      return false;   }
+            if ((res = _checkHeaderSize())                  != 0)   { LOG_INT(F("invalid header dimension line:"),res);    return false;   }
+            if ((res = _checkEntriesSize())                 != 0)   { LOG_INT(F("invalid entry dimension line:"),res);     return false;   }
+            if ((_hasHeader == false) && (_entryCountMax == 0))     { LOG(F("WARNING empty menu"));                                        }
             setActiveEntry(0);
             _setViewportFromTop(0);
             _valid = true;
