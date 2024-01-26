@@ -12,7 +12,7 @@ class LedCtrl : public Ctrl
     public:
         LedCtrl(Led *pLed):Ctrl(){
                 // create LED object
-                ASSERT(pLed != NULL,"pLed must not be NULL");
+                ASSERT(pLed != NULL,F("pLed must not be NULL"));
                 _pLed = pLed;
                 // fill ani List
                 addAni(new LedOffAni());
@@ -26,6 +26,7 @@ class LedCtrl : public Ctrl
             }
 
         ~LedCtrl(){  }
+
 
         void loop(uint32_t time){
                 if (_pCurrentAni == NULL)           return;

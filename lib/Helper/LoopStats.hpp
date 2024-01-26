@@ -10,7 +10,7 @@ class LoopStats
         LoopStats(uint8_t bands, uint32_t factor_ms):
         _sampleCount(0),_sampleTarget(0x8000),_bands(bands),_factor_ms(factor_ms){
                 _pBuffer      = new uint16_t[bands+1];
-                ASSERT(_pBuffer != NULL,F_CHAR("loopStats could not create measurement buffer"));
+                ASSERT(_pBuffer != NULL,F("loopStats could not create measurement buffer"));
                 reset();
             }
 

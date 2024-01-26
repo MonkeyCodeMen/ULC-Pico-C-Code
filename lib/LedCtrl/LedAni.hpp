@@ -286,8 +286,8 @@ class LedBreathAni : public LedAni{
     */
 
     public:
-        LedBreathAni():LedAni(F_CHAR("breath"))                                             {                                               }
-        void reset()                                                                        { setup(0x00204040,0x0000FF10,0,0,"",0,NULL);   }
+        LedBreathAni():LedAni("breath")       {                        }
+        void reset()   { setup(0x00204040,0x0000FF10,0,0,"",0,NULL);   }
         int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData){
             _state = stop; 
             _stepTime  = H_WORD(p1);

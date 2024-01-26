@@ -5,6 +5,33 @@
 #include <LedObjects.hpp>
 #include <Menu.hpp>
 
+#include <SDcard.hpp>
+
+void printDirectory(SDFile dir, int numTabs) {
+  while (true) {
+    SDFile entry =  dir.openNextFile();
+    if (! entry) {
+      // no more files
+      break;
+    }
+
+    for (uint8_t i = 0; i < numTabs; i++) {
+      Serial.print('\t');
+    }
+
+    Serial.print(entry.name());
+    if (entry.isDirectory()) {
+      Serial.println("/");
+      printDirectory(entry, numTabs + 1);
+    } else {
+      // files have sizes, directories do not
+      Serial.print("\t\t");
+      Serial.println(entry.size(), DEC);
+    }
+    entry.close();
+  }
+}
+
 
 ComDispatch::ComDispatch()
 {
@@ -22,7 +49,7 @@ bool ComDispatch::dispatchFrame(ComFrame * pFrame)
         case('E'):  res = dispatchMenuFrame(pFrame);      break;        // remote control of menu
         
         default:
-            pFrame->res=F_CHAR("unknown module");
+            pFrame->res=F("unknown module");
             return false;
     }
     return res;
@@ -42,7 +69,7 @@ bool ComDispatch::dispatchLedFrame(ComFrame * pFrame){
         case 2: pLedCtrl = pLedCtrl3; break;
         case 3: pLedCtrl = pLedCtrl4; break;
         default:
-            pFrame->res = F_CHAR("unknown index");
+            pFrame->res = F("unknown index");
             return false;
     }
     if (pFrame->withPar == true){
@@ -63,7 +90,7 @@ bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame){
         case 0: pRgbCtrl = pRgbCtrl1; break;
         case 1: pRgbCtrl = pRgbCtrl2; break;
         default:
-            pFrame->res=F_CHAR("unknown index");
+            pFrame->res=F("unknown index");
             return false;
     }
 
@@ -86,7 +113,7 @@ bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame){
         case 0: pStripeCtrl = pNeoStripeCtrl1; break;
         case 1: pStripeCtrl = pNeoStripeCtrl2; break;
         default:
-            pFrame->res=F_CHAR("unknown index");
+            pFrame->res=F("unknown index");
             return false;
     }
     int res;
@@ -108,7 +135,7 @@ bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame){
         case 0: pMatrixCtrl = pNeoMatrixCtrl1; break;
         case 1: pMatrixCtrl = pNeoMatrixCtrl2; break;
         default:
-            pFrame->res=F_CHAR("unknown index");
+            pFrame->res=F("unknown index");
             return false;
     }
     int res;
@@ -137,7 +164,15 @@ bool ComDispatch::dispatchMenuFrame(ComFrame * pFrame){
         return menuHandler.onEvent(EVENT_RIGHT);
     } else if (pFrame->command == "ENTER"){
         return menuHandler.onEvent(EVENT_ENTER);
-    } 
+    } else if (pFrame->command == "DIR"){
+        Serial.println("directory of SD card");
+        SDFile root = globalSDcard0.open("/");
+        printDirectory(root,0);
+        return true;
+    } else if (pFrame->command == "MEM"){
+        LOG_MEM(F("mem log requested by COM interface"));
+        return true;
+    }
     pFrame->res = "unknown command for menu";
     return false;
 }

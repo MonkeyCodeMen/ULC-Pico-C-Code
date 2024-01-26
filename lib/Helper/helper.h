@@ -2,10 +2,6 @@
 #include <Arduino.h>
 #include "StringList.hpp"
 
-#ifndef F_CHAR
-    #define F_CHAR (const char *) F
-#endif
-
 /* 
 fast and simple convert function 
 

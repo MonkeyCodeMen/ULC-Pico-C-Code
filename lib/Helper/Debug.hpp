@@ -58,9 +58,9 @@ public:
     static void dump(String name,uint32_t value)                                        { dump(name.c_str(),value);                         }
 
     static void dump(const char * pName,uint32_t value,int base);
-    static void dump(char * pName,void *p,uint32_t value,int base)                      { dump((const char *)pName,p,value,base);           }
-    static void dump(const __FlashStringHelper * pName,void *p,uint32_t value,int base) { dump(String(pName),p,value,base);                 }
-    static void dump(String name,void *p,uint32_t value,int base)                       { dump(name.c_str(),p,value,base);                  }
+    static void dump(char * pName,uint32_t value,int base)                              { dump((const char *)pName,value,base);             }
+    static void dump(const __FlashStringHelper * pName,uint32_t value,int base)         { dump(String(pName),value,base);                   }
+    static void dump(String name,uint32_t value,int base)                               { dump(name.c_str(),value,base);                    }
 
 
     static void dump(const char * pName,const char * value);

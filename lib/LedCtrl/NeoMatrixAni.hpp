@@ -25,7 +25,7 @@ class NeoMatrixAni:public Ani
 
 class MatrixOffAni : public NeoMatrixAni{
     public:
-        MatrixOffAni():NeoMatrixAni(F_CHAR("off"))      {};
+        MatrixOffAni():NeoMatrixAni("off")      {}
         void reset() {_color = 0; _needUpdate = true;};
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix) {
             if (_needUpdate == true){
@@ -33,7 +33,7 @@ class MatrixOffAni : public NeoMatrixAni{
                 pMatrix->show();
                 _needUpdate = false;
             }
-        };
+        }
     private:
         bool    _needUpdate;
         uint16_t    _color;
@@ -63,7 +63,7 @@ class MatrixStaticAni : public NeoMatrixAni{
                |               |    N/A        
     */
    public:
-        MatrixStaticAni():NeoMatrixAni(F_CHAR("static"))      {};
+        MatrixStaticAni():NeoMatrixAni("static")      {}
         void reset() {  setup(0xFF,0,0,0,"",0,NULL); };
 
         int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {
@@ -71,7 +71,7 @@ class MatrixStaticAni : public NeoMatrixAni{
             _color = p1&0xFFFFFF;
             _state = init;
             return ANI_OK;
-        };
+        }
 
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix) {
             uint16_t  color565; 
@@ -93,7 +93,7 @@ class MatrixStaticAni : public NeoMatrixAni{
                     // do nothing .. it's static
                     break;
             }
-        };
+        }
 
     private:
         enum StaticState {stop,init,run};
@@ -126,16 +126,16 @@ class MatrixRainbowAni : public NeoMatrixAni{
                |               |    color list       
     */    
     public:
-        MatrixRainbowAni()  : NeoMatrixAni(F_CHAR("rainbow")) {};
+        MatrixRainbowAni()  : NeoMatrixAni("rainbow") {};
         
-        void reset() {  setup(0x0040,0,0x5001,0,"",0,NULL); };
+        void reset() {  setup(0x0040,0,0x5001,0,"",0,NULL); }
         int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
             _timeInc    = clamp(1,p1,100000);
             _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);            
             _state      = init;
             return ANI_OK;
-        };
+        }
  
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
             uint32_t diff;
@@ -161,7 +161,7 @@ class MatrixRainbowAni : public NeoMatrixAni{
                     }
                     break;
             }
-        };
+        }
 
 
     private:
@@ -210,7 +210,7 @@ class MatrixBreathAni : public NeoMatrixAni{
     */
 
     public:
-        MatrixBreathAni():NeoMatrixAni(F_CHAR("breath"))      {};
+        MatrixBreathAni():NeoMatrixAni("breath")      {}
         
         void reset() {  setup(0x00204040,0x0000FF10,1,0,"",0,NULL); };
         int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
@@ -234,7 +234,7 @@ class MatrixBreathAni : public NeoMatrixAni{
 
             _state = init;
             return ANI_OK;
-        };
+        }
  
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
             uint32_t diff,color24;
@@ -291,7 +291,7 @@ class MatrixBreathAni : public NeoMatrixAni{
                         pMatrix->show();
                     } 
             }
-        };
+        }
     private:
         enum BreathState {stop,init,up,down};
         volatile BreathState _state;
@@ -333,9 +333,9 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
 
     */
     public:
-        MatrixMultiFlashAni():NeoMatrixAni(F_CHAR("multi flash"))      {};
+        MatrixMultiFlashAni():NeoMatrixAni("multi flash")      {}
 
-        void reset() { setup(0x00200060,0x000201F4,0xFF01,0,"0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF",0,NULL); };
+        void reset() { setup(0x00200060,0x000201F4,0xFF01,0,"0xFFFFFF,0x00FF0000,0x00FF00,0x0000FF",0,NULL); }
        
         virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
@@ -346,7 +346,7 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
             _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);
             _state      = init;
             return ANI_OK;
-        };
+        }
 
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
             uint32_t diff;
@@ -397,7 +397,7 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
                     }
                     break;
             }
-        };
+        }
 
  
     protected:
@@ -456,7 +456,7 @@ class MatrixBoxAni : public NeoMatrixAni{
             else if (strcmp(type,"hor") == 0)       _type = hor;
             else if (strcmp(type,"ver") == 0)       _type = ver;
             else _type = none;
-        };
+        }
 
         void reset() { setup(0x020,1,0x800A,0,"",0,NULL); };
        
@@ -467,7 +467,7 @@ class MatrixBoxAni : public NeoMatrixAni{
             _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);
             _state      = init;
             return ANI_OK;
-        };
+        }
 
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
             uint32_t diff;
@@ -495,7 +495,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                     }
                     break;
             }
-        };
+        }
 
  
     protected:
@@ -558,7 +558,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                     }
                 }
             }
-        };
+        }
 
         void _drawRect(Adafruit_NeoMatrix * pMatrix,uint32_t startColor){
             uint32_t color24 = startColor;
@@ -589,7 +589,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                     }
                 }
             }
-        };
+        }
 
         void _drawHor(Adafruit_NeoMatrix * pMatrix,uint32_t startColor){
             uint32_t color24 = startColor;
@@ -607,7 +607,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                         borderLine = 0;
                     }
             }
-        };
+        }
 
         void _drawVer(Adafruit_NeoMatrix * pMatrix,uint32_t startColor){
             uint32_t color24 = startColor;
@@ -625,10 +625,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                         borderLine = 0;
                     }
             }
-        };
-
-
-
+        }
 };
  
 class MatrixGifFileAni : public NeoMatrixAni{
@@ -656,11 +653,11 @@ class MatrixGifFileAni : public NeoMatrixAni{
                |               |    N/A        
     */
     public:
-        MatrixGifFileAni():NeoMatrixAni(F_CHAR("gif"))      {
+        MatrixGifFileAni():NeoMatrixAni("gif")      {
             _gif.begin(GIF_PALETTE_RGB888 );
         };
         
-        void reset() { setup(0x80,0,0,0,"TEST.GIF",0,NULL); };
+        void reset() { setup(0x80,0,0,0,"START.GIF",0,NULL); }
 
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
             switch (_state){
@@ -672,6 +669,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 case init:
                     pMatrix->fillScreen(0);
                     pMatrix->setBrightness(_brightness);
+                    _gif.close();
                     _gif.open((const char *)_fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
                     _count = 0;
                     _state = run;
@@ -687,21 +685,20 @@ class MatrixGifFileAni : public NeoMatrixAni{
                                 _count++;
                                 if (_count >= _repeat){
                                     _state = stop;
-                                    //_gif.close();
                                     break;
                                 }
                             }
-                            //_gif.reset();
+                            //_gif.reset();  does not work for me ???
                             _gif.open((const char *)_fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
                         }
                     }
                     break;
             }
-        };
+        }
 
         int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
-            _gif.close();
+            //_gif.close(); do _gif handling only in main loop (reentrance)
             _fileName   = str;  
             _brightness = L_BYTE(p1);
             _repeat     = H_WORD(p1);
@@ -710,16 +707,16 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 _state  = init;
             } 
             return res;
-        };
+        }
 
     private:
         enum GifState {stop,init,run};
         volatile GifState   _state;
 
         AnimatedGIF         _gif; // static instance of the class uses 22.5K of RAM
-        uint32_t               _lastFrame;
+        uint32_t            _lastFrame;
         int                 _wait,_repeat,_count;                
-        uint8_t                _brightness;
+        uint8_t             _brightness;
         String              _fileName;
 
 
@@ -731,7 +728,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                     if (file.isDirectory()) {
                         return ANI_ERROR_FILE_NOT_FOUND;
                     }
-                    // was just fpr test _gif will open file later
+                    // was just test if file exits .. file open will be done later by _gif object
                     file.close();      
                     return ANI_OK;
                 } 
@@ -754,7 +751,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 }
             #endif
             return NULL;
-        } /* GIFOpenFile() */
+        } 
 
         static void _GIFCloseFile(void *pHandle)
         {
@@ -764,7 +761,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 delete pFile;
             }
                 
-        } /* GIFCloseFile() */
+        } 
 
         static int32_t _GIFReadFile(GIFFILE *pGifFile, uint8_t *pBuf, int32_t iLen)
         {
@@ -779,7 +776,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
             iBytesRead = (int32_t)pFile->read(pBuf, iBytesRead);
             pGifFile->iPos = pFile->position();
             return iBytesRead;
-        } /* GIFReadFile() */
+        } 
 
         static int32_t _GIFSeekFile(GIFFILE *pGifFile, int32_t iPosition)
         { 
@@ -787,12 +784,13 @@ class MatrixGifFileAni : public NeoMatrixAni{
             pFile->seek(iPosition);
             pGifFile->iPos = (int32_t)pFile->position();
            return pGifFile->iPos;
-        } /* GIFSeekFile() */
+        } 
 
         static void _GIFDraw(GIFDRAW *pDraw)
         {
             // GIF decoder callback function
             // called once per line as the image is decoded
+            // mainly copyed from LIB example like the other file acccess methods too
             uint8_t r, g, b, *s, *p, *pPal = (uint8_t *)pDraw->pPalette;
             int x, y = pDraw->iY + pDraw->y;
             Adafruit_NeoMatrix * pMatrix = (Adafruit_NeoMatrix *)pDraw->pUser;
@@ -830,6 +828,6 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 // last line has been decoded, display the image
                 pMatrix->show();
             }
-        } /* GIFDraw() */
+        } 
 };
 

@@ -73,7 +73,7 @@ void Ctrl::addAni(Ani * pAni){
 
 
 const char * Ctrl::getName(){
-    if (_pCurrentAni == NULL)   return F_CHAR("");
+    if (_pCurrentAni == NULL)   return "";
     return _pCurrentNode->pName;
 }
 

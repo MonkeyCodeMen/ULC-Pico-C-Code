@@ -48,29 +48,29 @@ NeoMatrixCtrl  * pNeoMatrixCtrl2;
 
 
 bool setupLed(){
-    LOG(F_CHAR("setup: LED"));
+    LOG(F("setup: LED"));
     pLedCtrl1 = new LedCtrl(&ledStripe1);
     pLedCtrl2 = new LedCtrl(&ledStripe2);
     pLedCtrl3 = new LedCtrl(&ledStripe3);
     pLedCtrl4 = new LedCtrl(&ledStripe4);
-    pLedCtrl1->setup(F_CHAR("breath"));
-    pLedCtrl2->setup(F_CHAR("breath"));
-    pLedCtrl3->setup(F_CHAR("breath"));
-    pLedCtrl4->setup(F_CHAR("breath"));
+    pLedCtrl1->setup("breath");
+    pLedCtrl2->setup("breath");
+    pLedCtrl3->setup("breath");
+    pLedCtrl4->setup("breath");
 
-    LOG(F_CHAR("setup: RGB LED"));
+    LOG(F("setup: RGB LED"));
     pRgbCtrl1 = new RgbLedCtrl(&rgbLedStrip1);
     pRgbCtrl2 = new RgbLedCtrl(&rgbLedStrip2);
-    pRgbCtrl1->setup(F_CHAR("rainbow"));  
-    pRgbCtrl2->setup(F_CHAR("rainbow"));  
+    pRgbCtrl1->setup("rainbow");  
+    pRgbCtrl2->setup("rainbow");  
 
-    LOG(F_CHAR("setup: Neo stripe"));
+    LOG(F("setup: Neo stripe"));
     pNeoStripeCtrl1 = new NeoStripeCtrl(&ws2812strip1);
     pNeoStripeCtrl2 = new NeoStripeCtrl(&ws2812strip2);
     pNeoStripeCtrl1->setup(13);  
     pNeoStripeCtrl2->setup(13);  
 
-    LOG(F_CHAR("setup: Neo matrix"));
+    LOG(F("setup: Neo matrix"));
     pNeoMatrixCtrl1 = new NeoMatrixCtrl(&neoMatrix1);
     pNeoMatrixCtrl2 = new NeoMatrixCtrl(&neoMatrix2);
     pNeoMatrixCtrl1->setup("breath");

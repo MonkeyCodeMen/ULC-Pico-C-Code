@@ -7,7 +7,7 @@ class NeoMatrixCtrl : public Ctrl
 {
     public:
         NeoMatrixCtrl(Adafruit_NeoMatrix * pMatrix) : Ctrl() {
-                    ASSERT(pMatrix != NULL,"pMatrix must not be NULL");
+                    ASSERT(pMatrix != NULL,F("pMatrix must not be NULL"));
                     _pMatrix = pMatrix;
                     _pMatrix->begin();
                     // does not work to dim colors down and then UP (original color is not stored)
@@ -20,10 +20,10 @@ class NeoMatrixCtrl : public Ctrl
                     addAni(new MatrixRainbowAni());
                     addAni(new MatrixBreathAni());
                     addAni(new MatrixMultiFlashAni());
-                    addAni(new MatrixBoxAni(F_CHAR("rect")));
-                    addAni(new MatrixBoxAni(F_CHAR("circle")));
-                    addAni(new MatrixBoxAni(F_CHAR("ver")));
-                    addAni(new MatrixBoxAni(F_CHAR("hor")));
+                    addAni(new MatrixBoxAni("rect"));
+                    addAni(new MatrixBoxAni("circle"));
+                    addAni(new MatrixBoxAni("ver"));
+                    addAni(new MatrixBoxAni("hor"));
                     addAni(new MatrixGifFileAni());
                     // select first
                     setup(0);

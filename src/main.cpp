@@ -11,6 +11,8 @@
 
 #include <LoopStats.hpp>
 #include <Com.hpp>
+#include <keyboard.hpp>
+#include <Resources.hpp>
 
 /*****************************************************************
  * 
@@ -123,7 +125,7 @@ void setup() {
   TestDebug();
 
   LOG(F("setup 0: COM interface"));
-  com.begin(&Serial1,115200,SERIAL_8N1);
+  com.begin(&Serial,115200,SERIAL_8N1);
 
     #ifdef WITH_SD_CARD
     LOG(F("setup 0: SD card on SPI 1..."));
@@ -133,7 +135,7 @@ void setup() {
       } else {
         LOG(F("setup 0: SD card initialization done."));
       }
-      globalSDcard0.end();
+      //globalSDcard0.end();
   #endif
 
   LOG(F("setup 0: LED"));
@@ -169,6 +171,8 @@ void setup1() {
     //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
   #endif
 
+  LOG(F("setup 1: keyboard"));
+  keyboard.begin(&Wire,0,&I2C0_mutex);
 
   LOG(F("setup 1: done"));
   waitForsecondCore = false;
@@ -220,6 +224,7 @@ void loop1(){
       case 4:   pNeoStripeCtrl1->loop(now);       break;
       #ifdef WITH_DISPLAY
         case 5:  
+            keyboard.loop_getEvent(now);
             menuTestTime.setNewValueText(time.c_str());
             menuHandler.loop(now);          
             break;

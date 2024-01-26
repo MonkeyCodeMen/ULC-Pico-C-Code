@@ -18,7 +18,7 @@ void test_simple_Test3(void) {
 
 void test_simple_DebugAndUnity(void) {
   ASSERT(true == true,"");
-  LOG(F_CONST("LOG print in UINTY test framework"));
+  LOG(F("LOG print in UINTY test framework"));
   TEST_ASSERT_TRUE(true);
 }
 

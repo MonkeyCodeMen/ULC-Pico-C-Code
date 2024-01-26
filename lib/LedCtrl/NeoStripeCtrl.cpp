@@ -5,8 +5,8 @@
 
 NeoStripeCtrl::NeoStripeCtrl(WS2812FX * pNeoStripe) : Ctrl()
 {
-    LOG(F_CHAR("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx"));
-    ASSERT(pNeoStripe != NULL,"pNeoStripe must not be NULL");
+    LOG(F("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx"));
+    ASSERT(pNeoStripe != NULL,F("pNeoStripe must not be NULL"));
     _pNeoStripe = pNeoStripe;
     _pNeoStripe->init();
     _count = _pNeoStripe->getModeCount() - MAX_CUSTOM_MODES + 1;
@@ -43,7 +43,7 @@ void NeoStripeCtrl::setOff(){
 
 const char * NeoStripeCtrl::getName(){
     if (_current == 0){
-        return F_CHAR("Off");
+        return "Off";
     } 
     return (const char *)_pNeoStripe->getModeName(_current-1);
 }
@@ -90,7 +90,7 @@ int NeoStripeCtrl::setup(const char *pName){
             return ANI_OK;            
         }
     }
-    LOG(F_CHAR("NeoStripeCtrl::setup could not find mode"));
+    LOG(F("NeoStripeCtrl::setup could not find mode"));
     _mutexSetup.free();
     return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 }

@@ -6,10 +6,10 @@ Com com;
 
 
 void Com::begin(HardwareSerial * pPort, int baudRate , uint16_t config){
-    ASSERT(pPort != NULL, "invalid serial port");
+    ASSERT(pPort != NULL, F("invalid serial port"));
     _pPort = pPort;
     _pPort->begin(baudRate,config);
-    _pPort->println("ULC-Pico V1.0 ready");
+    _pPort->println(F("ULC-Pico V1.0 ready"));
     reset();
 }
 
@@ -224,7 +224,7 @@ void Com::getLength(){
         _frame.length = convertStrToInt(_field);
         _state = DATA;
         _dataReceived = 0;
-        ASSERT(_frame.pData == NULL,F_CHAR("frame binary buffer must be cleared at this point"));
+        ASSERT(_frame.pData == NULL,F("frame binary buffer must be cleared at this point"));
         _frame.pData = new uint8_t[_frame.length];
     }
 }

@@ -60,7 +60,7 @@ class MenuHandler{
             return true;
         }
 
-        bool onEvent(MENU_Event_Type event){
+        bool onEvent(Event_Type event){
             if (_valid == false)    { return false; }
             switch (event)   {
                 case EVENT_DOWN:

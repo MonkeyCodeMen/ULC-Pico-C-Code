@@ -174,11 +174,10 @@ class MenuEntryBool : public MenuEntryText{
             if (newValue != _value){
                 _value = newValue;
                 setNewValueText((_value == true) ? _onText : _offText);
-                _dirty = true;
             }            
         }
 
-        virtual bool onEvent(MENU_Event_Type event) {
+        virtual bool onEvent(Event_Type event) {
             switch(event){
                 case EVENT_RIGHT:   setValue(true);         return true;    break;
                 case EVENT_LEFT:    setValue(false);        return true;    break;
@@ -228,11 +227,10 @@ class MenuEntryBoolToggle : public MenuEntryText{
             if (newValue != _value){
                 _value = newValue;
                 setNewValueText((_value == true) ? _onText : _offText);
-                _dirty = true;
             }            
         }
 
-        virtual bool onEvent(MENU_Event_Type event) {
+        virtual bool onEvent(Event_Type event) {
             // handle Event based on selected logic
             switch(event){
                 case EVENT_RIGHT:  
@@ -279,14 +277,15 @@ class MenuEntryInt : public MenuEntryText{
         }
 
         virtual void setValue(int newValue){
+            newValue = max(_lowerLimit,newValue);
+            newValue = min(_upperLimit,newValue);
             if (newValue != _value){
                 _value = newValue;
                 setNewValueText(String(_value).c_str());
-                _dirty = true;
             }            
         }
 
-        virtual bool onEvent(MENU_Event_Type event) {
+        virtual bool onEvent(Event_Type event) {
             // handle Event based on selected logic
             switch(event){
                 case EVENT_RIGHT: 
@@ -314,4 +313,168 @@ class MenuEntryInt : public MenuEntryText{
     protected:
         int    _value,_resetValue,_upperLimit,_lowerLimit,_step;
         bool   _withReset;
+};
+
+
+class MenuEntryList : public MenuEntryText{
+    public:
+        MenuEntryList(  const char *text,
+                        char **     pValueList=NULL,
+                        uint8_t     listSize=0,
+                        int         initIndex=0,
+                        bool        wrapAround = false,
+                        bool        withRest = false,
+                        const char * valuePre = "[",
+                        const char * valuePost = "]",
+                        uint8_t font=MENU_STD_FONT, 
+                        uint8_t fontSize = MENU_STD_FONT_SCALE,
+                        uint16_t  foregndcol = TFT_WHITE, 
+                        uint16_t  backgndCol=TFT_BLACK,
+                        uint16_t  offsetX = 5,
+                        uint16_t  offsetY = 0)
+            :MenuEntryText(text,"",valuePre,valuePost,font,fontSize,foregndcol,backgndCol,offsetX,offsetY),
+            _currentIndex(-1),_resetIndex(initIndex),_pValueList(NULL),_listSize(listSize),_wrapAround(wrapAround),_withReset(withRest)      {   
+            if ((_listSize > 0) &&
+                (_resetIndex < _listSize) &&
+                (_resetIndex >= 0) &&
+                (_pValueList != NULL) ){
+                // there could not be an old list (constructor)
+                _pValueList = new char *[_listSize];
+                memcpy(_pValueList,pValueList,sizeof(char*)*_listSize);
+                setIndex(_resetIndex);
+            }
+        }
+        
+        ~MenuEntryList(){
+            _configMutex.lock();
+            if (_pValueList != NULL){
+                delete _pValueList;
+                _pValueList = NULL;
+            }
+        }
+
+        virtual const char * getValue(){ 
+            _configMutex.lock();
+            if ((_listSize > 0) &&
+                (_currentIndex < _listSize) &&
+                (_pValueList != NULL) ){
+                    if (_pValueList[_currentIndex] != NULL){
+                        _configMutex.free();
+                        return _pValueList[_currentIndex];
+                    }
+            }
+            _configMutex.free();
+            return "";
+        }
+
+        virtual int getIndex(){
+            if ((_listSize > 0) &&
+                (_currentIndex < _listSize) &&
+                (_pValueList != NULL) ){
+                    return _currentIndex;
+                }
+            return -1;
+        }
+
+        virtual bool setIndex(int newIndex){
+            _configMutex.lock();
+            if ((newIndex >= 0) && (newIndex < _listSize) && (_pValueList != NULL))  {
+                if (_pValueList[newIndex] != NULL){
+                        _currentIndex = newIndex;
+                        setNewValueText(_pValueList[_currentIndex]);
+                        _configMutex.free();
+                        return true;
+                    }
+            }            
+            _configMutex.free();
+            return false;
+        }
+
+        virtual bool setResetIndex(int resetIndex){
+            _configMutex.lock();
+            if ((resetIndex >= 0) && (resetIndex < _listSize) && (_pValueList != NULL))  {
+                if (_pValueList[resetIndex] != NULL){
+                        _resetIndex = resetIndex;
+                        _withReset = true;
+                        _configMutex.free();
+                        return true;
+                    }
+            }            
+            _configMutex.free();
+            return false;
+        }
+
+        virtual bool setWrapAround(bool value){
+            _wrapAround = value;
+            return true;
+        }
+
+        virtual bool setValueList(char ** pValueList=NULL,uint8_t     listSize=0){
+            _configMutex.lock();
+            if (_pValueList != NULL){
+                delete _pValueList;
+                _pValueList = NULL;
+            }  
+            if ((listSize > 0) &&
+                (pValueList != NULL) ){
+                _listSize = listSize;
+                _pValueList = new char *[_listSize];
+                memcpy(_pValueList,pValueList,sizeof(char*)*_listSize);
+                _resetIndex = max(0,_resetIndex);
+                _resetIndex = min(_resetIndex,_listSize);
+                _currentIndex = _resetIndex;
+                setNewValueText(_pValueList[_currentIndex]);
+                _configMutex.free();
+                return true;
+            }        
+            _configMutex.free();
+            return false;
+        }
+
+        virtual bool onEvent(Event_Type event) {
+            _configMutex.lock();
+            // check if object is ready
+            if ((_listSize < 0) ||  (_pValueList == NULL) )             return false;
+            if ((_currentIndex >= _listSize) || (_currentIndex < 0))    return false;
+            // if ready handle Event based on selected logic
+            bool res = false;
+            switch(event){
+                case EVENT_RIGHT: 
+                    if (_currentIndex < _listSize-1){
+                        _currentIndex++;
+                        setNewValueText(_pValueList[_currentIndex]);
+                    } else if ((_wrapAround == true) && (_currentIndex == _listSize-1)){
+                        _currentIndex = 0;
+                        setNewValueText(_pValueList[_currentIndex]);
+                    }
+                    res = true;
+                    break;
+                case EVENT_LEFT:
+                    if (_currentIndex > 1){
+                        _currentIndex--;
+                        setNewValueText(_pValueList[_currentIndex]);
+                    } else if ((_wrapAround == true) && (_currentIndex == 0)){
+                        _currentIndex = _listSize-1;
+                        setNewValueText(_pValueList[_currentIndex]);
+                    }
+                    res = true;
+                    break;
+                case EVENT_ENTER: 
+                    if (_withReset == true){
+                        _currentIndex = _resetIndex;
+                        setNewValueText(_pValueList[_currentIndex]);
+                        res = true;    
+                    }
+                    break;
+            }
+            _configMutex.free();
+            return res;
+        }
+
+    protected:
+        int         _currentIndex,_resetIndex;
+        char **     _pValueList;
+        uint8_t     _listSize;
+        bool        _wrapAround,_withReset;
+        Mutex       _configMutex;
 };

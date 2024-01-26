@@ -12,7 +12,7 @@ class RgbLedCtrl : public Ctrl
     public:
         RgbLedCtrl(RgbLed * pRgbLed): Ctrl(){
                 // create LED object
-                ASSERT(pRgbLed != NULL,"pRgbLed object could not be NULL");
+                ASSERT(pRgbLed != NULL,F("pRgbLed object could not be NULL"));
                 _pRgbLed = pRgbLed;
                 addAni(new RgbLedOffAni());
                 addAni(new RgbLedOnAni());
