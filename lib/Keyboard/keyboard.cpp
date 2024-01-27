@@ -2,8 +2,19 @@
 
 Keyboard keyboard;
 
+Event_Type keyboardStdMapping[KEYBOARD_COUNT] = { 
+    EVENT_DOWN,EVENT_ENTER,EVENT_B1,EVENT_B2,     EVENT_B3,EVENT_B4,EVENT_B5,EVENT_B6,
+    EVENT_UP,EVENT_LEFT,EVENT_RIGHT,EVENT_A1,     EVENT_A2,EVENT_A3,EVENT_A4,EVENT_A5
+    };
 
-void Keyboard::begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex){
+
+Keyboard::~Keyboard() { 
+    if (_dummyMutex == true) delete _pMutex; 
+    delete _pBuffer;
+}
+
+
+void Keyboard::begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex,Event_Type * pMapping){
     if (pBus == NULL){
         LOG(F("invalid bus"));
         _pBus = NULL;
@@ -17,6 +28,18 @@ void Keyboard::begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex){
     } else {
         _pMutex = pMutex;
     }
+
+    _pBuffer = new RingBuffer<Event_Type>(KEYBOARD_BUFFER_SIZE);
+    for(int i=0;i < KEYBOARD_COUNT;i++){
+        if (pMapping == NULL){
+            _pressEvent[i]      = EVENT_NONE;
+        } else {
+            _pressEvent[i]      = pMapping[i];
+        }
+        _doublePressEvent[i]    = EVENT_NONE;
+        _longPressEvent[i]      = EVENT_NONE;
+    }
+
     _pMutex->lock();
         _pBus->begin();  
     _pMutex->free();    
@@ -26,16 +49,35 @@ void Keyboard::begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex){
 }
 
 
-Event_Type Keyboard::loop_getEvent(uint32_t now){
+
+void Keyboard::loop(uint32_t now){
     uint16_t value = _read16(MCP23X17_GPIO);
-    static uint16_t lastValue =0;
+    static uint16_t lastValue =0xFFFF;
 
+    // for now very simple edge detection 
+    // no debouncing, no long press ... 
     if (lastValue != value){
-        DUMP(F("new keyboard value"),(uint32_t)value,HEX);
+        uint16_t mask = 0x01;
+        Event_Type event;
+        for(int i=0;i < KEYBOARD_COUNT;i++){
+            if (((mask & lastValue) != 0) && ((mask & value) == 0)){
+                event = _pressEvent[i]; 
+                if (event != EVENT_NONE){
+                    _pBuffer->push(event);
+                }
+            }
+            mask <<=1;
+        }
         lastValue = value;
-
     }
+}
 
+
+Event_Type Keyboard::getNextEvent(){
+    Event_Type next;
+    if (_pBuffer->pop(&next) == true){
+        return next;
+    }
     return EVENT_NONE;
 }
 

@@ -172,7 +172,7 @@ void setup1() {
   #endif
 
   LOG(F("setup 1: keyboard"));
-  keyboard.begin(&Wire,0,&I2C0_mutex);
+  keyboard.begin(&Wire,0,&I2C0_mutex,keyboardStdMapping);
 
   LOG(F("setup 1: done"));
   waitForsecondCore = false;
@@ -193,6 +193,9 @@ void loop() {
     static LoopStats stats(10,1);
     stats.measureAndPrint(now,PRINT_LOOP_STATS,F_CONST("loop0 stats:"));
   #endif
+
+  keyboard.loop(now);
+
   switch(prgState){
       case 1:   pLedCtrl1->loop(now);             break;
       case 2:   pLedCtrl2->loop(now);             break;
@@ -211,6 +214,7 @@ void loop1(){
   static uint8_t prgState=1;
   uint32_t now = millis();
   String time(now/1000);
+  Event_Type event;
 
   #ifdef PRINT_LOOP_STATS
     static LoopStats stats(20,5);
@@ -223,9 +227,18 @@ void loop1(){
       case 3:   pNeoStripeCtrl1->loop(now);       break;
       case 4:   pNeoStripeCtrl1->loop(now);       break;
       #ifdef WITH_DISPLAY
-        case 5:  
-            keyboard.loop_getEvent(now);
+        case 5:
+            // update menu entries
             menuTestTime.setNewValueText(time.c_str());
+            do{
+              event = keyboard.getNextEvent();
+              if (event != EVENT_NONE){
+                menuHandler.onEvent(event);
+              }
+            } while (event != EVENT_NONE );
+            break;
+        case 6:  
+            // draw menu            
             menuHandler.loop(now);          
             break;
       #endif
