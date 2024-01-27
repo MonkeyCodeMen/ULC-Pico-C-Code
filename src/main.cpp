@@ -117,7 +117,11 @@ void setup() {
   Serial1.println(" start DEBUG module ");
   debug.begin(&Serial1);
 
-  LOG(F("setup 0:"));
+  LOG(F("setup 0:  start SPI & I2C"));
+  SPI.begin();
+  Wire.begin();
+  Wire.setClock(400*1000);
+
   //analogWriteFreq(3200);
   //analogWriteRange(255);
 
@@ -160,8 +164,6 @@ void setup1() {
     LOG(F("setup 1: TFT"));
     // ToDo: aufräumne test auslagern .....  sub Function irgendwo anders (DisplayObjects??)  in einem anderen File das muss kürzer werden
     // toDo change this to DisplayObjects (contains TFT )  and TFT_begin   to rotate,test , logo  display etc 
-
-    SPI.begin();
     display.begin();
 
     LOG(F("setup 1: menu"));

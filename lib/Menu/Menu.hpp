@@ -7,7 +7,7 @@ extern MenuHandler          menuHandler;
 
 //////////////////////////////////////////////////////
 // Test Menu
-#define MENU_TEST_COUNT 14
+#define MENU_TEST_COUNT 15
 extern MenuEntry *          menuTest[MENU_TEST_COUNT];
 extern MenuHeaderText       menuTestHeader;
 extern MenuEntryBoolToggle  menuTestEntryBool1;

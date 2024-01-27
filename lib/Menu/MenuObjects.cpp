@@ -8,6 +8,16 @@ MenuEntryBoolToggle menuTestEntryBool1("switch : ");
 MenuEntryBool menuTestEntryBool2("==Flag==:",false,false,"TRUE","FALSE","[ "," ]");
 MenuEntryText menuTestTime("Time ","000","[ "," sec] ",2,1,TFT_GREEN,TFT_BLACK,0,0);
 MenuEntryInt  menuTestInt1("gain (-20,20) : ",1,20,-20,1,true,"{","}");
+
+
+char entry1[] = "entry 1";
+char entry2[] = "entry 2";
+char entry3[] = "entry 3";
+char entry4[] = "entry 4";
+
+char * pEntries[4] = {entry1,entry2,entry3,entry4};
+
+MenuEntryList menuTestList("select: ",pEntries,4,0,true,false,"[","]",2,2,TFT_BLUE,TFT_BLACK,0,0);
 MenuEntryText menuTestLine0("== Line 0 ==","","","",2,1,TFT_WHITE,TFT_BLACK,0,0);
 MenuEntryText menuTestLine1("== Line 1 ==","","","",2,1,TFT_WHITE,TFT_BLACK,0,0);
 MenuEntryText menuTestLine2("== Line 2 ==","","","",4,1,TFT_WHITE,TFT_BLACK,0,0);
@@ -24,6 +34,7 @@ MenuEntry * menuTest[MENU_TEST_COUNT] = {  &menuTestEntryBool1,
                             &menuTestEntryBool2,
                             &menuTestTime,
                             &menuTestInt1,
+                            &menuTestList,
                             &menuTestLine0,
                             &menuTestLine1,
                             &menuTestLine2,

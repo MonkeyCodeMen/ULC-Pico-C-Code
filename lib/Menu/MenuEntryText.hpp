@@ -334,14 +334,21 @@ class MenuEntryList : public MenuEntryText{
                         uint16_t  offsetY = 0)
             :MenuEntryText(text,"",valuePre,valuePost,font,fontSize,foregndcol,backgndCol,offsetX,offsetY),
             _currentIndex(-1),_resetIndex(initIndex),_pValueList(NULL),_listSize(listSize),_wrapAround(wrapAround),_withReset(withRest)      {   
-            if ((_listSize > 0) &&
-                (_resetIndex < _listSize) &&
-                (_resetIndex >= 0) &&
-                (_pValueList != NULL) ){
+            if (_listSize > 0) {
                 // there could not be an old list (constructor)
-                _pValueList = new char *[_listSize];
-                memcpy(_pValueList,pValueList,sizeof(char*)*_listSize);
+                _pValueList = new String[_listSize];
+                if (_pValueList==NULL)  STOP("failed to allocate buffer list for entries");
+                for(int i=0;i < _listSize;i++){
+                    if (pValueList[i] != NULL){
+                        _pValueList[i] = pValueList[i]; 
+                    } else {
+                        _pValueList[i] = "";
+                    }
+                }
+                _resetIndex = max(0,_resetIndex);
+                _resetIndex = min(_listSize-1,_resetIndex);
                 setIndex(_resetIndex);
+                _currentIndex=_resetIndex;
             }
         }
         
@@ -360,7 +367,7 @@ class MenuEntryList : public MenuEntryText{
                 (_pValueList != NULL) ){
                     if (_pValueList[_currentIndex] != NULL){
                         _configMutex.free();
-                        return _pValueList[_currentIndex];
+                        return _pValueList[_currentIndex].c_str();
                     }
             }
             _configMutex.free();
@@ -379,12 +386,10 @@ class MenuEntryList : public MenuEntryText{
         virtual bool setIndex(int newIndex){
             _configMutex.lock();
             if ((newIndex >= 0) && (newIndex < _listSize) && (_pValueList != NULL))  {
-                if (_pValueList[newIndex] != NULL){
-                        _currentIndex = newIndex;
-                        setNewValueText(_pValueList[_currentIndex]);
-                        _configMutex.free();
-                        return true;
-                    }
+                    _currentIndex = newIndex;
+                    setNewValueText(_pValueList[_currentIndex]);
+                    _configMutex.free();
+                    return true;
             }            
             _configMutex.free();
             return false;
@@ -418,8 +423,16 @@ class MenuEntryList : public MenuEntryText{
             if ((listSize > 0) &&
                 (pValueList != NULL) ){
                 _listSize = listSize;
-                _pValueList = new char *[_listSize];
-                memcpy(_pValueList,pValueList,sizeof(char*)*_listSize);
+                _pValueList = new String[_listSize];
+                if (_pValueList==NULL)  STOP("failed to allocate buffer list for entries");
+                for(int i=0;i < _listSize;i++){
+                    if (pValueList[i] != NULL){
+                        _pValueList[i] = pValueList[i]; 
+                    } else {
+                        _pValueList[i] = "";
+                    }
+                }
+
                 _resetIndex = max(0,_resetIndex);
                 _resetIndex = min(_resetIndex,_listSize);
                 _currentIndex = _resetIndex;
@@ -434,23 +447,23 @@ class MenuEntryList : public MenuEntryText{
         virtual bool onEvent(Event_Type event) {
             _configMutex.lock();
             // check if object is ready
-            if ((_listSize < 0) ||  (_pValueList == NULL) )             return false;
-            if ((_currentIndex >= _listSize) || (_currentIndex < 0))    return false;
+            if ((_listSize <= 0) ||  (_pValueList == NULL) )             event = EVENT_NONE;  // jump over default path to end
+            if ((_currentIndex >= _listSize) || (_currentIndex < 0))    event = EVENT_NONE;  // jump over default path to end
             // if ready handle Event based on selected logic
             bool res = false;
             switch(event){
                 case EVENT_RIGHT: 
-                    if (_currentIndex < _listSize-1){
+                    if (_currentIndex < (_listSize-1)){
                         _currentIndex++;
                         setNewValueText(_pValueList[_currentIndex]);
-                    } else if ((_wrapAround == true) && (_currentIndex == _listSize-1)){
+                    } else if ((_wrapAround == true) && (_currentIndex == (_listSize-1))){
                         _currentIndex = 0;
                         setNewValueText(_pValueList[_currentIndex]);
                     }
                     res = true;
                     break;
                 case EVENT_LEFT:
-                    if (_currentIndex > 1){
+                    if (_currentIndex > 0){
                         _currentIndex--;
                         setNewValueText(_pValueList[_currentIndex]);
                     } else if ((_wrapAround == true) && (_currentIndex == 0)){
@@ -460,7 +473,7 @@ class MenuEntryList : public MenuEntryText{
                     res = true;
                     break;
                 case EVENT_ENTER: 
-                    if (_withReset == true){
+                    if ((_withReset == true) && (_resetIndex >= 0) && (_resetIndex < _listSize)){
                         _currentIndex = _resetIndex;
                         setNewValueText(_pValueList[_currentIndex]);
                         res = true;    
@@ -473,7 +486,7 @@ class MenuEntryList : public MenuEntryText{
 
     protected:
         int         _currentIndex,_resetIndex;
-        char **     _pValueList;
+        String  *   _pValueList;
         uint8_t     _listSize;
         bool        _wrapAround,_withReset;
         Mutex       _configMutex;

@@ -39,11 +39,6 @@ void Keyboard::begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex,Event_Type * pM
         _doublePressEvent[i]    = EVENT_NONE;
         _longPressEvent[i]      = EVENT_NONE;
     }
-
-    _pMutex->lock();
-        _pBus->begin();  
-    _pMutex->free();    
-    
     _write16(MCP23X17_IODIR,0xFFFF);    // all pin as input
     _write16(MCP23X17_GPPU,0xFFFF);     // pull up for all pins 
 }
