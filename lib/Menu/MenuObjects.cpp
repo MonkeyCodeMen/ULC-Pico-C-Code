@@ -1,9 +1,13 @@
 #include <Menu.hpp>
 
+
 MenuHandler menuHandler;
 
-MenuHeaderText menuTestHeader("test menu: (c) MonkeyCodeMen");
 
+/////////////////////////////////////////////////////////////////////
+/// Test menu
+
+MenuHeaderText menuTestHeader("test menu: (c) MonkeyCodeMen");
 MenuEntryBoolToggle menuTestEntryBool1("switch : ");
 MenuEntryBool menuTestEntryBool2("==Flag==:",false,false,"TRUE","FALSE","[ "," ]");
 MenuEntryText menuTestTime("Time ","000","[ "," sec] ",2,1,TFT_GREEN,TFT_BLACK,0,0);
@@ -29,8 +33,9 @@ MenuEntryText menuTestLine7("== Line 7 ==","","","",2,5,TFT_WHITE,TFT_BLACK,0,0)
 MenuEntryText menuTestLine8("== Line 8 ==","","","",2,4,TFT_WHITE,TFT_BLACK,0,0);
 MenuEntryText menuTestLine9("== Line 9 ==","","","",2,3,TFT_WHITE,TFT_BLACK,0,0);
 
+typedef MenuEntry* MenuEntryPtr;
 
-MenuEntry * menuTest[MENU_TEST_COUNT] = {  &menuTestEntryBool1,
+MenuEntryPtr menuTest[MENU_TEST_COUNT] = {  &menuTestEntryBool1,
                             &menuTestEntryBool2,
                             &menuTestTime,
                             &menuTestInt1,
@@ -46,3 +51,27 @@ MenuEntry * menuTest[MENU_TEST_COUNT] = {  &menuTestEntryBool1,
                             &menuTestLine8,
                             &menuTestLine9
                             };
+
+
+/////////////////////////////////////////////////////////////////////
+/// main menu
+
+
+
+MenuHeaderText menuMainHeader("main menu: (c) MonkeyCodeMen",true,true,2,2,TFT_BLUE,TFT_WHITE);
+MenuEntryList  menuMainSwitch1("LED 1: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainSwitch2("LED 2: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainSwitch3("LED 3: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainSwitch4("LED 4: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainRGB1(   "RGB 1: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainRGB2(   "RGB 2: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainNeo1(   "NEO 1: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainNeo2(   "NEO 2: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainMatrix1("MAT 1: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainMatrix2("MAT 2: ",NULL,0,0,true,false,"[","]",2,2);
+
+MenuEntryPtr menuMain[MENU_MAIN_COUNT] = { &menuMainSwitch1,&menuMainSwitch2,&menuMainSwitch3,&menuMainSwitch4,
+                             &menuMainRGB1,&menuMainRGB2,&menuMainNeo1,&menuMainNeo2,&menuMainMatrix1,&menuMainMatrix2};
+
+
+

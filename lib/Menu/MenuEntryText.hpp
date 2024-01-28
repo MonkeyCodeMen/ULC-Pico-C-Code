@@ -1,5 +1,6 @@
 #pragma once
 #include <MenuItem.hpp>
+#include <StringList.hpp>
 ////////////////////////////////////////////////
 // implementation for text lines
 
@@ -443,6 +444,41 @@ class MenuEntryList : public MenuEntryText{
             _configMutex.free();
             return false;
         }
+
+        virtual bool setValueList(String connectedList,char sep=','){
+            uint8_t count=0;
+            uint32_t i,length;
+            length = connectedList.length();
+            if (length == 0)    return false;
+
+            for(i=0;i < length;i++){
+                if (connectedList[i] == sep){
+                    count++;
+                }
+            }
+            count++; // entry ; entry   ==> one sep and two elements
+            StringList list(connectedList.c_str(),sep);
+            
+            _configMutex.lock();
+            if (_pValueList != NULL){
+                delete _pValueList;
+                _pValueList = NULL;
+            }  
+
+            _listSize = count;
+            _pValueList = new String[_listSize];
+            if (_pValueList==NULL)  STOP("failed to allocate buffer list for entries");
+            for(int i=0;i < _listSize;i++){
+                _pValueList[i] = list.getNextListEntry();
+            }
+            _resetIndex = max(0,_resetIndex);
+            _resetIndex = min(_resetIndex,_listSize);
+            _currentIndex = _resetIndex;
+            setNewValueText(_pValueList[_currentIndex]);
+            _configMutex.free();
+            return true;            
+        }
+
 
         virtual bool onEvent(Event_Type event) {
             _configMutex.lock();

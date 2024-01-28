@@ -18,6 +18,7 @@ class NeoStripeCtrl : public Ctrl
         void loop(uint32_t time);
 
         const char * getName();
+        int getNr() {return _current;}
     
     private:
         WS2812FX *  _pNeoStripe;

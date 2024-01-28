@@ -2,13 +2,8 @@
 #include "Debug.hpp"
 #include "helper.h"
 
-Ctrl::Ctrl()
+Ctrl::Ctrl():_pCurrentAni(NULL),_pCurrentNode(NULL),_pRoot(NULL),_aniNameList(""),_count(0)
 {
-    _pCurrentAni    = NULL;
-    _pCurrentNode   = NULL;
-    _pRoot          = NULL;
-    _aniNameList    = "";
-    _count = 0;
 }
 
 
@@ -76,6 +71,12 @@ const char * Ctrl::getName(){
     if (_pCurrentAni == NULL)   return "";
     return _pCurrentNode->pName;
 }
+
+int Ctrl::getNr(){
+    if (_pCurrentAni == NULL)   return -1;
+    return _pCurrentNode->nr;
+}
+
 
 int Ctrl::setup(int nr){
     if (nr >= _count)        return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;

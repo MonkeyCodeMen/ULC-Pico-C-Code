@@ -45,6 +45,22 @@
 volatile bool setupStartsecondCore = false;   // false:  first core0 setup .. then core1 setup      || true: core0 and core1 setup in parallel
 volatile bool waitForsecondCore    = true;    // false:  core0 starts with loop directly after setup|| true: core0 waits for core1 to finish setup first, then start loop
 
+uint8_t free_buffer[128];
+
+#define CTRL_OBJECT_COUNT   10
+typedef Ctrl* CtrlPtr;
+CtrlPtr ctrlObjectList[CTRL_OBJECT_COUNT] = {      pLedCtrl1,pLedCtrl2,pLedCtrl3,pLedCtrl4,
+                                                  pRgbCtrl1,pRgbCtrl2,pNeoStripeCtrl1,pNeoStripeCtrl2,
+                                                  pNeoMatrixCtrl1,pNeoMatrixCtrl2}; 
+// menuCtrlEntries  ist the selection of connected CTRL objects in the menus
+typedef MenuEntryList* MenuEntryListPtr;
+MenuEntryListPtr menuCtrlEntries[CTRL_OBJECT_COUNT] = {&menuMainSwitch1,&menuMainSwitch2,&menuMainSwitch3,&menuMainSwitch4,
+                                                  &menuMainRGB1,&menuMainRGB2,&menuMainNeo1,&menuMainNeo2,
+                                                  &menuMainMatrix1,&menuMainMatrix2};
+
+uint8_t free_buffer2[128];
+
+
 /*****************************************************************
  * 
  *    functions
@@ -52,7 +68,65 @@ volatile bool waitForsecondCore    = true;    // false:  core0 starts with loop 
  ******************************************************************
  */
 
+void mainMenu_syncToCtrl(){
+  int nr;
+  for(int i=0;i<CTRL_OBJECT_COUNT;i++){
+    nr = menuCtrlEntries[i]->getIndex();
+    if (nr > 0){
+      ctrlObjectList[i]->setup(nr);
+    }
+  }
+}
 
+void mainMenu_syncFromCtrl(){
+  int nr;
+  for(int i=0;i<CTRL_OBJECT_COUNT;i++){
+    nr = ctrlObjectList[i]->getNr();
+    if (nr > 0){
+      menuCtrlEntries[i]->setIndex(nr);
+    }
+  }
+}
+
+
+
+void mainMenu_begin(){
+
+    String aniList = pLedCtrl1->getNameList();
+    menuMainSwitch1.setValueList(aniList);
+    menuMainSwitch2.setValueList(aniList);
+    menuMainSwitch3.setValueList(aniList);
+    menuMainSwitch4.setValueList(aniList);
+
+    aniList = pRgbCtrl1->getNameList();
+    menuMainRGB1.setValueList(aniList);
+    menuMainRGB2.setValueList(aniList);
+
+    aniList = pNeoStripeCtrl1->getNameList();
+    menuMainNeo1.setValueList(aniList);
+    menuMainNeo2.setValueList(aniList);
+
+    aniList = pNeoMatrixCtrl1->getNameList();
+    menuMainMatrix1.setValueList(aniList);
+    menuMainMatrix2.setValueList(aniList);
+
+
+    ctrlObjectList[0] = pLedCtrl1;
+    ctrlObjectList[1] = pLedCtrl2;
+    ctrlObjectList[2] = pLedCtrl3;
+    ctrlObjectList[3] = pLedCtrl4;
+    
+    ctrlObjectList[4] = pRgbCtrl1;
+    ctrlObjectList[5] = pRgbCtrl2;
+
+    ctrlObjectList[6] = pNeoStripeCtrl1;
+    ctrlObjectList[7] = pNeoStripeCtrl2;
+
+    ctrlObjectList[8] = pNeoMatrixCtrl1;
+    ctrlObjectList[9] = pNeoMatrixCtrl2;
+
+
+}
 
 
 void toggleLed(uint32_t now){
@@ -119,21 +193,15 @@ void setup() {
 
   LOG(F("setup 0:  start SPI & I2C"));
   SPI.begin();
+  SPI1.begin();
   Wire.begin();
   Wire.setClock(400*1000);
-
-  //analogWriteFreq(3200);
-  //analogWriteRange(255);
-
-  LOG(F("setup 0: Test functions"));
-  TestDebug();
 
   LOG(F("setup 0: COM interface"));
   com.begin(&Serial,115200,SERIAL_8N1);
 
-    #ifdef WITH_SD_CARD
+  #ifdef WITH_SD_CARD
     LOG(F("setup 0: SD card on SPI 1..."));
-    SPI1.begin();
       if (!globalSDcard0.begin(PIN_SD_CS)) {
         LOG(F("setup 0: SD card initialization failed!"));
       } else {
@@ -142,8 +210,16 @@ void setup() {
       //globalSDcard0.end();
   #endif
 
+
+  //analogWriteFreq(3200);
+  //analogWriteRange(255);
+
+  LOG(F("setup 0: Test functions"));
+  TestDebug();
+
   LOG(F("setup 0: LED"));
   setupLed();
+
 
   setupStartsecondCore = true;
   while(waitForsecondCore == true){
@@ -167,7 +243,13 @@ void setup1() {
     display.begin();
 
     LOG(F("setup 1: menu"));
-    menuHandler.begin(&menuTestHeader,(MenuEntry **)&menuTest,MENU_TEST_COUNT,&display);
+    mainMenu_begin();
+    menuHandler.begin(&menuMainHeader,(MenuEntry **)&menuMain,MENU_MAIN_COUNT,&display);
+
+    LOG(F("setup 1: sync menu entries & ctrl objects"));
+    mainMenu_syncFromCtrl();
+
+    LOG(F("setup 1: draw menue"));
     menuHandler.loop(0);
     //LOG(F("setup 1: cube"));
     //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
@@ -175,6 +257,7 @@ void setup1() {
 
   LOG(F("setup 1: keyboard"));
   keyboard.begin(&Wire,0,&I2C0_mutex,keyboardStdMapping);
+
 
   LOG(F("setup 1: done"));
   waitForsecondCore = false;
@@ -201,9 +284,11 @@ void loop() {
   switch(prgState){
       case 1:   pLedCtrl1->loop(now);             break;
       case 2:   pLedCtrl2->loop(now);             break;
-      case 3:   pRgbCtrl1->loop(now);             break;
-      case 4:   com.loop();                       break;
-      case 5:   toggleLed(now);                   break;
+      case 3:   pLedCtrl3->loop(now);             break;
+      case 4:   pLedCtrl4->loop(now);             break;
+      case 5:   pRgbCtrl1->loop(now);             break;
+      case 6:   com.loop();                       break;
+      case 7:   toggleLed(now);                   break;
       default:  prgState = 0;                     break;
   }
   prgState++;
@@ -232,12 +317,14 @@ void loop1(){
         case 5:
             // update menu entries
             menuTestTime.setNewValueText(time.c_str());
-            do{
-              event = keyboard.getNextEvent();
-              if (event != EVENT_NONE){
+            event = keyboard.getNextEvent();
+            if (event != EVENT_NONE){
+              while(event != EVENT_NONE){
                 menuHandler.onEvent(event);
+                event = keyboard.getNextEvent();
               }
-            } while (event != EVENT_NONE );
+              mainMenu_syncToCtrl();
+            }
             break;
         case 6:  
             // draw menu            
@@ -248,5 +335,8 @@ void loop1(){
   }
   prgState++;
 }
+
+
+
 
 

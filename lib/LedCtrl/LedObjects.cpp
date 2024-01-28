@@ -47,6 +47,8 @@ NeoMatrixCtrl  * pNeoMatrixCtrl1;
 NeoMatrixCtrl  * pNeoMatrixCtrl2;
 
 
+
+
 bool setupLed(){
     LOG(F("setup: LED"));
     pLedCtrl1 = new LedCtrl(&ledStripe1);
@@ -78,3 +80,4 @@ bool setupLed(){
 
     return true;
 }
+
