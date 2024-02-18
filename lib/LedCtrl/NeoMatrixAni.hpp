@@ -458,7 +458,7 @@ class MatrixBoxAni : public NeoMatrixAni{
             else _type = none;
         }
 
-        void reset() { setup(0x020,1,0x800A,0,"",0,NULL); };
+        void reset() { setup(0x020,1,0x200A,0,"",0,NULL); };
        
         virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
@@ -721,18 +721,16 @@ class MatrixGifFileAni : public NeoMatrixAni{
 
 
         int _checkFile(){
-            #ifdef WITH_SD_CARD
-                SDFile file;
-                if (globalSDcard0.exists(_fileName.c_str())){
-                    file = globalSDcard0.open(_fileName.c_str(),FILE_READ);
-                    if (file.isDirectory()) {
-                        return ANI_ERROR_FILE_NOT_FOUND;
-                    }
-                    // was just test if file exits .. file open will be done later by _gif object
-                    file.close();      
-                    return ANI_OK;
-                } 
-            #endif
+            SDFile file;
+            if (globalSDcard0.exists(_fileName.c_str())){
+                file = globalSDcard0.open(_fileName.c_str(),FILE_READ);
+                if (file.isDirectory()) {
+                    return ANI_ERROR_FILE_NOT_FOUND;
+                }
+                // was just test if file exits .. file open will be done later by _gif object
+                file.close();      
+                return ANI_OK;
+            } 
             return ANI_ERROR_FILE_NOT_FOUND;
         }
 
@@ -740,16 +738,14 @@ class MatrixGifFileAni : public NeoMatrixAni{
 
         static void * _GIFOpenFile(const char *fname, int32_t *pSize)
         {
-            #ifdef WITH_SD_CARD
-                SDFile * pFile = new SDFile();
-                *pFile = globalSDcard0.open(fname,FILE_READ);
+            SDFile * pFile = new SDFile();
+            *pFile = globalSDcard0.open(fname,FILE_READ);
 
-                if (*pFile)
-                {
-                    *pSize = pFile->size();
-                    return (void*)pFile;
-                }
-            #endif
+            if (*pFile)
+            {
+                *pSize = pFile->size();
+                return (void*)pFile;
+            }
             return NULL;
         } 
 

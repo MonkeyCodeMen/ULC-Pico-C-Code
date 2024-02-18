@@ -272,7 +272,7 @@ class RgbLedRainbowAni : public RgbLedAni{
         -------+---------------+---------------------------
         p2:    | N/A           |  N/A
         -------+---------------+---------------------------
-        p3:    | 0x0000 FF04   |  0x00SS DDII
+        p3:    | 0x0000 FE04   |  0x00SS DDII
                |               |  S:start index for color wheel/list
                |               |  D: dim level 
                |               |  I:inc step for color wheel/list (full wheel 255)
@@ -287,11 +287,11 @@ class RgbLedRainbowAni : public RgbLedAni{
     public:
         RgbLedRainbowAni()  : RgbLedAni("rainbow") {}
         
-        void reset() {  setup(0x0040,0,0xFF01,0,"",0,NULL); }
+        void reset() {  setup(0x0040,0,0xFE01,0,"",0,NULL); }
         int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
             _state      = stop;
             _timeInc    = clamp(1,p1,100000);
-            _colorGen.setup(H_BYTE(p3),HH_BYTE(p3),L_BYTE(p3),str,length,*pData);            
+            _colorGen.setup(H_BYTE(p3) /* dim */,HH_BYTE(p3) /* start */,L_BYTE(p3)/* step */,str,length,*pData);            
             _state      = init;
             return ANI_OK;
         }

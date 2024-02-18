@@ -6,6 +6,10 @@
 #include <Menu.hpp>
 
 #include <SDcard.hpp>
+#include <I2C_master.hpp>
+#include <I2C_register.h>
+
+extern void mainMenu_syncFromCtrl();
 
 void printDirectory(SDFile dir, int numTabs) {
   while (true) {
@@ -39,23 +43,54 @@ ComDispatch::ComDispatch()
 
 bool ComDispatch::dispatchFrame(ComFrame * pFrame)
 {
-    bool res;
+    bool res=false;
     switch(pFrame->module){
         case('C'):  res = dispatchCommonFrame(pFrame);    break;
         case('L'):  res = dispatchLedFrame(pFrame);       break;
         case('R'):  res = dispatchRgbLedFrame(pFrame);    break;
         case('S'):  res = dispatchNeoStripeFrame(pFrame); break;
         case('M'):  res = dispatchNeoMatrixFrame(pFrame); break;
-        case('E'):  res = dispatchMenuFrame(pFrame);      break;        // remote control of menu
         
         default:
             pFrame->res=F("unknown module");
             return false;
     }
+    if (res == true){
+        mainMenu_syncFromCtrl();
+    }
     return res;
 }
 
 bool ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
+    // ignore index 
+    pFrame->command.toUpperCase();
+    if (pFrame->command == "UP"){
+        return menuHandler.onEvent(EVENT_UP);
+    } else if (pFrame->command == "DOWN"){
+        return menuHandler.onEvent(EVENT_DOWN);
+    } else if (pFrame->command == "LEFT"){
+        return menuHandler.onEvent(EVENT_LEFT);
+    } else if (pFrame->command == "RIGHT"){
+        return menuHandler.onEvent(EVENT_RIGHT);
+    } else if (pFrame->command == "ENTER"){
+        return menuHandler.onEvent(EVENT_ENTER);
+    } else if (pFrame->command == "DIR"){
+        Serial.println("directory of SD card");
+        SDFile root = globalSDcard0.open("/");
+        printDirectory(root,0);
+        return true;
+    } else if (pFrame->command == "MEM"){
+        LOG_MEM(F("mem log requested by COM interface"));
+        return true;
+    } else if (pFrame->command == "SLAVE_LED"){
+        I2C_slave_CtrlReg_struct reg;
+        master.readStatusReg(I2C_ADR_SLAVE,&reg);
+        reg.LED_BLINK ^= 1;
+        master.writeCtrlReg(I2C_ADR_SLAVE,&reg); 
+        return true;
+
+    }
+    pFrame->res = "unknown command for menu";
     return false;
 }
 
@@ -64,10 +99,10 @@ bool ComDispatch::dispatchLedFrame(ComFrame * pFrame){
     LedCtrl * pLedCtrl;
     int res;
     switch(pFrame->index){
-        case 0: pLedCtrl = pLedCtrl1; break;
-        case 1: pLedCtrl = pLedCtrl2; break;
-        case 2: pLedCtrl = pLedCtrl3; break;
-        case 3: pLedCtrl = pLedCtrl4; break;
+        case 0: pLedCtrl = &ledCtrl1; break;
+        case 1: pLedCtrl = &ledCtrl2; break;
+        case 2: pLedCtrl = &ledCtrl3; break;
+        case 3: pLedCtrl = &ledCtrl4; break;
         default:
             pFrame->res = F("unknown index");
             return false;
@@ -87,8 +122,8 @@ bool ComDispatch::dispatchLedFrame(ComFrame * pFrame){
 bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame){
     RgbLedCtrl * pRgbCtrl;
     switch(pFrame->index){
-        case 0: pRgbCtrl = pRgbCtrl1; break;
-        case 1: pRgbCtrl = pRgbCtrl2; break;
+        case 0: pRgbCtrl = &rgbCtrl1; break;
+        case 1: pRgbCtrl = &rgbCtrl2; break;
         default:
             pFrame->res=F("unknown index");
             return false;
@@ -110,8 +145,8 @@ bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame){
 bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame){
     NeoStripeCtrl * pStripeCtrl;
     switch(pFrame->index){
-        case 0: pStripeCtrl = pNeoStripeCtrl1; break;
-        case 1: pStripeCtrl = pNeoStripeCtrl2; break;
+        case 0: pStripeCtrl = &neoStripeCtrl1; break;
+        case 1: pStripeCtrl = &neoStripeCtrl2; break;
         default:
             pFrame->res=F("unknown index");
             return false;
@@ -132,8 +167,8 @@ bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame){
 bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame){
     NeoMatrixCtrl * pMatrixCtrl;
     switch(pFrame->index){
-        case 0: pMatrixCtrl = pNeoMatrixCtrl1; break;
-        case 1: pMatrixCtrl = pNeoMatrixCtrl2; break;
+        case 0: pMatrixCtrl = &neoMatrixCtrl1; break;
+        case 1: pMatrixCtrl = &neoMatrixCtrl2; break;
         default:
             pFrame->res=F("unknown index");
             return false;
@@ -149,30 +184,4 @@ bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame){
     }
     pFrame->res = Ani::getErrorText(res);
     return res==ANI_OK?true:false;
-}
-
-bool ComDispatch::dispatchMenuFrame(ComFrame * pFrame){
-    // ignore index 
-    pFrame->command.toUpperCase();
-    if (pFrame->command == "UP"){
-        return menuHandler.onEvent(EVENT_UP);
-    } else if (pFrame->command == "DOWN"){
-        return menuHandler.onEvent(EVENT_DOWN);
-    } else if (pFrame->command == "LEFT"){
-        return menuHandler.onEvent(EVENT_LEFT);
-    } else if (pFrame->command == "RIGHT"){
-        return menuHandler.onEvent(EVENT_RIGHT);
-    } else if (pFrame->command == "ENTER"){
-        return menuHandler.onEvent(EVENT_ENTER);
-    } else if (pFrame->command == "DIR"){
-        Serial.println("directory of SD card");
-        SDFile root = globalSDcard0.open("/");
-        printDirectory(root,0);
-        return true;
-    } else if (pFrame->command == "MEM"){
-        LOG_MEM(F("mem log requested by COM interface"));
-        return true;
-    }
-    pFrame->res = "unknown command for menu";
-    return false;
 }

@@ -86,8 +86,12 @@ S:M0,circle#
 S:M0,gif#
 S:M0,gif,0x20,0,0,0,"day_1.gif"#
 S:M0,gif,0x20,0,0,0,"invader.gif"#   ==> will cause: A:M0,gif,20,0,0,0,"invader.gif",0#NOK-out of memory#
-S:E0,down#
-S:E0,dir#
+S:C0,down#
+S:C0,up#
+S:C0,left#
+S:C0,right#
+S:C0,enter#
+S:C0,dir#
 
 
 

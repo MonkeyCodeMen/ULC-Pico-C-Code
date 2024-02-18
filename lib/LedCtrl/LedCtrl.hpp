@@ -10,9 +10,14 @@
 class LedCtrl : public Ctrl
 {
     public:
-        LedCtrl(Led *pLed):Ctrl(){
+        LedCtrl():Ctrl(),_pLed(NULL){
+            }
+
+        ~LedCtrl(){  }
+
+        void begin(Led *pLed){
                 // create LED object
-                ASSERT(pLed != NULL,F("pLed must not be NULL"));
+                if (pLed == NULL) STOP(F("pLed must not be NULL"));
                 _pLed = pLed;
                 // fill ani List
                 addAni(new LedOffAni());
@@ -23,9 +28,7 @@ class LedCtrl : public Ctrl
                 addAni(new LedMultiFlashAni());
                 // setup first
                 setup(0);
-            }
-
-        ~LedCtrl(){  }
+        }
 
 
         void loop(uint32_t time){

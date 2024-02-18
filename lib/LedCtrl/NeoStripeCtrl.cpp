@@ -3,8 +3,9 @@
 #include "helper.h"
 
 
-NeoStripeCtrl::NeoStripeCtrl(WS2812FX * pNeoStripe) : Ctrl()
-{
+NeoStripeCtrl::NeoStripeCtrl() : Ctrl(),_current(0),_pNeoStripe(NULL) {}
+
+void NeoStripeCtrl::begin(WS2812FX * pNeoStripe){
     LOG(F("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx"));
     ASSERT(pNeoStripe != NULL,F("pNeoStripe must not be NULL"));
     _pNeoStripe = pNeoStripe;
@@ -19,7 +20,6 @@ NeoStripeCtrl::NeoStripeCtrl(WS2812FX * pNeoStripe) : Ctrl()
             _aniNameList += ",";
         }
     }
-    _pNeoStripe->init();
     _pNeoStripe->setMode(0);
     _current = 1;
     setStdParameter();
@@ -68,6 +68,7 @@ int NeoStripeCtrl::setup(int nr){
         _pNeoStripe->setMode(nr-1);
         setStdParameter();
     }
+    _current = nr;
     _mutexSetup.free();
     return ANI_OK;
 }

@@ -158,18 +158,18 @@ SD card has special SPI operation
 
 
 // for now (to compile .. I2C slave will be added later)
-#define PIN_LED_SWITCH_1    6 	
-#define PIN_LED_SWITCH_2    6
-#define PIN_LED_SWITCH_3  	6
-#define PIN_LED_SWITCH_4    6
+#define PIN_LED_SWITCH_1    14 	
+#define PIN_LED_SWITCH_2    14
+#define PIN_LED_SWITCH_3  	14
+#define PIN_LED_SWITCH_4    14
 
-#define PIN_RGB1_LED_R      6
-#define PIN_RGB1_LED_G      6
-#define PIN_RGB1_LED_B      6
+#define PIN_RGB1_LED_R      14
+#define PIN_RGB1_LED_G      14
+#define PIN_RGB1_LED_B      14
 
-#define PIN_RGB2_LED_R      6
-#define PIN_RGB2_LED_G      6
-#define PIN_RGB2_LED_B      6
+#define PIN_RGB2_LED_R      14
+#define PIN_RGB2_LED_G      14
+#define PIN_RGB2_LED_B      14
 
 ////////////////////////////////////////
 // GPIO

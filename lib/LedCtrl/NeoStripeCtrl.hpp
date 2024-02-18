@@ -8,8 +8,10 @@
 class NeoStripeCtrl : public Ctrl
 {
     public:
-        NeoStripeCtrl(WS2812FX * pNeoStripe);
+        NeoStripeCtrl();
         ~NeoStripeCtrl() = default;
+
+        void begin(WS2812FX * pNeoStripe);
 
         // overwrite virtuals    
         int setup(int nr);         // change programm
@@ -22,7 +24,7 @@ class NeoStripeCtrl : public Ctrl
     
     private:
         WS2812FX *  _pNeoStripe;
-        uint8_t        _current;
+        uint8_t     _current;
 
         void setStdParameter();
         void setOff();

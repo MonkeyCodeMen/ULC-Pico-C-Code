@@ -177,19 +177,19 @@ uint32_t getColorWheel24Bit(uint8_t pos){
 
     pos = 255 - pos;
     if(pos < 85) {
-        HH_BYTE(res) = 255 - pos * 3; // R
-        H_BYTE(res)  = 0;             // G
-        L_BYTE(res)  = pos*3;         // B
+        HH_BYTE(res) = 255 - (pos * 3); // R
+        H_BYTE(res)  = 0;               // G
+        L_BYTE(res)  = pos*3;           // B
     } else if(pos < 170) {
         pos -= 85;
-        HH_BYTE(res) = 0;             // R
-        H_BYTE(res)  = pos * 3;       // G
-        L_BYTE(res)  = 255 - pos * 3; // B
+        HH_BYTE(res) = 0;               // R
+        H_BYTE(res)  = pos * 3;         // G
+        L_BYTE(res)  = 255 - (pos * 3); // B
     } else {
         pos -= 170;
-        HH_BYTE(res) = pos * 3;       // R
-        H_BYTE(res)  = 255 - pos * 3; // G 
-        L_BYTE(res)  = 0;             // B
+        HH_BYTE(res) = pos * 3;         // R
+        H_BYTE(res)  = 255 - (pos * 3); // G 
+        L_BYTE(res)  = 0;               // B
     }
     return res;
 }
