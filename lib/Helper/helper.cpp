@@ -236,3 +236,16 @@ uint32_t color24Bit(uint8_t r,uint8_t g,uint8_t b){
 }
 
 
+int findStringInArray(String * pFirst,int size,String target){
+    int i=0;
+    while (i<size){
+        if (*pFirst == target){
+            //string found
+            return i;
+        }
+        i++;
+        pFirst++;
+    }
+    // end reached ==> string not found 
+    return -1;
+}

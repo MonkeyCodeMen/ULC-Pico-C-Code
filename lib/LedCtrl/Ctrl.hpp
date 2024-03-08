@@ -7,7 +7,7 @@
 
 struct Node{
     struct Node *   pNext;
-    uint32_t           nr;
+    uint32_t        nr;
     const char  *   pName;    
     Ani         *   pAni; 
 };

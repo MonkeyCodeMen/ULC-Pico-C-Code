@@ -17,13 +17,8 @@
 #include <I2C_master.hpp>
 #include <I2C_register.h>
 
-#ifdef WITH_DISPLAY
-  #include <Display.hpp>
-#endif
-
-#ifdef WITH_SD_CARD
-  #include <SDcard.hpp>
-#endif
+#include <Display.hpp>
+#include <SDcard.hpp>
 
 
 /*****************************************************************
@@ -33,8 +28,7 @@
  ******************************************************************
   + implement startup test mode
   + implement boot screen
-  + add new second class functionality with reset or not
-  + add menuEntryList
+  + add new second class functionality with reset or not  ????
  */
 
 
@@ -50,11 +44,16 @@
 volatile bool setupStartsecondCore = false;   // false:  first core0 setup .. then core1 setup      || true: core0 and core1 setup in parallel
 volatile bool waitForsecondCore    = true;    // false:  core0 starts with loop directly after setup|| true: core0 waits for core1 to finish setup first, then start loop
 
-#define CTRL_OBJECT_COUNT   10
-typedef Ctrl* CtrlPtr;
+
 CtrlPtr ctrlObjectList[CTRL_OBJECT_COUNT] = {     &ledCtrl1,&ledCtrl2,&ledCtrl3,&ledCtrl4,
                                                   &rgbCtrl1,&rgbCtrl2,&neoStripeCtrl1,&neoStripeCtrl2,
-                                                  &neoMatrixCtrl1,&neoMatrixCtrl2}; 
+                                                  &neoMatrixCtrl1,&neoMatrixCtrl2
+                                            }; 
+String ctrlNameList[CTRL_OBJECT_COUNT] = {        String("LED0"), String("LED1"), String("LED2"), String("LED3"),
+                                                  String("RGB0"), String("RGB1"), String("NEO0"), String("NEO1"),
+                                                  String("MAT0"), String("MAT1")
+                                        };
+
 // menuCtrlEntries  ist the selection of connected CTRL objects in the menus
 typedef MenuEntryList* MenuEntryListPtr;
 MenuEntryListPtr menuCtrlEntries[CTRL_OBJECT_COUNT] = {&menuMainSwitch1,&menuMainSwitch2,&menuMainSwitch3,&menuMainSwitch4,
@@ -193,7 +192,7 @@ void setup() {
   Wire.setClock(400*1000);
   
   LOG(F("setup 0: PWM expander"));
-  master.begin(&Wire,&I2C0_mutex);
+  i2c_master.begin(&Wire,&I2C0_mutex);
 
   LOG(F("setup 0: keyboard"));
   keyboard.begin(&Wire,0,&I2C0_mutex,keyboardStdMapping);
@@ -231,8 +230,6 @@ void setup1() {
 
 
   LOG(F("setup 1: TFT"));
-  // ToDo: aufräumne test auslagern .....  sub Function irgendwo anders (DisplayObjects??)  in einem anderen File das muss kürzer werden
-  // toDo change this to DisplayObjects (contains TFT )  and TFT_begin   to rotate,test , logo  display etc 
   display.begin();
 
   LOG(F("setup 1: menu"));
@@ -246,8 +243,6 @@ void setup1() {
   menuHandler.loop(0);
   //LOG(F("setup 1: cube"));
   //pCube = new Cube(pTFT);  // cube includes SPI mutex handling itself
-
-
 
   LOG(F("setup 1: done"));
   waitForsecondCore = false;
@@ -286,7 +281,7 @@ void loop() {
   if (now-lastUpdate >= 20){
     keyboard.loop(now);
     lastUpdate = now;
-    master.write_regSet(I2C_ADR_SLAVE,&I2C_slaveSoll,sizeof(I2C_slaveSoll),false);
+    i2c_master.write_regSet(I2C_ADR_SLAVE,&I2C_slaveSoll,sizeof(I2C_slaveSoll),false);
   }
 }
 
@@ -309,24 +304,22 @@ void loop1(){
       case 2:   neoMatrixCtrl2.loop(now);       break;
       case 3:   neoStripeCtrl1.loop(now);       break;
       case 4:   neoStripeCtrl2.loop(now);       break;
-      #ifdef WITH_DISPLAY
-        case 5:
-            // update menu entries
-            menuTestTime.setNewValueText(time.c_str());
-            event = keyboard.getNextEvent();
-            if (event != EVENT_NONE){
-              while(event != EVENT_NONE){
-                menuHandler.onEvent(event);
-                event = keyboard.getNextEvent();
-              }
-              mainMenu_syncToCtrl();
+      case 5:
+          // update menu entries
+          menuTestTime.setNewValueText(time.c_str());
+          event = keyboard.getNextEvent();
+          if (event != EVENT_NONE){
+            while(event != EVENT_NONE){
+              menuHandler.onEvent(event);
+              event = keyboard.getNextEvent();
             }
-            break;
-        case 6:  
-            // draw menu            
-            menuHandler.loop(now);          
-            break;
-      #endif
+            mainMenu_syncToCtrl();
+          }
+          break;
+      case 6:  
+          // draw menu            
+          menuHandler.loop(now);          
+          break;
       default:  prgState = 0;                     break;
   }
   prgState++;

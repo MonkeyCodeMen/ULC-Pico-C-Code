@@ -64,3 +64,7 @@ union uint16_t_byteAcess {
 
 #define H_WORD(val)         (*(((uint16_t*)&val)+1))   
 #define L_WORD(val)         (*(((uint16_t*)&val)+0))   
+
+
+int findStringInArray(String * pFirst,int count,String target);
+

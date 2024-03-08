@@ -84,9 +84,9 @@ bool ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
         return true;
     } else if (pFrame->command == "SLAVE_LED"){
         I2C_slave_CtrlReg_struct reg;
-        master.readStatusReg(I2C_ADR_SLAVE,&reg);
+        i2c_master.readStatusReg(I2C_ADR_SLAVE,&reg);
         reg.LED_BLINK ^= 1;
-        master.writeCtrlReg(I2C_ADR_SLAVE,&reg); 
+        i2c_master.writeCtrlReg(I2C_ADR_SLAVE,&reg); 
         return true;
 
     }

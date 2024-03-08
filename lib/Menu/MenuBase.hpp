@@ -62,28 +62,34 @@ class MenuHandler{
 
         bool onEvent(Event_Type event){
             if (_valid == false)    { return false; }
-            switch (event)   {
-                case EVENT_DOWN:
-                    if (_activeEntry < _entryCountMax-1){
-                        setActiveEntry(_activeEntry+1);
-                        if(_activeEntry > _lastVisibleEntry){
-                            _setViewportFromBottom(_activeEntry);
-                        }
-                    }
-                    return true;
-                    break;
-                case EVENT_UP:
-                    if (_activeEntry > 0){
-                        setActiveEntry(_activeEntry-1);
-                        if(_activeEntry < _firstVisibleEntry){
-                            _setViewportFromTop(_activeEntry);
-                        }
-                    }
-                    return true;
-                    break;
+
+            // first try if event is handled by current active menu entry
+            if (_pEntryList[_activeEntry]->onEvent(event) == true){
+                return true;
             }
-            // event will be handled by entries 
-            return _pEntryList[_activeEntry]->onEvent(event);
+
+            // next check if up or down .. than move view
+            if (event == EVENT_DOWN){
+                if (_activeEntry < _entryCountMax-1){
+                    setActiveEntry(_activeEntry+1);
+                    if(_activeEntry > _lastVisibleEntry){
+                        _setViewportFromBottom(_activeEntry);
+                    }
+                }
+                return true;
+            } else if (event == EVENT_UP){
+                if (_activeEntry > 0){
+                    setActiveEntry(_activeEntry-1);
+                    if(_activeEntry < _firstVisibleEntry){
+                        _setViewportFromTop(_activeEntry);
+                    }
+                }
+                return true;
+            }
+
+            // now try hotkey
+
+            return false;
         }
 
         bool loop(uint32_t now){

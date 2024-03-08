@@ -20,7 +20,6 @@ class NeoMatrixAni:public Ani
 		virtual void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix) {}
         virtual void reset() {}
         virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {return ANI_OK;}
-
 };
 
 class MatrixOffAni : public NeoMatrixAni{
@@ -678,8 +677,8 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 case run:
                     if (time-_lastFrame >= _wait){
                         _lastFrame = time;
-                        bool res = _gif.playFrame(false,&_wait,pMatrix);
-                        if(res==false){
+                        int res = _gif.playFrame(false,&_wait,pMatrix);
+                        if(res == 0){
                             _gif.close();
                             if (_repeat > 0){
                                 _count++;
@@ -690,6 +689,22 @@ class MatrixGifFileAni : public NeoMatrixAni{
                             }
                             //_gif.reset();  does not work for me ???
                             _gif.open((const char *)_fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
+                        } else if (res == -1){
+                            String errorMsg=" error in _gif.playFrame: ";
+                            int nr = _gif.getLastError();
+                            switch(nr){
+                                case GIF_SUCCESS:               errorMsg+="GIF_SUCCESS";            break;
+                                case GIF_DECODE_ERROR:          errorMsg+="GIF_DECODE_ERROR";       break;
+                                case GIF_TOO_WIDE:              errorMsg+="GIF_TOO_WIDE";           break;
+                                case GIF_INVALID_PARAMETER:     errorMsg+="GIF_INVALID_PARAMETER";  break;
+                                case GIF_UNSUPPORTED_FEATURE:   errorMsg+="GIF_UNSUPPORTED_FEATURE";break;
+                                case GIF_FILE_NOT_OPEN:         errorMsg+="GIF_FILE_NOT_OPEN";      break;
+                                case GIF_EARLY_EOF:             errorMsg+="GIF_EARLY_EOF";          break;
+                                case GIF_EMPTY_FRAME:           errorMsg+="GIF_EMPTY_FRAME";        break;
+                                case GIF_BAD_FILE:              errorMsg+="GIF_BAD_FILE";           break;
+                                case GIF_ERROR_MEMORY:          errorMsg+="GIF_ERROR_MEMORY";       break;
+                            }
+                            debug.log(errorMsg);
                         }
                     }
                     break;

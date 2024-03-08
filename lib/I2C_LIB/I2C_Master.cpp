@@ -1,6 +1,6 @@
 #include <I2C_master.hpp>
 
-I2C_master master;
+I2C_master i2c_master;
 
 I2C_master::I2C_master():_pBus(NULL),_pMutex(NULL),_dummyMutex(false){
     memset(&_stats,0,sizeof(I2C_statistic_struct));

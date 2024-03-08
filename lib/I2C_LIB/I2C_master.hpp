@@ -5,5 +5,5 @@
 #include <I2C_master_class.hpp>
 
 
-extern I2C_master master;
+extern I2C_master i2c_master;
 
