@@ -25,6 +25,7 @@ class NeoStripeCtrl : public Ctrl
     private:
         WS2812FX *  _pNeoStripe;
         uint8_t     _current;
+        int         _count;
 
         void setStdParameter();
         void setOff();

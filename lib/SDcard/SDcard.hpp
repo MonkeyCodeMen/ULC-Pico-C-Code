@@ -10,9 +10,10 @@ extern SDClass globalSDcard0;
 /***
  * gloabal SD card is the project access point to SD card
  * 
- * the object is designed to suppport multiple parallel file operations
+ * the object is designed to suppport multiple parallel file operations  ==> realy ?? some comments of some functions give a different statement 
  * but not supported is to acces one file from different points in the program
  * 
  * 
  * 
 */
+

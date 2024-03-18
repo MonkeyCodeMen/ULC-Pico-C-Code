@@ -38,7 +38,28 @@ Adafruit_NeoMatrix neoMatrix2(
 NeoMatrixCtrl  neoMatrixCtrl1,neoMatrixCtrl2;
 
 
+CtrlPtr ctrlObjectList[CTRL_OBJECT_COUNT] = {     &ledCtrl1,&ledCtrl2,&ledCtrl3,&ledCtrl4,
+                                                  &rgbCtrl1,&rgbCtrl2,&neoStripeCtrl1,&neoStripeCtrl2,
+                                                  &neoMatrixCtrl1,&neoMatrixCtrl2
+                                            }; 
 
+
+String ctrlNameList[CTRL_OBJECT_COUNT] = {        String("LED0"), String("LED1"), String("LED2"), String("LED3"),
+                                                  String("RGB0"), String("RGB1"), String("NEO0"), String("NEO1"),
+                                                  String("MAT0"), String("MAT1")
+                                        };
+
+
+
+CtrlPtr objNametoPtr(const char * charStr){
+    String name = charStr;
+    for (int i=0;i < CTRL_OBJECT_COUNT;i++){
+        if (name == ctrlNameList[i]){
+            return ctrlObjectList[i];
+        }
+    }
+    return NULL;
+}
 
 bool setupLed(){
     LOG(F("setup: LED"));

@@ -32,11 +32,11 @@ class LedCtrl : public Ctrl
 
 
         void loop(uint32_t time){
-                if (_pCurrentAni == NULL)           return;
+                if (isAniSelected()==false)         return;
                 if (_pLed == NULL)                  return;
                 if (_mutexSetup.isLocked()==true)   return;  // do not wait 
                 _mutexSetup.lock();
-                ((LedAni*)_pCurrentAni)->loop(time,_pLed);
+                ((LedAni*)_currentNode.pAni)->loop(time,_pLed);
                 _mutexSetup.free();
             }
     

@@ -60,7 +60,7 @@ class MenuHandler{
             return true;
         }
 
-        bool onEvent(Event_Type event){
+        bool onEvent(EventType event){
             if (_valid == false)    { return false; }
 
             // first try if event is handled by current active menu entry

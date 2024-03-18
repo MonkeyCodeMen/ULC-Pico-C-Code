@@ -7,7 +7,7 @@
 #include <Wire.h>
 #include <Mutex.hpp>
 #include <Debug.hpp>
-#include <Events.h>
+#include <Events.hpp>
 #include <helper.h>
 #include <RingBuffer.hpp>
 
@@ -27,7 +27,7 @@
 #define KEYBOARD_BUFFER_SIZE    10
 #define KEYBOARD_COUNT          16
 
-extern Event_Type keyboardStdMapping[KEYBOARD_COUNT];
+extern EventType keyboardStdMapping[KEYBOARD_COUNT];
 
 class Keyboard{
 
@@ -35,9 +35,9 @@ class Keyboard{
         Keyboard():_deviceAdr(0xFF),_pBus(NULL),_pMutex(NULL),_dummyMutex(false)  {}
         ~Keyboard();
 
-        void begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex=NULL,Event_Type * pMapping=NULL);
+        void begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex=NULL,EventType * pMapping=NULL);
         void loop(uint32_t now);
-        Event_Type getNextEvent();
+        EventType getNextEvent();
 
     private:
         uint8_t     _deviceAdr;
@@ -50,10 +50,10 @@ class Keyboard{
         uint16_t _read16(uint8_t regAdr);
         void     _write16(uint8_t regAdr, uint16_t value);
 
-        RingBuffer<Event_Type> * _pBuffer;
-        Event_Type  _pressEvent[KEYBOARD_COUNT];
-        Event_Type  _doublePressEvent[KEYBOARD_COUNT];
-        Event_Type  _longPressEvent[KEYBOARD_COUNT];
+        RingBuffer<EventType> * _pBuffer;
+        EventType  _pressEvent[KEYBOARD_COUNT];
+        EventType  _doublePressEvent[KEYBOARD_COUNT];
+        EventType  _longPressEvent[KEYBOARD_COUNT];
 };
 
 extern Keyboard keyboard;

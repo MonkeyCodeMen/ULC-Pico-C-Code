@@ -33,11 +33,11 @@ class NeoMatrixCtrl : public Ctrl
         }
 
         void loop(uint32_t time){
-                if (_pCurrentAni == NULL)           return;
+                if (isAniSelected() == false)       return;
                 if (_pMatrix == NULL)               return;
                 if (_mutexSetup.isLocked()==true)   return;  // do not wait 
                _mutexSetup.lock();
-                ((NeoMatrixAni*)_pCurrentAni)->loop(time,_pMatrix);
+                ((NeoMatrixAni*)_currentNode.pAni)->loop(time,_pMatrix);
                 _mutexSetup.free();
             }
     

@@ -2,7 +2,7 @@
 
 Keyboard keyboard;
 
-Event_Type keyboardStdMapping[KEYBOARD_COUNT] = { 
+EventType keyboardStdMapping[KEYBOARD_COUNT] = { 
     EVENT_DOWN,EVENT_ENTER,EVENT_B1,EVENT_B2,     EVENT_B3,EVENT_B4,EVENT_B5,EVENT_B6,
     EVENT_UP,EVENT_LEFT,EVENT_RIGHT,EVENT_A1,     EVENT_A2,EVENT_A3,EVENT_A4,EVENT_A5
     };
@@ -14,7 +14,7 @@ Keyboard::~Keyboard() {
 }
 
 
-void Keyboard::begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex,Event_Type * pMapping){
+void Keyboard::begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex,EventType * pMapping){
     if (pBus == NULL){
         LOG(F("invalid bus"));
         _pBus = NULL;
@@ -29,7 +29,7 @@ void Keyboard::begin(TwoWire *pBus,uint8_t subAdr,Mutex * pMutex,Event_Type * pM
         _pMutex = pMutex;
     }
 
-    _pBuffer = new RingBuffer<Event_Type>(KEYBOARD_BUFFER_SIZE);
+    _pBuffer = new RingBuffer<EventType>(KEYBOARD_BUFFER_SIZE);
     for(int i=0;i < KEYBOARD_COUNT;i++){
         if (pMapping == NULL){
             _pressEvent[i]      = EVENT_NONE;
@@ -53,7 +53,7 @@ void Keyboard::loop(uint32_t now){
     // no debouncing, no long press ... 
     if (lastValue != value){
         uint16_t mask = 0x01;
-        Event_Type event;
+        EventType event;
         for(int i=0;i < KEYBOARD_COUNT;i++){
             if (((mask & lastValue) != 0) && ((mask & value) == 0)){
                 event = _pressEvent[i]; 
@@ -68,8 +68,8 @@ void Keyboard::loop(uint32_t now){
 }
 
 
-Event_Type Keyboard::getNextEvent(){
-    Event_Type next;
+EventType Keyboard::getNextEvent(){
+    EventType next;
     if (_pBuffer->pop(&next) == true){
         return next;
     }

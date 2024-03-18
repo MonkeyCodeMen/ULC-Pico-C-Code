@@ -2,7 +2,7 @@
 #include <Arduino.h>
 #include <Debug.hpp>
 #include <TFT_eSPI.h>
-#include <Events.h>
+#include <Events.hpp>
 
 
 ////////////////////////////////////////////////////////
@@ -45,7 +45,7 @@ class MenuEntry:public MenuItem{
         
         ~MenuEntry() = default;
 
-        virtual bool    onEvent(Event_Type event)                          { return false; }
+        virtual bool    onEvent(EventType event)                          { return false; }
 
         virtual void    setFocus(){
             if (_hasFocus == true)  return;

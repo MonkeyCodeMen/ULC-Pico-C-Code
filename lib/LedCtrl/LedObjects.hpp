@@ -30,3 +30,14 @@ extern NeoMatrixCtrl        neoMatrixCtrl1,neoMatrixCtrl2;
 bool setupLed();
 
 
+#define CTRL_OBJECT_COUNT   10
+typedef Ctrl* CtrlPtr;
+
+extern CtrlPtr ctrlObjectList[CTRL_OBJECT_COUNT];
+extern String  ctrlNameList[CTRL_OBJECT_COUNT];
+
+
+CtrlPtr   objNametoPtr(const char * name);
+
+
+

@@ -27,14 +27,14 @@ class RgbLedCtrl : public Ctrl
         }
 
         void loop(uint32_t time){
-                if (_pCurrentAni == NULL)           return;
+                if (isAniSelected() == false)       return;
                 if (_pRgbLed == NULL)               return;
                 if (_mutexSetup.isLocked()==true)   return;  // do not wait 
                 if (_mutexSetup.isLocked()==true){
                     return;  // do not wait 
                 }
                 _mutexSetup.lock();
-                ((RgbLedAni*)_pCurrentAni)->loop(time,_pRgbLed);
+                ((RgbLedAni*)_currentNode.pAni)->loop(time,_pRgbLed);
                 _mutexSetup.free();
             }
                 

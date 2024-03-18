@@ -3,7 +3,7 @@
 #include "helper.h"
 
 
-NeoStripeCtrl::NeoStripeCtrl() : Ctrl(),_current(0),_pNeoStripe(NULL) {}
+NeoStripeCtrl::NeoStripeCtrl() : Ctrl(),_current(0),_pNeoStripe(NULL),_count(0) {}
 
 void NeoStripeCtrl::begin(WS2812FX * pNeoStripe){
     LOG(F("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx"));

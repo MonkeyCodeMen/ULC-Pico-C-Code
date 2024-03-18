@@ -45,20 +45,11 @@ volatile bool setupStartsecondCore = false;   // false:  first core0 setup .. th
 volatile bool waitForsecondCore    = true;    // false:  core0 starts with loop directly after setup|| true: core0 waits for core1 to finish setup first, then start loop
 
 
-CtrlPtr ctrlObjectList[CTRL_OBJECT_COUNT] = {     &ledCtrl1,&ledCtrl2,&ledCtrl3,&ledCtrl4,
-                                                  &rgbCtrl1,&rgbCtrl2,&neoStripeCtrl1,&neoStripeCtrl2,
-                                                  &neoMatrixCtrl1,&neoMatrixCtrl2
-                                            }; 
-String ctrlNameList[CTRL_OBJECT_COUNT] = {        String("LED0"), String("LED1"), String("LED2"), String("LED3"),
-                                                  String("RGB0"), String("RGB1"), String("NEO0"), String("NEO1"),
-                                                  String("MAT0"), String("MAT1")
-                                        };
-
 // menuCtrlEntries  ist the selection of connected CTRL objects in the menus
 typedef MenuEntryList* MenuEntryListPtr;
 MenuEntryListPtr menuCtrlEntries[CTRL_OBJECT_COUNT] = {&menuMainSwitch1,&menuMainSwitch2,&menuMainSwitch3,&menuMainSwitch4,
-                                                  &menuMainRGB1,&menuMainRGB2,&menuMainNeo1,&menuMainNeo2,
-                                                  &menuMainMatrix1,&menuMainMatrix2};
+                                                      &menuMainRGB1,&menuMainRGB2,&menuMainNeo1,&menuMainNeo2,
+                                                      &menuMainMatrix1,&menuMainMatrix2};
 
 
 I2C_SlaveReceiveReg_Struct  I2C_slaveSoll;
@@ -292,7 +283,7 @@ void loop1(){
   static uint8_t prgState=1;
   uint32_t now = millis();
   String time(now/1000);
-  Event_Type event;
+  EventType event;
 
   #ifdef PRINT_LOOP_STATS
     static LoopStats stats(20,5);

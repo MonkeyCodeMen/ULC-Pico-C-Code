@@ -1,5 +1,4 @@
-#ifndef SimpleList_h
-#define SimpleList_h
+#pragma once
 
 /*
    ===========================================
@@ -518,4 +517,3 @@ void SimpleList<T>::sort() {
     this->sorted = true;
 }
 
-#endif // ifndef SimpleList_h

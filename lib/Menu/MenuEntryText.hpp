@@ -178,7 +178,7 @@ class MenuEntryBool : public MenuEntryText{
             }            
         }
 
-        virtual bool onEvent(Event_Type event) {
+        virtual bool onEvent(EventType event) {
             switch(event){
                 case EVENT_RIGHT:   setValue(true);         return true;    break;
                 case EVENT_LEFT:    setValue(false);        return true;    break;
@@ -231,7 +231,7 @@ class MenuEntryBoolToggle : public MenuEntryText{
             }            
         }
 
-        virtual bool onEvent(Event_Type event) {
+        virtual bool onEvent(EventType event) {
             // handle Event based on selected logic
             switch(event){
                 case EVENT_RIGHT:  
@@ -286,7 +286,7 @@ class MenuEntryInt : public MenuEntryText{
             }            
         }
 
-        virtual bool onEvent(Event_Type event) {
+        virtual bool onEvent(EventType event) {
             // handle Event based on selected logic
             switch(event){
                 case EVENT_RIGHT: 
@@ -480,7 +480,7 @@ class MenuEntryList : public MenuEntryText{
         }
 
 
-        virtual bool onEvent(Event_Type event) {
+        virtual bool onEvent(EventType event) {
             _configMutex.lock();
             // check if object is ready
             if ((_listSize <= 0) ||  (_pValueList == NULL) )             event = EVENT_NONE;  // jump over default path to end
