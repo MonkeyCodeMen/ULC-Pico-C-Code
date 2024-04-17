@@ -30,8 +30,8 @@ class configScenario{
         configScenario():_name(""),_event(EVENT_NONE)    {                           }
         ~configScenario()                                {   _configList.clear();    }
         configScenario(JsonDocument scenario){
-            _name = scenario["name"];
-            _event = eventNameToNr(scenario["key"]);
+            _name = String((const char*) scenario["name"]);
+            _event = eventNameToNr((const char*) scenario["key"]);
             
             JsonDocument configJson;
             JsonArray arr = scenario["configs"].as<JsonArray>();
@@ -40,8 +40,8 @@ class configScenario{
             } else {
                 int count = arr.size();
                 int count=0;
-                for (JsonObject repo : arr ){
-                    DeserializationError error = deserializeJson(configJson, repo);
+                for (JsonObject config : arr ){
+                    DeserializationError error = deserializeJson(configJson, config);
                     if (error) {
                         String msg = "could not decode configItem Nr." + String(count) + " of scenario: " + _name;
                         debug.log(msg);

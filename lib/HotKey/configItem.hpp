@@ -27,12 +27,12 @@ class configItem{
     public:
         configItem():_pData(NULL),_dataSize(0)  { clearParameter();     }
         configItem(configItem& src)             { *this = src;          }
-        ~configItem()                           { eraseAll();           }
+        ~configItem()                           { clearAll();           }
 
         configItem(JsonDocument config){
-            _group = objNametoPtr(config["group"]);
-            _cmd = String(config["program"]);
-            _str = String(config["str"]);
+            _ctrlObj = objNametoPtr((const char*) config["group"]);
+            _cmd = String((const char*) config["program"]);
+            _str = String((const char*) config["str"]);
             String value;
             for(int i=0;i<4;i++){
                 _param[i] = convertStrToInt( (const char *) config["param"][i] );
@@ -50,8 +50,8 @@ class configItem{
                     _dataSize = 0;
                 } else {
                     uint8_t *p = _pData;
-                    for (JsonObject repo : arr ){
-                        *p = repo;
+                    for (auto value : arr) {
+                        *p = value.as<unsigned char>();
                         p++;
                     }
                 }
@@ -102,9 +102,8 @@ class configItem{
         }
 
         CtrlPtr     _ctrlObj;
-        String      _cmd;
+        String      _cmd,_str;
         uint32_t    _param[4];
-        String      _str;
         uint8_t     * _pData;
         uint32_t    _dataSize;
 };

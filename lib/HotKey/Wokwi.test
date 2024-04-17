@@ -1,0 +1,257 @@
+// https://wokwi.com/dashboard/projects
+
+#include <Arduino.h>
+#include <ArduinoJson.h>
+
+
+uint32_t convertHexStrToInt(const char * str,int len);
+uint32_t convertDecStrToInt(const char * str,int len);
+uint32_t convertStrToInt(const char * str);
+uint32_t convertStrToInt(String str);
+
+
+void dumpConfigObject(JsonDocument config);
+
+/****
+ * 
+ * JSON config file for configItem
+ * 
+ * {
+ *      "group" : "LED0",
+ *      "program": "off",
+ *      "param": ["0x00","","",""],
+ *      "str":"",
+ *      "bin":[0,2,255,40,30]
+ * }
+ * 
+*/
+
+String streamIn = "";
+ 
+
+
+void setup() {
+  // put your setup code here, to run once:
+  Serial1.begin(115200);
+  Serial1.println("Hello, Raspberry Pi Pico!");
+
+  streamIn += " {                                         \r\n";
+  streamIn += "     \"group\" : \"LED0\",                 \r\n";
+  streamIn += "     \"program\": \"off\",                 \r\n";
+  streamIn += "     \"param\": [\"0x00\",\"\",\"\",\"\"], \r\n";
+  streamIn += "     \"str\":\"abc\",                      \r\n";
+  streamIn += "     \"bin\":[0,2,255,40,30]               \r\n";
+  streamIn += " }                                         ";
+
+  JsonDocument config;
+  DeserializationError error = deserializeJson(config, streamIn);
+  if (error) {
+    Serial1.print("deserializeJson() returned ");
+    Serial1.println(error.c_str());
+  } else {
+    dumpConfigObject(config);
+  }
+}
+
+void loop() {
+  // put your main code here, to run repeatedly:
+  delay(1); // this speeds up the simulation
+}
+
+
+void dumpConfigObject(JsonDocument config){
+  String      _ctrlObj;
+  String      _cmd,_str;
+  uint32_t    _param[4];
+  uint8_t     * _pData;
+  uint32_t    _dataSize;
+
+  _ctrlObj = String((const char *) config["group"]);
+  _cmd     = String((const char *) config["program"]);
+  _str     = String((const char *) config["str"]);
+  String value;
+  for(int i=0;i<4;i++){
+      _param[i] = convertStrToInt( (const char *) config["param"][i] );
+  }
+
+  JsonArray arr = config["bin"].as<JsonArray>();
+  if (arr == nullptr){
+      // no bin data
+      _pData = NULL;
+      _dataSize = 0;
+  } else {
+      int count = arr.size();
+      _dataSize = count;
+      _pData = new uint8_t[count];
+      if (_pData == NULL){
+          _dataSize = 0;
+      } else {
+          uint8_t *p = _pData;
+          // using C++11 syntax (preferred):
+          for (auto value : arr) {
+              *p = value.as<unsigned char>();
+              p++;
+          }
+      }
+  }
+  // dumping
+  Serial1.println("ctrl obj : " + _ctrlObj);
+  Serial1.println("cmd      : " + _cmd);
+  Serial1.print(  "param    : ");
+  for(int i=0;i < 4 ; i++)
+    Serial1.print(String(_param[i]) +" ");
+  Serial1.println();
+  Serial1.println("str      : " + _str);
+  Serial1.println("bin size : " + String(_dataSize));
+  if (_dataSize > 0){
+    Serial1.print("bin data : ");
+    for(int i=0;i<_dataSize;i++)
+      Serial1.print(String(_pData[i])+" ");
+    Serial1.println();
+  }
+
+  
+  
+  
+}
+
+
+uint32_t convertHexStrToInt(const char * str,int len){
+    int   digitFound=0;  
+    uint32_t sum = 0;
+    uint8_t  value;
+    int   i = 0;
+
+    while (i < len){
+        if (str[i] == ' '){
+            i++;
+        } else {
+            sum = sum<<4;
+            digitFound++;
+            if (digitFound > 8){
+                //LOG(F("convertHexStrToInt: hex convert string to long"));
+                sum = 0;
+                return sum;     
+            }
+            switch(str[i]){
+                case '0':   value=0;    break;
+                case '1':   value=1;    break;
+                case '2':   value=2;    break;
+                case '3':   value=3;    break;
+                case '4':   value=4;    break;
+                case '5':   value=5;    break;
+                case '6':   value=6;    break;
+                case '7':   value=7;    break;
+                case '8':   value=8;    break;
+                case '9':   value=9;    break;
+                case 'a':   
+                case 'A':   value=10;   break;
+                case 'b':   
+                case 'B':   value=11;   break;
+                case 'c':   
+                case 'C':   value=12;   break;
+                case 'd':   
+                case 'D':   value=13;   break;
+                case 'e':   
+                case 'E':   value=14;   break;
+                case 'f':   
+                case 'F':   value=15;   break;
+                default:    
+                    //LOG(F("convertHexStrToInt: hex convert invalid digit found"));
+                    sum = 0;
+                    return sum;
+            }  
+            sum+=value;
+            i++;
+        }
+    }
+    return sum;     // return sum for hex conversion
+}
+
+uint32_t convertDecStrToInt(const char * str,int len){
+    int   digitFound=0;  
+    uint32_t sum = 0;
+    uint8_t  value;
+    int   i=0;
+    int   factor = 1;
+
+    if ((str[0] == '-')){
+        if (len == 1){
+            //LOG(F("convertDecStrToInt: negative numbers string to short"));
+            sum = 0;
+            return sum;
+        }
+        i++;
+        factor = -1;
+    }
+
+    while (i < len){
+        if (str[i] == ' '){
+            i++;
+        } else {
+            sum = sum*10;
+            digitFound++;
+            if (digitFound > 10){
+                //LOG(F("convertDecStrToInt: dec convert string to long"));
+                sum=0;
+                return sum;     
+            }
+            switch(str[i]){
+                case '0':   value=0;    break;
+                case '1':   value=1;    break;
+                case '2':   value=2;    break;
+                case '3':   value=3;    break;
+                case '4':   value=4;    break;
+                case '5':   value=5;    break;
+                case '6':   value=6;    break;
+                case '7':   value=7;    break;
+                case '8':   value=8;    break;
+                case '9':   value=9;    break;
+                default:    
+                    //LOG(F("convertStrToInt: dez convert invalid digit found"));
+                    sum = 0;
+                    return sum;  // reuse sum for compiler optimization = avoid result copy  
+            }
+            sum+=value;
+            i++;
+        }
+    }
+    if (factor != 1){
+        int32_t val = factor * sum;
+        sum = (uint32_t) val;
+    }
+    return sum;     // return sum for dez convert
+}
+
+
+uint32_t convertStrToInt(const char * str){
+    int   len = strlen(str);
+    int   i = 0;
+    uint32_t res = 0;
+    
+    if (len == 0){
+        return res;  // on empty string
+    }
+
+    // skip leading spaces
+    while (str[i] == ' '){
+        i++;
+        len--;
+        if (len == 0){
+            return res;
+        }
+    }
+
+    if ((len >2) && (str[i] == '0') && ((str[i+1] == 'x') || (str[i+1]=='X'))){
+        res = convertHexStrToInt(&str[i+2],len-2);      // looks like HEX string
+    } else {
+        res = convertDecStrToInt(&str[i],len);          // looks like DEC string;
+    }
+    
+    return res; 
+}
+
+
+uint32_t convertStrToInt(String str){
+    return convertStrToInt(str.c_str());
+}
