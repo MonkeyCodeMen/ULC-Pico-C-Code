@@ -37,8 +37,10 @@ class configScenario{
             JsonArray arr = scenario["configs"].as<JsonArray>();
             if (arr == nullptr){
                 // configItems .. empty config scenario
+                String msg = "no configs found in scenario :"+ String(_name);
+                debug.log(msg);
+                return;
             } else {
-                int count = arr.size();
                 int count=0;
                 for (JsonObject config : arr ){
                     DeserializationError error = deserializeJson(configJson, config);
@@ -48,11 +50,24 @@ class configScenario{
                     } else {
                         configItem configEntry(configJson);
                         _configList.add(configEntry);
+                        count++;
                     }
                 }
             }
         }
-       
+
+
+        String      name()      { return _name;                 }
+        EventType   event()     { return _event;                }
+        uint32_t    count()     { return _configList.size();    }
+        configItem config(uint32_t i){
+            if (i < _configList.size()){
+                return _configList.get(i);
+            }
+            return configItem();  // return empty item
+        }
+
+    protected:   
         String                 _name;
         EventType              _event;
         SimpleList<configItem> _configList;

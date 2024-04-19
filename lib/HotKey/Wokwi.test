@@ -1,4 +1,5 @@
 // https://wokwi.com/dashboard/projects
+// add ArduinoJson LIB
 
 #include <Arduino.h>
 #include <ArduinoJson.h>
@@ -37,7 +38,7 @@ void setup() {
 
   streamIn += " {                                         \r\n";
   streamIn += "     \"group\" : \"LED0\",                 \r\n";
-  streamIn += "     \"program\": \"off\",                 \r\n";
+  streamIn += "     \"cmd\": \"off\",                 \r\n";
   streamIn += "     \"param\": [\"0x00\",\"\",\"\",\"\"], \r\n";
   streamIn += "     \"str\":\"abc\",                      \r\n";
   streamIn += "     \"bin\":[0,2,255,40,30]               \r\n";
@@ -60,14 +61,14 @@ void loop() {
 
 
 void dumpConfigObject(JsonDocument config){
-  String      _ctrlObj;
+  String      _group;
   String      _cmd,_str;
   uint32_t    _param[4];
   uint8_t     * _pData;
   uint32_t    _dataSize;
 
-  _ctrlObj = String((const char *) config["group"]);
-  _cmd     = String((const char *) config["program"]);
+  _group = String((const char *) config["group"]);
+  _cmd     = String((const char *) config["cmd"]);
   _str     = String((const char *) config["str"]);
   String value;
   for(int i=0;i<4;i++){
@@ -95,7 +96,7 @@ void dumpConfigObject(JsonDocument config){
       }
   }
   // dumping
-  Serial1.println("ctrl obj : " + _ctrlObj);
+  Serial1.println("group    : " + _group);
   Serial1.println("cmd      : " + _cmd);
   Serial1.print(  "param    : ");
   for(int i=0;i < 4 ; i++)
