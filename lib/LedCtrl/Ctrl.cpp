@@ -55,7 +55,7 @@ void Ctrl::addAni(Ani * pAni){
 
 
 int Ctrl::setup(int nr){
-//    if (_aniList.size()==0)     return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
+    if (_aniList.size()==0)     return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
     if (nr >= _aniList.size())  return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
     if (nr < 0 )                return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 

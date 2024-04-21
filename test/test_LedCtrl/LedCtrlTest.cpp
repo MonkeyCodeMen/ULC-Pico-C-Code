@@ -1,9 +1,12 @@
 #include <Arduino.h>
 
 #include <Debug.hpp>
+#include <MainConfig.h>
+
 #include <helper.h>
 #include <SPI.h>
 #include <Adafruit_NeoMatrix.h>
+#include <SDcard.hpp>
 #include <TFT_eSPI.h> // Hardware-specific library
 #include "Led.hpp"
 #include "LedCtrl.hpp"
@@ -14,13 +17,15 @@
 void test_LedCtrl_constructor(void) {
   // create Sim LED object and test it
   Led *pSimLed;
-  pSimLed = new Led();
+  pSimLed = new Led;
+  pSimLed->begin(LED_BUILTIN,true);
   TEST_ASSERT_TRUE( pSimLed != NULL);
   TEST_ASSERT_EQUAL_UINT8( 0 , pSimLed->get());
 
   // now let's create a LedCtrl object
   LedCtrl *pObject;
-  pObject = new LedCtrl(pSimLed);
+  pObject = new LedCtrl;
+  pObject->begin(pSimLed);
   TEST_ASSERT_TRUE( pObject != NULL);
   delete pObject;
   TEST_ASSERT_TRUE( pSimLed != NULL);
@@ -31,13 +36,15 @@ void test_LedCtrl_constructor(void) {
 void test_LedCtrl_init(void) {
   // create Sim LED object and test it
   Led *pSimLed;
-  pSimLed = new Led();
+  pSimLed = new Led;
+  pSimLed->begin(LED_BUILTIN,true);
   TEST_ASSERT_TRUE( pSimLed != NULL);
   TEST_ASSERT_EQUAL_UINT8( 0 , pSimLed->get());
 
   // now let's create a LedCtrl object
   LedCtrl *pObject;
-  pObject = new LedCtrl(pSimLed);
+  pObject = new LedCtrl;
+  pObject->begin(pSimLed);
   TEST_ASSERT_TRUE( pObject != NULL);
   TEST_ASSERT_TRUE( pSimLed != NULL);
   TEST_ASSERT_EQUAL_UINT8( 0 , pSimLed->get()); // Ctrl object should not haved touched LED (loop not called)
@@ -49,12 +56,15 @@ void test_LedCtrl_init(void) {
 void test_LedCtrl_aniList(void) {
   // create Sim LED object and test it
   Led *pSimLed;
-  pSimLed = new Led(LED_BUILTIN,true);
+  pSimLed = new Led;
+  pSimLed->begin(LED_BUILTIN,true);
+
   TEST_ASSERT_TRUE( pSimLed != NULL);
   TEST_ASSERT_EQUAL_UINT8( 0 , pSimLed->get());
 
   // now let's create a LedCtrl object
-  LedCtrl object(pSimLed);
+  LedCtrl object;
+  object.begin(pSimLed);
 
   // check ani List
   String aniList = object.getNameList();
@@ -79,8 +89,10 @@ void test_LedCtrl_aniList(void) {
 }
 
 void test_LedCtrl_off(void){
-  Led simLed(LED_BUILTIN);
-  LedCtrl object(&simLed);
+  Led simLed;
+  simLed.begin(LED_BUILTIN,true);
+  LedCtrl object;
+  object.begin(&simLed);
 
   // check sim mode & value
   TEST_ASSERT_EQUAL_STRING("off",object.getName());
@@ -97,8 +109,10 @@ void test_LedCtrl_off(void){
 
 
 void test_LedCtrl_on(void){
-  Led simLed(LED_BUILTIN);
-  LedCtrl object(&simLed);
+  Led simLed;
+  simLed.begin(LED_BUILTIN,true);
+  LedCtrl object;
+  object.begin(&simLed);
 
   // check sim mode & value
   TEST_ASSERT_EQUAL_STRING("off",object.getName());
@@ -122,8 +136,10 @@ void test_LedCtrl_on(void){
 }
 
 void test_LedCtrl_dim(void){
-  Led simLed(LED_BUILTIN);
-  LedCtrl object(&simLed);
+  Led simLed;
+  simLed.begin(LED_BUILTIN,true);
+  LedCtrl object;
+  object.begin(&simLed);
 
   // check sim mode & value
   TEST_ASSERT_EQUAL_STRING("off",object.getName());
@@ -169,8 +185,10 @@ void test_LedCtrl_dim(void){
                |               |    N/A        
     */
 void test_LedCtrl_blink(void){
-  Led simLed(LED_BUILTIN);
-  LedCtrl object(&simLed);
+  Led simLed;
+  simLed.begin(LED_BUILTIN,true);
+  LedCtrl object;
+  object.begin(&simLed);
 
   // check sim mode & value
   TEST_ASSERT_EQUAL_STRING("off",object.getName());

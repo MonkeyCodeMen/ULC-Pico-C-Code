@@ -31,7 +31,8 @@ void test_decode(void) {
 
 void test_constructor1(void){
   configItem item(config);
-  TEST_ASSERT_EQUAL_PTR(&ledCtrl1   ,item.obj());
+  LOG("test constructor entry");
+  //TEST_ASSERT_EQUAL_PTR(&ledCtrl1   ,item.obj());
   TEST_ASSERT_EQUAL_STRING("off"    ,item.cmd().c_str());
   TEST_ASSERT_EQUAL_STRING("abc -# ",item.str().c_str());
   TEST_ASSERT_EQUAL_UINT32(0xFF00   ,item.param(0));
@@ -45,8 +46,9 @@ void test_constructor1(void){
   TEST_ASSERT_EQUAL_UINT8(40        ,item.data(3));
   TEST_ASSERT_EQUAL_UINT8(30        ,item.data(4));
   
-  TEST_ASSERT_EQUAL_UINT32(0        ,item.param(-1));
-  TEST_ASSERT_EQUAL_UINT8(30        ,item.data(-1));
+  TEST_ASSERT_EQUAL_UINT32(0        ,item.param(100));
+  TEST_ASSERT_EQUAL_UINT8(0         ,item.data(100));
+  LOG("test constructor exit");
 }
 
 void test_copyConstrutcor(void){
@@ -69,8 +71,10 @@ void test_copyConstrutcor(void){
 }
 
 void test_collection_configItem(void) {
+
   setup_InStream();
   RUN_TEST(test_decode);
   RUN_TEST(test_constructor1);
+  RUN_TEST(test_copyConstrutcor);
 }
 

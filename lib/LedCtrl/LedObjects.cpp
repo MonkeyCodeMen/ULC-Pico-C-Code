@@ -51,8 +51,7 @@ String ctrlNameList[CTRL_OBJECT_COUNT] = {        String("LED0"), String("LED1")
 
 
 
-CtrlPtr objNametoPtr(const char * charStr){
-    String name = charStr;
+CtrlPtr objNameToPtr(String name){
     for (int i=0;i < CTRL_OBJECT_COUNT;i++){
         if (name == ctrlNameList[i]){
             return ctrlObjectList[i];

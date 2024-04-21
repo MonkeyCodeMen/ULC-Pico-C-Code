@@ -37,7 +37,7 @@ extern CtrlPtr ctrlObjectList[CTRL_OBJECT_COUNT];
 extern String  ctrlNameList[CTRL_OBJECT_COUNT];
 
 
-CtrlPtr   objNametoPtr(const char * name);
 
+CtrlPtr   objNameToPtr(String name);
 
 

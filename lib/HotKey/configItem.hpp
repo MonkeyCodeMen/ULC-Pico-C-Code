@@ -49,7 +49,7 @@ class configItem{
 
 
         configItem(JsonDocument config){
-            _obj = objNametoPtr((const char*) config["obj"]);
+            _obj = objNameToPtr((const char*) config["obj"]);
             _cmd = String((const char*) config["cmd"]);
             _str = String((const char*) config["str"]);
             String value;
@@ -99,7 +99,8 @@ class configItem{
 
         void clearParameter(){
             _obj = NULL;
-            _cmd = _str = "";
+            _cmd = "";
+            _str = "";
             _param[0] = _param[1] = _param[2] = _param[3] = 0;
         }  
 

@@ -9,7 +9,7 @@
 
 struct AniNode{
     //struct AniNode *   pNext;
-    uint32_t        nr;
+    int32_t         nr;
     const char  *   pName;    
     Ani         *   pAni; 
 };

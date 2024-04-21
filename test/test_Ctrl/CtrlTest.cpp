@@ -1,13 +1,21 @@
 #include <Arduino.h>
 
 #include <Debug.hpp>
-#include <helper.h>
 #include <SPI.h>
 #include <Adafruit_NeoMatrix.h>
 #include <TFT_eSPI.h> // Hardware-specific library
 
+#include <MainConfig.h>
+#include <SDcard.hpp>
+#include <LedObjects.hpp>
+
 #include "Ctrl.hpp"
+
+
 #include <unity.h>
+
+
+
 
 
 void test_Ctrl_constructor0(void) {
@@ -22,30 +30,51 @@ void test_Ctrl_constructor0(void) {
   // destructor Ctrl
 }
 
-
-void test_Ctrl_constructor1(void) {
-
+void test_Ctrl_emptyList(void){
   Ctrl object;
 
   TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
   TEST_ASSERT_EQUAL_STRING("",object.getNameList());
   TEST_ASSERT_EQUAL_STRING("",object.getName());
-  
-  object.setup(3);  // change to not existing animation
   TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
-  TEST_ASSERT_EQUAL_STRING("",object.getNameList());
-  TEST_ASSERT_EQUAL_STRING("",object.getName());
+  TEST_ASSERT_FALSE(object.isAniSelected());
+}
 
-  object.setup("Roger Rabbit");  // change to not existing animation
-  TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
-  TEST_ASSERT_EQUAL_STRING("",object.getNameList());
-  TEST_ASSERT_EQUAL_STRING("",object.getName());
+void test_Ctrl_changeByIndex(void){
+  Ctrl object;
 
-  object.setup(0,0,0,0,"",0,NULL);  // try parameter change on not existing animation
+  // change to not existing animation
+  TEST_ASSERT_EQUAL_INT(ANI_ERROR_PROGRAM_DOES_NOT_EXIST,object.setup(3));  
   TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
   TEST_ASSERT_EQUAL_STRING("",object.getNameList());
   TEST_ASSERT_EQUAL_STRING("",object.getName());
 }
+
+
+void test_Ctrl_changeByName(void){
+  Ctrl object;
+
+  // change to not existing animation
+  TEST_ASSERT_EQUAL_INT(ANI_ERROR_PROGRAM_DOES_NOT_EXIST,object.setup("Roger Rabbit"));  
+  TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
+  TEST_ASSERT_EQUAL_STRING("",object.getNameList());
+  TEST_ASSERT_EQUAL_STRING("",object.getName());
+}
+
+
+void test_Ctrl_setup(void) {
+  Ctrl object;
+
+  // try parameter change on not existing animation
+  TEST_ASSERT_EQUAL_INT(ANI_ERROR_PROGRAM_DOES_NOT_EXIST,object.setup(0,0,0,0,"",0,NULL));  
+  TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
+  TEST_ASSERT_EQUAL_STRING("",object.getNameList());
+  TEST_ASSERT_EQUAL_STRING("",object.getName());
+  
+}
+
+
+
 
 
 
@@ -66,7 +95,10 @@ void tearDown(void) {
 int runAllCollections(void) {
   UNITY_BEGIN();
   RUN_TEST(test_Ctrl_constructor0);
-  RUN_TEST(test_Ctrl_constructor1);
+  RUN_TEST(test_Ctrl_emptyList);
+  RUN_TEST(test_Ctrl_changeByName);
+  RUN_TEST(test_Ctrl_changeByIndex);
+  RUN_TEST(test_Ctrl_setup);
   return UNITY_END();
 }
 

@@ -9,8 +9,17 @@
 
 
 class Led{
+    /*
+        use construtcor / begin pattern to enable full control 
+        about the point in time where pins are setup/driven/switched
+
+        because of this we need a two step setup/init:
+
+        Led object;
+        object.setup(LED_BUILTIN,false);
+    */
     public:
-        Led():_pin(LED_BUILTIN),_invers(false){   }
+        Led():_pin(LED_BUILTIN),_invers(false),_value(LED_OFF)      {  }
         ~Led() = default;
 
         virtual void begin(int pin=LED_BUILTIN,bool invers=false){

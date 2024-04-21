@@ -73,7 +73,7 @@ void test_Menu_staticEntry(void) {
 
 void test_Menu_boolEntry(){
   MenuEntryBoolToggle obj1("switch : ");
-  MenuEntryBool       obj2("==Flag==:",false,true,F_CHAR("TRUE"),F_CHAR("FALSE"),F_CHAR("("),F_CHAR(")"));
+  MenuEntryBool       obj2("==Flag==:",false,true,"TRUE","FALSE","(",")");
 
   // we focus now only on text results
   obj1.changeCursorOption("","");

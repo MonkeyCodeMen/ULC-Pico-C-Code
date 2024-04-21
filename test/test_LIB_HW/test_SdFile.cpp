@@ -1,21 +1,19 @@
 #include <Arduino.h>
 
+#include <PinMapping.h>
 #include <Debug.hpp>
 #include <helper.h>
 #include <SPI.h>
 #include <Adafruit_NeoMatrix.h>
 #include <TFT_eSPI.h> // Hardware-specific library
+#include <SDcard.hpp>
 
 
 #include <unity.h>
-
-#include <globalObjects.hpp>
-
 /* basic file tests */
 
 
 
-#ifdef WITH_SD_CARD
 
 
 String createTestData(){
@@ -43,8 +41,8 @@ String createTestData(){
 
 void test_SD_open(void) {
 
-    TEST_ASSERT_TRUE(SD.begin(PIN_SD_CS));
-    SDFile root = SD.open("/");
+    TEST_ASSERT_TRUE(globalSDcard0.begin(PIN_SD_CS));
+    SDFile root = globalSDcard0.open("/");
 
     TEST_ASSERT_TRUE(root.available());
     TEST_ASSERT_TRUE(root.isDirectory());
@@ -56,19 +54,19 @@ void test_File_WriteRead(void) {
     String data = createTestData();
     SDFile myFile;
     String out="";
-    const char * fileName = F_CONST("test.txt");
+    const char * fileName = "test.txt";
 
     TEST_ASSERT_TRUE(data.length() > 0);
 
 
     // Check to see if the file exists:
-    if (SD.exists(fileName)) {
-        SD.remove(fileName);
+    if (globalSDcard0.exists(fileName)) {
+        globalSDcard0.remove(fileName);
         // now file should be history
-        TEST_ASSERT_FALSE(SD.exists(fileName));
+        TEST_ASSERT_FALSE(globalSDcard0.exists(fileName));
     }
 
-    myFile = SD.open(fileName, FILE_WRITE);
+    myFile = globalSDcard0.open(fileName, FILE_WRITE);
     TEST_ASSERT_EQUAL_INT(0,myFile.position());
     TEST_ASSERT_FALSE(myFile.isDirectory());
     TEST_ASSERT_EQUAL_STRING(fileName,myFile.name());
@@ -80,9 +78,9 @@ void test_File_WriteRead(void) {
     myFile.close();
     TEST_ASSERT_FALSE(myFile.available());
 
-    TEST_ASSERT_TRUE(SD.exists(fileName));
+    TEST_ASSERT_TRUE(globalSDcard0.exists(fileName));
 
-    myFile = SD.open(fileName, FILE_READ);
+    myFile = globalSDcard0.open(fileName, FILE_READ);
     TEST_ASSERT_EQUAL_INT(0,myFile.position());
     TEST_ASSERT_TRUE(myFile.available());
     TEST_ASSERT_FALSE(myFile.isDirectory());
@@ -111,17 +109,7 @@ int runAllCollections(void) {
     return UNITY_END();
 }
 
-#else
 
-
-// if project is without SD card
-int runAllCollections(void) {
-    UNITY_BEGIN();
-    // nothing to test for this module
-    return UNITY_END();
-}
-
-#endif
 
 
 void setUp(void) {

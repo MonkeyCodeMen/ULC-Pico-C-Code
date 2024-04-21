@@ -5,7 +5,8 @@
 
 #include <SPI.h>
 #include <SD.h>
-extern SDClass globalSDcard0;
+//extern SDClass globalSDcard0;
+extern SDFileSystemClass globalSDcard0;
 
 /***
  * gloabal SD card is the project access point to SD card

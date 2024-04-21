@@ -196,7 +196,7 @@ void test_helper_uint32_t_byteAcess(void) {
 }
 
 void test_helper_u16_byteAcess(void) {
-    union u16_byteAcess obj;
+    union uint16_t_byteAcess obj;
 
     obj.ival = 0x2211;
 
