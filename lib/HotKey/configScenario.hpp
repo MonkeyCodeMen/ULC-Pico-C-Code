@@ -1,10 +1,10 @@
 #pragma once
 
 #include <Arduino.h>
+#include <ArduinoJson.h>
 #include <SimpleList.hpp>
 #include <Events.hpp>
 #include <configItem.hpp>
-#include <ArduinoJson.h>
 #include <Debug.hpp>
 
 
@@ -27,11 +27,15 @@
 
 class configScenario{
     public:
-        configScenario():_name(""),_event(EVENT_NONE)    {                           }
-        ~configScenario()                                {   _configList.clear();    }
+        configScenario():_name(""),_event(EVENT_NONE)   {                           }
+        configScenario(configScenario& src)             { *this = src;              }            
+        ~configScenario()                               { _configList.clear();      }
+
         configScenario(JsonDocument scenario){
-            _name = String((const char*) scenario["name"]);
             _event = eventNameToNr((const char*) scenario["key"]);
+            _name = (const char *) scenario["name"];
+            // fix NULL pointer return
+            if (_name.c_str() == NULL) _name = "";
             
             JsonDocument configJson;
             JsonArray arr = scenario["configs"].as<JsonArray>();
@@ -42,16 +46,9 @@ class configScenario{
                 return;
             } else {
                 int count=0;
-                for (JsonObject config : arr ){
-                    DeserializationError error = deserializeJson(configJson, config);
-                    if (error) {
-                        String msg = "could not decode configItem Nr." + String(count) + " of scenario: " + _name;
-                        debug.log(msg);
-                    } else {
-                        configItem configEntry(configJson);
-                        _configList.add(configEntry);
-                        count++;
-                    }
+                for (JsonObject item : arr ){
+                    configItem configEntry(item);
+                    _configList.add(configEntry);
                 }
             }
         }
@@ -60,12 +57,24 @@ class configScenario{
         String      name()      { return _name;                 }
         EventType   event()     { return _event;                }
         uint32_t    count()     { return _configList.size();    }
+
         configItem config(uint32_t i){
             if (i < _configList.size()){
                 return _configList.get(i);
             }
             return configItem();  // return empty item
         }
+
+        configScenario& operator=(configScenario& src){
+            _configList.clear();
+            _name  = src._name;
+            _event = src._event;
+            for(uint32_t i=0;i < src.count() ;i++){
+                _configList.add(src.config(i)); 
+            }  
+            return *this;
+        }
+
 
     protected:   
         String                 _name;

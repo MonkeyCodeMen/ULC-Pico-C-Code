@@ -110,13 +110,13 @@ uint32_t convertDecStrToInt(const char * str,int len){
 
 
 uint32_t convertStrToInt(const char * str){
+    if (str == NULL)    return 0;
     int   len = strlen(str);
+    if (len == 0)       return 0;
+
     int   i = 0;
     uint32_t res = 0;
-    
-    if (len == 0){
-        return res;  // on empty string
-    }
+
 
     // skip leading spaces
     while (str[i] == ' '){

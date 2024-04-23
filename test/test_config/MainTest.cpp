@@ -7,14 +7,10 @@
 
 #include <unity.h>
 
-
-
-
-
 // prototype here all external test collections 
 
 extern void test_collection_configItem();
-//extern void test_collection_configScenario();
+extern void test_collection_scenario();
 
 
 
@@ -32,7 +28,7 @@ void tearDown(void) {
 int runAllCollections(void) {
   UNITY_BEGIN();
   test_collection_configItem();
-  //test_collection_configScenario();
+  test_collection_scenario();
   return UNITY_END();
 }
 
@@ -44,8 +40,8 @@ int runAllCollections(void) {
 void setup() {
   // Wait ~2 seconds before the Unity test runner
   // establishes connection with a board Serial interface
-  delay(2000);
-
+  delay(6000);
+  
   runAllCollections();
 
   pinMode(LED_BUILTIN,OUTPUT);

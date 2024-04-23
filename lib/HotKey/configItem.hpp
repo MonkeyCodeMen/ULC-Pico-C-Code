@@ -25,8 +25,10 @@
 
 class configItem{
     public:
-        configItem():_pData(NULL),_dataSize(0)  { clearParameter();     }
-        configItem(configItem& src)             { *this = src;          }
+        configItem():_pData(NULL),_dataSize(0),_obj(NULL),_cmd(""),_str("")  
+                                                { clearParameter();     }
+        configItem(const configItem& src):_pData(NULL),_dataSize(0),_obj(NULL),_cmd(""),_str("") 
+                                                { *this = src;          }
         ~configItem()                           { clearAll();           }
 
         CtrlPtr obj()                           { return _obj;          }
@@ -50,12 +52,17 @@ class configItem{
 
         configItem(JsonDocument config){
             _obj = objNameToPtr((const char*) config["obj"]);
-            _cmd = String((const char*) config["cmd"]);
-            _str = String((const char*) config["str"]);
+            _cmd = (const char *) config["cmd"]  ;
+            _str = (const char *) config["str"]  ;
+            // fix NULL pointer return
+            if (_cmd.c_str() == NULL)   _cmd = "";  
+            if (_str.c_str() == NULL)   _str = "";
+
             String value;
             for(int i=0;i<4;i++){
                 _param[i] = (uint32_t) convertStrToInt( (const char *) config["param"][i] );
             }
+
             JsonArray arr = config["bin"].as<JsonArray>();
             if (arr == nullptr){
                 // no bin data
@@ -92,8 +99,8 @@ class configItem{
         void deleteExistingData(){
             if (_pData != NULL){
                 delete _pData;
+                _pData = NULL;
             }
-            _pData = NULL;
             _dataSize = 0;
         }
 
