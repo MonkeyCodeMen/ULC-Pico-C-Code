@@ -28,7 +28,7 @@
 class configScenario{
     public:
         configScenario():_name(""),_event(EVENT_NONE)   {                           }
-        configScenario(configScenario& src)             { *this = src;              }            
+        configScenario(configScenario&  src)            { *this = src;              }            
         ~configScenario()                               { _configList.clear();      }
 
         configScenario(JsonDocument scenario){
@@ -45,7 +45,6 @@ class configScenario{
                 debug.log(msg);
                 return;
             } else {
-                int count=0;
                 for (JsonObject item : arr ){
                     configItem configEntry(item);
                     _configList.add(configEntry);
@@ -65,14 +64,16 @@ class configScenario{
             return configItem();  // return empty item
         }
 
-        configScenario& operator=(configScenario& src){
+        void operator=(configScenario const& src){
             _configList.clear();
             _name  = src._name;
             _event = src._event;
-            for(uint32_t i=0;i < src.count() ;i++){
-                _configList.add(src.config(i)); 
+
+            // before calling of member function we must get rid of const qualifier
+            configScenario& ref = const_cast <configScenario&>(src);
+            for(uint32_t i=0;i < ref.count() ;i++){
+                _configList.add(ref.config(i)); 
             }  
-            return *this;
         }
 
 

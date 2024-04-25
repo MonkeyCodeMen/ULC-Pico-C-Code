@@ -25,10 +25,10 @@
 
 class configItem{
     public:
-        configItem():_pData(NULL),_dataSize(0),_obj(NULL),_cmd(""),_str("")  
-                                                { clearParameter();     }
-        configItem(const configItem& src):_pData(NULL),_dataSize(0),_obj(NULL),_cmd(""),_str("") 
-                                                { *this = src;          }
+        configItem():_pData(NULL),_dataSize(0),_obj(NULL),_cmd(""),_str(""),_param{0,0,0,0}
+                                                {                       }
+        configItem(const configItem & src ):_pData(NULL),_dataSize(0),_obj(NULL),_cmd(""),_str("") 
+                                                { *this = src;          } 
         ~configItem()                           { clearAll();           }
 
         CtrlPtr obj()                           { return _obj;          }
@@ -118,13 +118,12 @@ class configItem{
 
 
 
-        configItem& operator=(const configItem& src){
+        void operator=(const configItem & src){
             _obj     = src._obj;
             _cmd     = src._cmd;
             _str     = src._str;
             for(int i=0;i < 4;i++)  _param[i]=src._param[i];
             assignData(src._pData,src._dataSize);
-            return *this;
         }
 
     protected:

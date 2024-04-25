@@ -34,11 +34,11 @@
 
 
 
-class HotKey
+class configCollection
 {
     public:
-        HotKey():_configFileName("") {  }
-        ~HotKey() = default;
+        configCollection():_configFileName("") {  }
+        ~configCollection() = default;
 
         uint32_t    count()     { return _scenarioList.size();  }
         String      fileName()  { return _configFileName;       }
@@ -59,20 +59,14 @@ class HotKey
             }
             return configScenario();
         }
-        
 
-        bool open(String configFile) {
-            _configFileName = configFile;
-            SDFile * pFile = new SDFile();
-            *pFile = globalSDcard0.open(_configFileName,FILE_READ);
-            if (pFile == NULL){
-                String msg = "could not open config file " + String(_configFileName);
-                debug.log(msg);
-                return false;
-            }
-            String streamIn = pFile->readString();
-            pFile->close();
+        configScenario  scenario(uint32_t index){
+            configScenario item;
+            item = _scenarioList.get(index);
+            return item;
+        }
 
+        bool openFromString(String streamIn){
             JsonDocument config;
             DeserializationError error = deserializeJson(config, streamIn);
             if (error) {
@@ -86,6 +80,13 @@ class HotKey
             _author  = String((const char*) config["author"]);
             _type    = String((const char*) config["type"]);
             _version = String((const char*) config["version"]);
+
+            // fix NULL pointer
+            if (_project.c_str() == NULL)   _project = "";
+            if (_date.c_str() == NULL)      _date    = "";
+            if (_author.c_str() == NULL)    _author  = "";
+            if (_type.c_str() == NULL)      _type    = "";
+            if (_version.c_str() == NULL)   _version = "";
             
             JsonDocument scenarioJson;
             JsonArray arr = config["scenarios"].as<JsonArray>();
@@ -95,28 +96,33 @@ class HotKey
                 debug.log(msg);
                 return false;
             } else {
-                int count = 0;
-                for (JsonObject scenario : arr ){
-
-                    DeserializationError error = deserializeJson(scenarioJson, config);
-                    if (error) {
-                        String msg = "could not decode configItem Nr." + String(count);
-                        debug.log(msg);
-                    } else {
-                        configScenario scenario(scenarioJson);
-                        _scenarioList.add(scenario);
-                        count++;
-                    }
+                for (JsonObject item : arr ){
+                    configScenario scenario(item);
+                    _scenarioList.add(scenario);
                 }
             }
             return true;
         }
 
+        bool openFromFile(String fileName) {
+            SDFile * pFile = new SDFile();
+            *pFile = globalSDcard0.open(fileName,FILE_READ);
+            if (pFile == NULL){
+                String msg = "could not open config file " + String(fileName);
+                debug.log(msg);
+                return false;
+            }
+            String streamIn = pFile->readString();
+            pFile->close();
+            _configFileName = fileName;
+
+            return openFromString(streamIn);
+        }
+
 
     private:
-        String  _configFileName;
-        String  _project,_date,_author,_type,_version;
-        SimpleList<configScenario> _scenarioList;
+        String _configFileName,_project,_date,_author,_type,_version;
+        SimpleList<configScenario>  _scenarioList;
         
 
 };
