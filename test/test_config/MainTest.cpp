@@ -11,6 +11,7 @@
 
 extern void test_collection_configItem();
 extern void test_collection_scenario();
+extern void test_collection_collection();
 
 
 
@@ -29,6 +30,7 @@ int runAllCollections(void) {
   UNITY_BEGIN();
   test_collection_configItem();
   test_collection_scenario();
+  test_collection_collection();
   return UNITY_END();
 }
 

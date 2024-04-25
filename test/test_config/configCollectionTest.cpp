@@ -29,13 +29,12 @@ String collection_config(void){
   
   res += "{";
 
-  res += "   \"project\"   : \"test project\",                              \r\n";
-  res += "   \"type\"      : \"config collection\",                         \r\n";
-  res += "   \"date\"      : \"yesterday\",                                 \r\n";
-  res += "   \"author\"    : \"MonkeyCodeMen\",                             \r\n";
-  res += "   \"version\"   : \"1.2.3\",                                     \r\n";
-
-  res += " \"scenarios\":[  \r\n ";
+  res += "   \"project\"   : \"test project\",                  \r\n";
+  res += "   \"type\"      : \"config collection\",             \r\n";
+  res += "   \"date\"      : \"yesterday\",                     \r\n";
+  res += "   \"author\"    : \"MonkeyCodeMen\",                 \r\n";
+  res += "   \"version\"   : \"1.2.3\",                         \r\n";
+  res += "   \"scenarios\" :[                                   \r\n ";
 
   res += " {                                                    \r\n";
   res += "   \"name\"   : \"off\",                              \r\n";
@@ -43,12 +42,12 @@ String collection_config(void){
   res += "   \"configs\": [                                     \r\n";
   res += "    {                                                 \r\n";
   res += "     \"obj\"  : \"LED0\",                             \r\n";
-  res += "     \"cmd\"  :    \"off\",                           \r\n";
+  res += "     \"cmd\"  : \"off\"                               \r\n";
   res += "    },                                                \r\n";
   res += "    {                                                 \r\n";
   res += "     \"obj\"  : \"LED1\",                             \r\n";
-  res += "     \"cmd\"  :    \"off\",                           \r\n";
-  res += "    }                                                 \r\n";
+  res += "     \"cmd\"  : \"off\"                               \r\n";
+  res += "    } ]                                                \r\n";
   res += " },                                                   \r\n";
 
   res += " {                                                    \r\n";
@@ -57,16 +56,17 @@ String collection_config(void){
   res += "   \"configs\": [                                     \r\n";
   res += "    {                                                 \r\n";
   res += "     \"obj\"  : \"LED0\",                             \r\n";
-  res += "     \"cmd\"  :    \"on\",                            \r\n";
+  res += "     \"cmd\"  : \"on\"                                \r\n";
   res += "    },                                                \r\n";
   res += "    {                                                 \r\n";
   res += "     \"obj\"  : \"LED1\",                             \r\n";
-  res += "     \"cmd\"  :    \"on\",                            \r\n";
-  res += "    }                                                 \r\n";
-  res += " }                                                    \r\n";
+  res += "     \"cmd\"  : \"on\"                                \r\n";
+  res += "    }]                                                 \r\n";
+  res += " } ]                                                   \r\n";
 
-  res += " ]  \r\n ";
   res += "}";
+
+  TEST_ASSERT_TRUE(res.length() > 100);
 
   return res;
 }
@@ -117,10 +117,10 @@ void test_baseConstructor_collection(void){
 
 void test_constructor_collection(void){
   configCollection collection;
-  collection.openFromString(collectionConfigStr);
+  TEST_ASSERT_TRUE(collection.openFromString(collectionConfigStr) );
 
   TEST_ASSERT_EQUAL_STRING("test project"       ,collection.project().c_str());
-  TEST_ASSERT_EQUAL_STRING("collection config"  ,collection.type().c_str());
+  TEST_ASSERT_EQUAL_STRING("config collection"  ,collection.type().c_str());
   TEST_ASSERT_EQUAL_STRING("yesterday"          ,collection.date().c_str());
   TEST_ASSERT_EQUAL_STRING("MonkeyCodeMen"      ,collection.author().c_str());
   TEST_ASSERT_EQUAL_STRING("1.2.3"              ,collection.version().c_str());

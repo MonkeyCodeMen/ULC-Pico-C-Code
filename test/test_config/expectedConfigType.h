@@ -18,5 +18,5 @@ struct  expectedConfigStruct {
 
 extern expectedConfigStruct sollEmptyConfig;
 
-void test_empty_config(configItem * pScen);
-void test_expected_config(expectedConfigStruct soll,configItem * pScen);
+extern void test_empty_config(configItem * pScen);
+extern void test_expected_config(expectedConfigStruct soll,configItem * pScen);
