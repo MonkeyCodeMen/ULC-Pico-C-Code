@@ -32,8 +32,6 @@
  * 
 */
 
-
-
 class configCollection
 {
     public:
@@ -126,3 +124,5 @@ class configCollection
         
 
 };
+
+extern configCollection globalHotkey;

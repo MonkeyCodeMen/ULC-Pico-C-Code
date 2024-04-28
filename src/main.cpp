@@ -20,12 +20,14 @@
 #include <Display.hpp>
 #include <SDcard.hpp>
 
+#include <configCollection.hpp>
 
 /*****************************************************************
  * 
  *    ToDo'S / aufräumen
  * 
  ******************************************************************
+  + make bakup (and read back) of last setup data .. how to deal with binary data ?
   + implement startup test mode
   + implement boot screen
   + add new second class functionality with reset or not  ????
@@ -87,7 +89,6 @@ void mainMenu_syncFromCtrl(){
 
 
 void mainMenu_begin(){
-
     String aniList = ledCtrl1.getNameList();
     menuMainSwitch1.setValueList(aniList);
     menuMainSwitch2.setValueList(aniList);
@@ -130,7 +131,6 @@ void toggleLed(uint32_t now){
 }
 
 /* 
-
 ToDo: no longer used, but where should we place this
 void renderDisplay(uint32_t now){
     #ifdef WITH_DISPLAY
@@ -148,7 +148,6 @@ void renderDisplay(uint32_t now){
 void TestDebug(){
   // place code to debug here 
   // will be called early in setup of core 0
-
 }
 
 
@@ -194,6 +193,7 @@ void setup() {
   LOG(F("setup 0: SD card on SPI 1..."));
     if (!globalSDcard0.begin(PIN_SD_CS)) {
       LOG(F("setup 0: SD card initialization failed!"));
+      globalHotkey.openFromFile("hotkey.cfg");
     } else {
       LOG(F("setup 0: SD card initialization done."));
     }

@@ -131,7 +131,7 @@ void tearDown(void) {
 void setup() {
     // Wait ~2 seconds before the Unity test runner
     // establishes connection with a board Serial interface
-    delay(2000);
+    delay(6000);
 
     runAllCollections();
 
