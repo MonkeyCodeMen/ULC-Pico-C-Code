@@ -302,6 +302,7 @@ void loop1(){
           if (event != EVENT_NONE){
             while(event != EVENT_NONE){
               menuHandler.onEvent(event);
+              globalHotkey.onEvent(event);
               event = keyboard.getNextEvent();
             }
             mainMenu_syncToCtrl();
