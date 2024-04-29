@@ -103,18 +103,17 @@ class configCollection
         }
 
         bool openFromFile(String fileName) {
-            SDFile * pFile = new SDFile();
-            *pFile = globalSDcard0.open(fileName,FILE_READ);
-            if (pFile == NULL){
-                String msg = "could not open config file " + String(fileName);
-                debug.log(msg);
-                return false;
+            if (globalSDcard0.exists(fileName) == true){
+                SDFile file;
+                file = globalSDcard0.open(fileName,FILE_READ);
+                String streamIn = file.readString();
+                file.close();
+                _configFileName = fileName;
+                return openFromString(streamIn);
             }
-            String streamIn = pFile->readString();
-            pFile->close();
-            _configFileName = fileName;
-
-            return openFromString(streamIn);
+            String msg = "file not found: " + String(fileName);
+            debug.log(msg);
+            return false;
         }
 
         bool onEvent(EventType event){

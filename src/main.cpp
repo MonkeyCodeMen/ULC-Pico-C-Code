@@ -193,9 +193,10 @@ void setup() {
   LOG(F("setup 0: SD card on SPI 1..."));
     if (!globalSDcard0.begin(PIN_SD_CS)) {
       LOG(F("setup 0: SD card initialization failed!"));
-      globalHotkey.openFromFile("hotkey.cfg");
     } else {
       LOG(F("setup 0: SD card initialization done."));
+      LOG(F("setup 0: load config File"));
+      globalHotkey.openFromFile("hotkey.cfg");
     }
 
   LOG(F("setup 0: Test functions"));
