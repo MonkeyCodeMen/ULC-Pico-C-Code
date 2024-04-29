@@ -76,6 +76,14 @@ class configScenario{
             }  
         }
 
+        bool run(void){
+            uint32_t count = _configList.size();
+            if (count == 0)    return false;
+            for(int i=0; i < count;i++){
+                _configList.get(i).run();
+            }
+            return true;
+        }
 
     protected:   
         String                 _name;

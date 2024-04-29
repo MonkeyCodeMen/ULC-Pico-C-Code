@@ -302,11 +302,15 @@ void loop1(){
           event = keyboard.getNextEvent();
           if (event != EVENT_NONE){
             while(event != EVENT_NONE){
-              menuHandler.onEvent(event);
-              globalHotkey.onEvent(event);
+              if (event >= EVENT_A1){
+                globalHotkey.onEvent(event);
+                mainMenu_syncFromCtrl();
+              } else {
+                menuHandler.onEvent(event);
+                mainMenu_syncToCtrl();
+              }
               event = keyboard.getNextEvent();
             }
-            mainMenu_syncToCtrl();
           }
           break;
       case 6:  

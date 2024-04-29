@@ -117,27 +117,15 @@ class configCollection
         }
 
         bool onEvent(EventType event){
-            configScenario scen=scenario(event);
-            configItem cfg;
-            CtrlPtr obj;
-            if (scen.count() == 0)  return false;
-            for(int i=0; i < scen.count();i++){
-                cfg = scen.config(i);
-                obj = cfg.obj();
-                if (obj != NULL){
-                    if (obj->setup(cfg.cmd().c_str()) == ANI_OK){
-                        if (cfg.size() > 0){
-                            uint8_t * p = new uint8_t[cfg.size()];
-                            obj->setup(cfg.param(0),cfg.param(1),cfg.param(2),cfg.param(3),cfg.str(),cfg.size(),&p);
-                            // setup takes care about free memory if needed 
-                        } else {
-                            obj->setup(cfg.param(0),cfg.param(1),cfg.param(2),cfg.param(3),cfg.str(),0,NULL);
-                        }
-                    }
+            configScenario item;
+            if (_scenarioList.size() > 0){
+                for (int i = 0 ;i < _scenarioList.size(); i++){
+                    item = _scenarioList.get(i);
+                    if (item.event() == event)
+                        return item.run();
                 }
             }
-            return true;
-
+            return false;
         }
 
 
