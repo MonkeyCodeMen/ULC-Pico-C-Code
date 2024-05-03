@@ -178,8 +178,8 @@ SD card has special SPI operation
 
 ////////////////////////////////////////
 // LED
-#define PIN_STRIPE_1        2 
-#define PIN_STRIPE_2        3 
+#define PIN_STRIPE_1        3 
+#define PIN_STRIPE_2        2 
 
 #define PIN_MATRIX_1        20
 #define PIN_MATRIX_2        21

@@ -61,7 +61,7 @@ class LedOnAni : public LedAni{
                |               |    N/A        
     */
     public:
-        LedOnAni()  : LedAni((const char *) F("on"))            {                       }
+        LedOnAni()  : LedAni((const char *) F("on"))                {                       }
         void loop(uint32_t time,Led * pLed)                        {pLed->set(LED_MAX);    }
 };
 

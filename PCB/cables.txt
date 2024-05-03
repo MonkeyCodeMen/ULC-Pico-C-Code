@@ -1,0 +1,73 @@
+
+     
+4-polig RGB (12V)  
+=======================================
+GX20 von hinten 
+   /---U---\
+  /  1   4  \
+ |           |
+  \  2   3  /
+   \-------/
+
+   1 : R            : rot      : braun
+   2 : G            : grün     : schwarz
+   3 : B            : blau     : grau
+   4 : 12V / common : schwarz  : blau
+
+4 polig RGB stripe
+
+#################
+        ->      #---  1 : schwarz  : blau
+                #
+                #---  2 : rot      : braun
+                #
+                #---  3 : grün     : schwarz
+                #
+                #---  4 : blau     : grau
+#################
+
+
+
+3-polig NEO-LED Stripe & NEO-LED Matrix 
+=======================================
+GX20 von hinten 
+
+   /---U---\
+  /  1   3  \
+ |           |
+  \    2    /
+   \-------/
+
+1: +5V      : rot      : blau
+2: DATA_OUT : gelb     : braun
+3: GND      : schwarz  : schwarz
+
+
+#################
+        ->      #---  1: rot   : 5V      : blau
+                #
+                #---  2: grün  : DATA-IN : braun
+                #
+                #---  3: weiss : GND     : schwarz
+#################
+
+
+3-polig NEO-LED Stripe & NEO-LED Matrix 
+=======================================
+GX20 von hinten 
+
+   /---U---\
+  /         \
+ |   1   2   |
+  \         /
+   \-------/
+
+1: GND : schwarz  : blau / schwarz : 
+2: 12V : rot      : braun / grau   : 
+
+
+  ###
+ # o #
+  ###
+o: +12V : rot ...
+#: GND  : schwarz ...
