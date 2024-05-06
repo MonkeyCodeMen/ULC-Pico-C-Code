@@ -2,100 +2,103 @@
 #include <Arduino.h>
 #include <Debug.hpp>
 #include "helper.h"
+#include <SimpleList.hpp>
 
+
+/*
+
+	p2 : color Index:   xx xx xx xx   :
+						|| || || ++---: start index of color list 
+						|| || ||      :     color list is provided in cfg.str
+						|| || ||      :     if cfg.str is empty color are taken from color wheel (0..255)
+						|| || ++------: == 0   : no inc / dec 
+						|| ||         : <  128 : inc step
+						|| ||         : >= 128 : dec step   (-1 = 255, -2 = 254)
+						|| ++---------: time t2 in ms: time between two color steps 
+						||            : 0xxxFF xxxx wait for trigger 
+						++------------: reserved
+
+						standard color white, an be overwritten by color list or color wheel
+						p2:0  & str:""             ==> constant white
+						p2:0  & str:"0x0000 00FF"  ==> constant blue
+					
+		
+*/
 
 class ColorSelector{
     #define COLOR_LIST_LENGTH 32
     public:
-        ColorSelector() {  setup();    };       // setup with default values 
+        ColorSelector() {  config(0,"");    };       // setup with default values 
         ~ColorSelector() = default;
 
-        void setup(uint8_t dimValue=255,uint8_t startValue=0,uint8_t incStep=1,String str="",uint32_t length=0,uint8_t * pData=NULL){
-            _clearList();
-            _dimValue = dimValue;
-            _incStep = incStep;
-            if ((str.length() > 0) || (length > 0)){
-                _useColorList = true;
-                if (str.length() != 0){
-                    _decodeAsciiColorList(str.c_str());
-                } else if (length != 0){
-                    _decodeBinColorList(pData,length);
-                } 
-                _index   = startValue%_colorCount;
-            } else {
-                _useColorList = false;
-                _colorCount   = 255;
-                _index        = startValue;
+
+        void config(uint32_t p=0,String colorList=""){
+            config(L_BYTE(p),H_BYTE(p),HH_BYTE(p),colorList);
+        }
+
+        void config(uint8_t startIndex,uint8_t incStep,uint8_t time, String colorList){
+            _run = (incStep == 0) ? false:true;
+            _colorList.clear();
+            _incStep   = (int8_t) incStep;
+            _timeStep  = time;
+            _firstLoop = true;
+            _currentColorIndex = startIndex;
+            _currentColor = 0x00FFFFFF; 
+            _colorIndexMax = 255;
+            _useColorWheel = true;
+
+            if (colorList.length() > 0){
+                StringList list(colorList.c_str(),',');
+                while(list.isEndReached() == false){
+                    _colorList.add(convertStrToInt(list.getNextListEntry()));
+                }
+                _colorIndexMax = _colorList.size();
+                if (_colorIndexMax > 0){
+                    _currentColor = _colorList.get(0);
+                    _useColorWheel = false;
+                }
             }
-            backup();
         }
 
-        uint32_t getNextColor(){
-            uint32_t color24;
-            if (_useColorList){
-                color24 = _colorList[_index];
-                _index += _incStep;
-                _index %= _colorCount;
+        void loop(uint32_t now){
+            if (_run == true){
+                // check for first loop cycle
+                if (_firstLoop == true){
+                    _firstLoop = false;
+                    _nextLoopTime = now+_timeStep;
+                } else if (now >= _nextLoopTime){
+                    // time for update
+                    _nextLoopTime += _timeStep;
+                    
+                    // update Index
+                    _currentColorIndex += _incStep;
+                    if (_currentColorIndex > _colorIndexMax){
+                        _currentColorIndex = 0;
+                    }
+                    
+                    // now calc color based on index
+                    if (_useColorWheel == true){
+                        _currentColor = getColorWheel24Bit(_currentColorIndex);
+                    } else {
+                        _currentColor = _colorList.get(_currentColorIndex);
+                    }
+                }
 
-            } else {
-                color24 = getColorWheel24Bit(_index);
-                _index += _incStep;
             }
-            return dimColor255(color24,_dimValue);            
         }
 
-        void setDim(uint8_t dim)           {_dimValue = dim;};
-        void setStep(uint8_t step)         {_incStep = step;};
-        uint32_t getNextColor(uint8_t dim)    { setDim(dim); return getNextColor();};
-
-        void backup(){
-            _backupDim  = _dimValue;
-            _backupInc  = _incStep;
-            _backupIndex= _index;
-        }
-
-        void restore(){
-            _dimValue = _backupDim;
-            _incStep  = _backupInc;
-            _index    = _backupIndex;
-        }
-
+        uint32_t getColor()     {   return _currentColor;   }
 
     private:
-        uint8_t  _dimValue,_incStep,_index,_colorCount;
-        uint8_t  _backupDim,_backupInc,_backupIndex;
-        bool _useColorList;
-        uint32_t _colorList[COLOR_LIST_LENGTH];
+        bool                _run;
+		uint8_t		        _currentColorIndex;
+        uint32_t    	    _currentColor;
+        uint8_t             _colorIndexMax;
+		SimpleList<int32_t> _colorList;
+        int8_t              _incStep;
+        int8_t              _timeStep;
+        bool                _firstLoop;
+        bool                _useColorWheel;
+        uint32_t            _nextLoopTime;
 
-        void _clearList(){
-            _colorCount = 0;
-            memset(_colorList,0,sizeof(_colorList));
-        }
-
-        void _decodeAsciiColorList(const char * listText){
-            StringList list(listText,',');
-            while(list.isEndReached() == false){
-                _colorList[_colorCount] = convertStrToInt(list.getNextListEntry());
-                _colorCount++;
-            }
-        }
-
-        void _decodeBinColorList(uint8_t * pData,uint32_t length){
-            if (length % 4 != 0){
-                LOG(F("_decodeBinColorList  invalid length (%4 = 0!!) list skipped"));
-                return;
-            }
-
-            _colorCount = length/4;
-            if (_colorCount > COLOR_LIST_LENGTH){
-                _colorCount = COLOR_LIST_LENGTH;
-                LOG(F("_decodeBinColorList  list to long, list truncated"));
-            }
-
-            uint32_t * p=(uint32_t*)pData;
-            for(int i=0;i < _colorCount;i++){
-                _colorList[i] = *p;
-                p++;
-            }
-        }
 };

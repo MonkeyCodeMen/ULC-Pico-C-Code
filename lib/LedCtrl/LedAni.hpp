@@ -22,47 +22,15 @@ class LedAni : public Ani
 };
 
 class LedOffAni : public LedAni{
-      /*  
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  off
-        -------+---------------+---------------------------
-        p1:    | N/A           |  N/A  
-        -------+---------------+---------------------------
-        p2:    | N/A           |  N/A     
-        -------+---------------+---------------------------
-        p3:    | N/A           |  N/A
-        -------+---------------+---------------------------
-        p4:    |               |  N/A
-        -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
-    */
     public:
-        LedOffAni()  : LedAni((const char *) F("off"))          {                       }
-        void loop(uint32_t time,Led * pLed)                        {pLed->set(LED_OFF);    }
+        LedOffAni()  : LedAni((const char *) F("off"))          {                           }
+        void loop(uint32_t time,Led * pLed)                     { pLed->set(LED_OFF);       }
 };
 
 class LedOnAni : public LedAni{
-    /*  
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  on
-        -------+---------------+---------------------------
-        p1:    | N/A           |  N/A  
-        -------+---------------+---------------------------
-        p2:    | N/A           |  N/A     
-        -------+---------------+---------------------------
-        p3:    | N/A           |  N/A
-        -------+---------------+---------------------------
-        p4:    |               |  N/A
-        -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
-    */
     public:
-        LedOnAni()  : LedAni((const char *) F("on"))                {                       }
-        void loop(uint32_t time,Led * pLed)                        {pLed->set(LED_MAX);    }
+        LedOnAni()  : LedAni((const char *) F("on"))            {                           }
+        void loop(uint32_t time,Led * pLed)                     { pLed->set(LED_MAX);       }
 };
 
 class LedDimAni : public LedAni{
@@ -85,11 +53,14 @@ class LedDimAni : public LedAni{
     */
 
     public:
-        LedDimAni()  : LedAni((const char *) F("dim"))          {                                               }
-        void reset()                                            { setup(0x80,0,0,0,"",0,NULL);                  }
-        void loop(uint32_t time,Led * pLed)                        { pLed->set(_dimValue);                         }
-        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  
-                                                                { _dimValue = L_BYTE(p1); return ANI_OK;        } 
+        LedDimAni()  : LedAni((const char *) F("dim"))          {                                                           }
+        void reset()                                            { config(AniCfg(0x80));                                     }
+        void loop(uint32_t time,Led * pLed)                     { pLed->set(_dimValue);                                     }
+        int config(AniCfg cfg)  { 
+            Ani::config(cfg); 
+            _dimValue = L_BYTE(cfg._p1); 
+            return ANI_OK;  
+        } 
     private:
         uint8_t _dimValue;
 };
