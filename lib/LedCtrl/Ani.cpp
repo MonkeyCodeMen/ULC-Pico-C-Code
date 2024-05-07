@@ -22,15 +22,15 @@ void DimCtrl::config(uint32_t p=0){
 ///////////////////////////////////////////////////
 // ColorCtrl
 
-void ColorCtrl::config(uint8_t startIndex,uint8_t incStep,uint8_t time, String colorList){
+void ColorCtrl::config(uint8_t startIndex,uint8_t incStep,uint16_t time, String colorList){
     _run = false;
     _colorList.clear();
     _incStep   = (int8_t) incStep;
     _timeStep  = time;
+    _waitForTrigger = (_timeStep == 0xFFFF) ? true:false;
     _firstLoop = true;
     _currentColorIndex = startIndex;
-    _currentColor = 0x00FFFFFF; 
-    _secondColor  = 0x0;
+    _currentColor = 0; 
     _colorIndexMax = 255;
     _useColorWheel = true;
 
@@ -41,36 +41,62 @@ void ColorCtrl::config(uint8_t startIndex,uint8_t incStep,uint8_t time, String c
         }
         _colorIndexMax = _colorList.size();
         if (_colorIndexMax > 0){
-            _currentColor = _colorList.get(0);
             _useColorWheel = false;
-            if (_colorIndexMax > 1){
-                _secondColor = _colorList.get(1);
-            }
         }
     }
     _run = (incStep == 0) ? false:true;
+
+    if ((_run == false) && (_waitForTrigger == false) && (_colorIndexMax > 0)){
+        // const color take first from list 
+        // if there is no list .. stay with black
+        _currentColor = _colorList.getFirst();
+    }
 }
 
 void ColorCtrl::loop(uint32_t now){
-    if (_run == true){
-        // check for first loop cycle
-        if (_firstLoop == true){
-            _firstLoop = false;
-            _nextLoopTime = now+_timeStep;
-        } else if (now >= _nextLoopTime){
-            // time for update
-            _nextLoopTime += _timeStep;
-            
-            // update Index
-            _currentColorIndex += _incStep;
-            _currentColorIndex %= _colorIndexMax;
-            
-            // now calc color based on index
-            if (_useColorWheel == true){
-                _currentColor = getColorWheel24Bit(_currentColorIndex);
-            } else {
-                _currentColor = _colorList.get(_currentColorIndex);
-            }
+    if (_waitForTrigger == true){
+        _loopTrigger();
+    } else if (_run == true) {
+        _loopTime(now);
+    } 
+    // else ==> no change of color 
+}
+
+void ColorCtrl::_loopTime(uint32_t now){
+    if (_firstLoop == true){
+        _firstLoop = false;
+        _nextLoopTime = now+_timeStep;
+    } else if (now >= _nextLoopTime){
+        // time for update
+        _nextLoopTime += _timeStep;
+        
+        // update Index
+        _currentColorIndex += _incStep;
+        _currentColorIndex %= _colorIndexMax;
+        
+        // now calc color based on index
+        if (_useColorWheel == true){
+            _currentColor = getColorWheel24Bit(_currentColorIndex);
+        } else {
+            _currentColor = _colorList.get(_currentColorIndex);
+        }
+    }
+}
+
+void ColorCtrl::_loopTrigger(){
+    if (_triggerActive == true){
+        // clear trigger for next time
+        _triggerActive = false;
+        
+        // update Index
+        _currentColorIndex += _incStep;
+        _currentColorIndex %= _colorIndexMax;
+        
+        // now calc color based on index
+        if (_useColorWheel == true){
+            _currentColor = getColorWheel24Bit(_currentColorIndex);
+        } else {
+            _currentColor = _colorList.get(_currentColorIndex);
         }
     }
 }
@@ -83,8 +109,8 @@ void FlashCtrl::config(uint8_t p=0){
     _triggerActive= false;
     _groupCount   = L_BYTE(p);
     _groupCounter = 0;
-    _t1           = H_BYTE(p);
-    _t2           = HH_BYTE(p);
+    _t1           = H_BYTE(p)*10;
+    _t2           = HH_BYTE(p)*10;
     _t3 		  = HHH_BYTE(p);
     if (_t3 == 0xFF){
         _waitForTrigger = true;
@@ -97,7 +123,7 @@ void FlashCtrl::config(uint8_t p=0){
     }
 }
 
-void FlashCtrl::loop(uint32_t now){
+bool FlashCtrl::loop(uint32_t now){
     switch (_state){
         case stop:
             // do nothing parameters are loocked by other thread
@@ -107,7 +133,7 @@ void FlashCtrl::loop(uint32_t now){
         case init:
             _state = flashOn;
             _nextLoopTime = now+_t1;
-            break;
+            return true;   break;
         
         case flashOn:
             if (now >= _nextLoopTime){
@@ -123,6 +149,7 @@ void FlashCtrl::loop(uint32_t now){
                     _state = flashOff;
                     _nextLoopTime += _t2;
                 }
+                return true;
             }
             break;
 
@@ -130,6 +157,7 @@ void FlashCtrl::loop(uint32_t now){
             if (now >= _nextLoopTime){
                 _state = flashOn;
                 _nextLoopTime += _t1;
+                return true;
             }
             break;
 
@@ -138,6 +166,7 @@ void FlashCtrl::loop(uint32_t now){
                 _state = flashOn;
                 _groupCounter = 0;
                 _nextLoopTime += _t1;
+                return true;
             }
             break;
 
@@ -147,6 +176,7 @@ void FlashCtrl::loop(uint32_t now){
                 _groupCounter = 0;
                 now += _t1;
                 _triggerActive = false;
+                return true;
             }
             break;
     }
@@ -160,8 +190,8 @@ void BreathCtrl::config(uint32_t p=0){
     _state = stop;
     _dimDelta = 0;
     _target = L_BYTE(p);
-    _t5 = (p >> 8)  & 0x0FFF;
-    _t6 = (p >> 20) & 0x0FFF;
+    _t5 = ((p >> 8)  & 0x0FFF) * 100;
+    _t6 = ((p >> 20) & 0x0FFF) * 100;
 
     if (_dimDelta > 0) { 
         _state = init;
@@ -220,9 +250,23 @@ int Ani::config(AniCfg cfg) {
 
 void Ani::loop(uint32_t now) {	
     _dimCtrl.loop(now);
+    if (_flashCtrl.loop(now) == true) {
+        _colorCtrl.trigger();
+    }
     _colorCtrl.loop(now);							
-    _flashCtrl.loop(now);
     _breathCtrl.loop(now);
+
+    _color = _colorCtrl.getColor();
+    _dim = _breathCtrl.modifyDimFactor(_dimCtrl.getDim());
+}
+
+bool Ani::needsUpdate(){
+    if ((_color != _colorLast) || (_dim != _dimLast)){
+        _colorLast = _color;
+        _dimLast = _dim;
+        return true;
+    }
+    return false;
 }
 
 const char * Ani::getErrorText(int error)		{

@@ -2,6 +2,9 @@
 #include "Ctrl.hpp"
 #include <Adafruit_NeoMatrix.h>
 #include <NeoMatrixAni.hpp>
+#include <NeoMatrixBox.hpp>
+#include <NeoMatrixGif.hpp>
+
 
 class NeoMatrixCtrl : public Ctrl
 {
@@ -19,9 +22,10 @@ class NeoMatrixCtrl : public Ctrl
             pMatrix->fillScreen(pMatrix->Color(0,0,0));
             pMatrix->show();
             addAni(new MatrixOffAni());
-            addAni(new MatrixStaticAni());
-            addAni(new MatrixRainbowAni());
+            addAni(new MatrixOnAni());
+            addAni(new MatrixDimAni());
             addAni(new MatrixBreathAni());
+            addAni(new MatrixBlinkAni());
             addAni(new MatrixMultiFlashAni());
             addAni(new MatrixBoxAni("rect"));
             addAni(new MatrixBoxAni("circle"));
@@ -29,7 +33,7 @@ class NeoMatrixCtrl : public Ctrl
             addAni(new MatrixBoxAni("hor"));
             addAni(new MatrixGifFileAni());
             // select first
-            setup(0);
+            select(0);
         }
 
         void loop(uint32_t time){

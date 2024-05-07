@@ -18,12 +18,13 @@ class RgbLedCtrl : public Ctrl
             _pRgbLed = pRgbLed;
             addAni(new RgbLedOffAni());
             addAni(new RgbLedOnAni());
-            addAni(new RgbLedBlinkAni());
+            addAni(new RgbLedDimAni());
             addAni(new RgbLedBreathAni());
-            addAni(new RgbLedRainbowAni());
+            addAni(new RgbLedBlinkAni());
             addAni(new RgbLedMultiFlashAni());
-            // select first
-            setup(0);
+            addAni(new RgbLedRainbowAni());
+            // select rainbow as standard
+            select(6);
         }
 
         void loop(uint32_t time){
