@@ -3,7 +3,9 @@
 #include "helper.h"
 
 
-NeoStripeCtrl::NeoStripeCtrl() : Ctrl(),_current(0),_pNeoStripe(NULL),_count(0) {}
+NeoStripeCtrl::NeoStripeCtrl() : Ctrl(),_current(0),_pNeoStripe(NULL),_count(0),_aniInterface("NeoStripeConfigInterface"){
+
+} 
 
 void NeoStripeCtrl::begin(WS2812FX * pNeoStripe){
     LOG(F("NeoStripeCtrl::NeoStripeCtrl setup ws2812fx"));
@@ -27,20 +29,6 @@ void NeoStripeCtrl::begin(WS2812FX * pNeoStripe){
 }
 
 
-void NeoStripeCtrl::setStdParameter(){
-    _pNeoStripe->setBrightness(0xFF);
-    _pNeoStripe->setSpeed(1000);
-    _pNeoStripe->setColor(0x0000FF);
-}
-
-void NeoStripeCtrl::setOff(){
-    _pNeoStripe->setMode(FX_MODE_STATIC);
-    _pNeoStripe->setColor(0);
-    _pNeoStripe->setBrightness(0);
-    _pNeoStripe->setSpeed(1000);
-    _current = 0;
-}
-
 const char * NeoStripeCtrl::getName(){
     if (_current == 0){
         return "Off";
@@ -57,7 +45,7 @@ void NeoStripeCtrl::loop(uint32_t time){
     _mutexSetup.free();
 }
 
-int NeoStripeCtrl::setup(int nr){
+int NeoStripeCtrl::select(int nr){
     if (nr >= _count)        return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
     if (nr < 0 )             return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 
@@ -73,7 +61,7 @@ int NeoStripeCtrl::setup(int nr){
     return ANI_OK;
 }
 
-int NeoStripeCtrl::setup(const char *pName){
+int NeoStripeCtrl::select(const char *pName){
     _mutexSetup.lock();
     // find matching entry or set all to NULL
     if (strcmp(pName , "Off") == 0){
@@ -97,12 +85,26 @@ int NeoStripeCtrl::setup(const char *pName){
 }
 
 
-
-int NeoStripeCtrl::setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData){
+int NeoStripeCtrl::config(AniCfg cfg){
     _mutexSetup.lock();
-    _pNeoStripe->setColor(p1);
-    _pNeoStripe->setBrightness(p2 & 0xFF);
-    _pNeoStripe->setSpeed(p3);
+        // functionality of base class Ani is not used 
+        // we just use the parameter decoding, to harmonize the interface of the different objects a little bit
+        // for example dim up / down for all modules now work with consistent parameter set
+        _aniInterface.config(cfg);
+        _pNeoStripe->setBrightness(_aniInterface.getDim());
+        _pNeoStripe->setColor(_aniInterface.getColor());
+        _pNeoStripe->setSpeed(_aniInterface.getSpeed());
     _mutexSetup.free();
     return ANI_OK;
+}
+
+
+void NeoStripeCtrl::setStdParameter(){
+    config(AniCfg(0x800000FF,0,0,0,"0x0000 00FF"));
+}
+
+void NeoStripeCtrl::setOff(){
+    _pNeoStripe->setMode(FX_MODE_STATIC);
+    config(AniCfg(0));
+    _current = 0;
 }

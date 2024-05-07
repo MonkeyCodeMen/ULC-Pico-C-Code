@@ -20,25 +20,6 @@ class RgbLedOffAni : public RgbLedAni{
 };
 
 class RgbLedOnAni : public RgbLedAni{
-          /*  
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  on
-        -------+---------------+---------------------------
-        p1:    | 0x00FF FFFF   |  0x00RR GGBB
-               |               |  R: red value  
-               |               |  G: green value  
-               |               |  B: blue value  
-        -------+---------------+---------------------------
-        p2:    | 0x0           |  N/A
-        -------+---------------+---------------------------
-        p3:    | 0x0           |  N/A
-        -------+---------------+---------------------------
-        p4:    | 0x0           |  N/A
-        -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
-    */
     public:
         RgbLedOnAni()  : RgbLedAni("on")   {};
         void reset()                                        {setup(0x00FFFFFF,0,0,0,"",0,NULL);}
@@ -259,7 +240,7 @@ class RgbLedBreathAni : public RgbLedAni{
         uint32_t   _stepCounter,_lastUpdate;
         uint8_t    _upperLimit,_lowerLimit;
         uint8_t    _dimDiff;
-        ColorSelector _colorGen;
+        ColorCtrl _colorGen;
 };
 
 class RgbLedRainbowAni : public RgbLedAni{
@@ -325,7 +306,7 @@ class RgbLedRainbowAni : public RgbLedAni{
         enum RainbowState {stop,init,run};
         volatile RainbowState _state;
         uint32_t _timeInc,_lastCallTime;
-        ColorSelector _colorGen;
+        ColorCtrl _colorGen;
 };
 
 class RgbLedMultiFlashAni : public RgbLedAni{
@@ -427,7 +408,7 @@ class RgbLedMultiFlashAni : public RgbLedAni{
         uint16_t  _onTime,_offTime;
         uint16_t  _pauseTime;
         uint16_t  _flashCount,_count;
-        ColorSelector _colorGen;
+        ColorCtrl _colorGen;
 
 };
 

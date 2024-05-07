@@ -22,12 +22,8 @@ class LedCtrl : public Ctrl
                 // fill ani List
                 addAni(new LedOffAni());
                 addAni(new LedOnAni());
-                addAni(new LedDimAni());
-                addAni(new LedBreathAni());
-                addAni(new LedBlinkAni());
-                addAni(new LedMultiFlashAni());
                 // setup first
-                setup(0);
+                select(0);
         }
 
 

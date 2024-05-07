@@ -167,7 +167,7 @@ class MatrixRainbowAni : public NeoMatrixAni{
         enum RainbowState {stop,init,run};
         volatile RainbowState _state;
         uint32_t _timeInc,_lastCallTime;
-        ColorSelector _colorGen;
+        ColorCtrl _colorGen;
 };
 
 class MatrixBreathAni : public NeoMatrixAni{
@@ -298,7 +298,7 @@ class MatrixBreathAni : public NeoMatrixAni{
         uint32_t   _stepCounter,_lastUpdate;
         uint8_t    _upperLimit,_lowerLimit;
         uint8_t    _dimDiff;
-        ColorSelector _colorGen;
+        ColorCtrl _colorGen;
 
 };
 
@@ -406,7 +406,7 @@ class MatrixMultiFlashAni : public NeoMatrixAni{
         uint16_t  _onTime,_offTime;
         uint16_t  _pauseTime;
         uint16_t  _flashCount,_count;
-        ColorSelector _colorGen;
+        ColorCtrl _colorGen;
 
 
         void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
@@ -508,7 +508,7 @@ class MatrixBoxAni : public NeoMatrixAni{
         uint32_t _sizeX,_sizeY;
         int32_t  _startX,_startY;
         bool _circle;
-        ColorSelector _colorGen;
+        ColorCtrl _colorGen;
 
         void   _setNextColor(Adafruit_NeoMatrix * pMatrix){
             uint32_t startColor;

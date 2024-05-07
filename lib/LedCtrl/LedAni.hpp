@@ -10,333 +10,106 @@ class LedAni : public Ani
     public:
         LedAni(const char * pName) : Ani(pName) {}
         ~LedAni() = default;
+        virtual void loop(uint32_t time,Led * pLed)  { 
+            // _dimCtrl.loop(time);  does nothing anyway
+			// _colorCtrl.loop(time); we have no colors on single die leds
+            _flashCtrl.loop(time);
+			_breathCtrl.loop(time);
 
-        virtual void loop(uint32_t time,Led * pLed) {}
-
-    // base class
-        //String getName()		{return _name;};
-		//virtual void reset()  {};
-        //virtual int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData) {};
-        // if nothing to do for this member functions you can stay with the default implentation from base class
-
+            if (_flashCtrl.selectColor(1,0) == 1){
+                uint8_t dim = _dimCtrl.getDim();
+                dim = _breathCtrl.modifyDimFactor(dim);
+                pLed->set(dim);
+            } else {
+                pLed->set(LED_OFF);
+            }
+        }
 };
 
 class LedOffAni : public LedAni{
     public:
         LedOffAni()  : LedAni((const char *) F("off"))          {                           }
+        void reset()                                            {                           }
         void loop(uint32_t time,Led * pLed)                     { pLed->set(LED_OFF);       }
 };
 
+
 class LedOnAni : public LedAni{
     public:
-        LedOnAni()  : LedAni((const char *) F("on"))            {                           }
-        void loop(uint32_t time,Led * pLed)                     { pLed->set(LED_MAX);       }
+        LedOnAni()  : LedAni((const char *) F("on"))            { reset();                  }
+        void reset()                                            { config(AniCfg(0xF000000FF,0,0,0,"0x00FF FFFF"));       }
 };
 
-class LedDimAni : public LedAni{
-      /*  
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  dim
-        -------+---------------+---------------------------
-        p1:    | 0x0000 0080   |  0x0000 00DD
-               |               |  D: dim value  
-        -------+---------------+---------------------------
-        p2:    | N/A           |  N/A     
-        -------+---------------+---------------------------
-        p3:    | N/A           |  N/A
-        -------+---------------+---------------------------
-        p4:    |               |  N/A
-        -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
-    */
-
-    public:
-        LedDimAni()  : LedAni((const char *) F("dim"))          {                                                           }
-        void reset()                                            { config(AniCfg(0x80));                                     }
-        void loop(uint32_t time,Led * pLed)                     { pLed->set(_dimValue);                                     }
-        int config(AniCfg cfg)  { 
-            Ani::config(cfg); 
-            _dimValue = L_BYTE(cfg._p1); 
-            return ANI_OK;  
-        } 
-    private:
-        uint8_t _dimValue;
-};
-
-class LedBlinkAni : public LedAni{
-      /*  
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  blink
-        -------+---------------+---------------------------
-        p1:    | 0x0000 0080   |  0x0000 00DD
-               |               |  D: dim value  
-        -------+---------------+---------------------------
-        p2:    | 250           |  on time in ms     
-        -------+---------------+---------------------------
-        p3:    | 250           |  off time in ms
-        -------+---------------+---------------------------
-        p4:    |               |  N/A
-        -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
-    */
-    public:
-        LedBlinkAni() :LedAni((const char *) F("blink"))        {                                           }
-        void reset()                                            {  setup(0x80,250,250,0,"",0,NULL);         }
-        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  { 
-            _state = stop;
-            _dimValue = L_BYTE(p1);
-            _onTime_ms = p2;
-            _offTime_ms = p3;
-            _state = init;
-            return ANI_OK;
-        }
 
 
-        void loop(uint32_t time,Led * pLed){
-            uint32_t diff;
-            switch (_state){
-                case stop: break;       // do nothing parameters are content of change
-                case init:
-                    _state = off;
-                    pLed->set(LED_OFF);   
-                    _lastSwitchTime = time;
-                    break;
-                
-                case off:
-                    diff = time-_lastSwitchTime;
-                    if (diff >= _offTime_ms){
-                        _state = on;
-                        pLed->set(_dimValue);   
-                        _lastSwitchTime = time;
-                    }
-                    break;
-                
-                case on:
-                    diff = time-_lastSwitchTime;
-                    if (diff >= _onTime_ms){
-                        _state = off;
-                        pLed->set(LED_OFF);   
-                        _lastSwitchTime = time;
-                    }
-                    break;
-            }
-        }
+/*
 
-    private:
-        enum BlinkState {stop,init,on,off};
-        BlinkState _state;
-        uint8_t _dimValue;
-        uint32_t _onTime_ms,_offTime_ms;
-        uint32_t _lastSwitchTime;
-};
+	basic layout for configuration:
 
-class LedMultiFlashAni : public LedAni{
-      /*  
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  dim
-        -------+---------------+---------------------------
-        p1:    | 0x0000 00FF   |  0x0000 00DD
-               |               |  D: dim value  
-        -------+---------------+---------------------------
-        p2:    | 0x0           |  N/A
-        -------+---------------+---------------------------
-        p3:    | 0x0020 0060   |  0xAAAA BBBB
-               |               |  A: on Time in ms       
-               |               |  B: off Time in ms       
-        -------+---------------+---------------------------
-        p4:    | 0x0002 01F4   |  0xAAAA BBBB
-               |               |  A: count of flash group
-               |               |  B: pause time between flash group      
-        -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
-    */
-    public:
-        LedMultiFlashAni():LedAni((const char *) F("multi flash"))                          {                                                   }
-        void reset()                                                                        { setup(0xFF,0,0x00200060,0x000201F4,"",0,NULL);    }
-        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData){
-            _state      = stop;
-            _dim        = L_BYTE(p1);
-            _onTime     = H_WORD(p3);
-            _offTime    = L_WORD(p3);
-            _flashCount = H_WORD(p4);
-            _pauseTime  = L_WORD(p4);
-            _state      = init;
-            return ANI_OK;
-        }
- 
-        void loop(uint32_t time,Led * pLed){
-            uint32_t diff,color;
-            switch (_state){
-                case stop:
-                    // do nothing parameters are loocked by other thread
-                    // the setup will move forward to state init
-                    break;
+	p1 : dim value:		xx xx xx xx   :
+						|| || || ++---: set dim value 0-255 (0 = off)
+						|| || ++------: == 0   : no inc / dec 
+						|| ||         : <  128 : inc step
+						|| ||         : >= 128 : dec step
+						|+-++---------: NeoStripe speed parameter
+						+-------------: update CTRL bit field
+						              : 7654
+									  : |||+--- 1: update breath config
+									  : ||+---- 1: update flash config
+									  : |+----- 1: update color config
+									  : +------ 1: update dim config
+									
+									  0:  no update 
+									  8:  update dim
+									  9:  update dim & breath
+									  A:  update dim & flash
+									  B:  update dim & flash & breath
+									  .....
 
-                case init:
-                    _state = flashOn;
-                    _lastCallTime = time;
-                    pLed->set(_dim);
-                    break;
-                
-                case flashOn:
-                    diff = time - _lastCallTime;
-                    if (diff >= _onTime){
-                        _lastCallTime = time;
-                        pLed->set(0);
-                        _count++;
-                        if (_count >= _flashCount){
-                            _state = pause;
-                        } else {
-                            _state = flashOff;
-                        }
-                    }
-                    break;
+						p1: 0x8000 0030   set to dim level 0x30
+						p1: 0x8000 1000 inc by 10 ==> results in 0x30 + 0x10 = 0x40 dim level 
 
-                case flashOff:
-                    diff = time - _lastCallTime;
-                    if (diff >= _offTime){
-                        _lastCallTime = time;
-                        pLed->set(_dim);
-                        _state = flashOn;
-                    }
-                    break;
+	p2 : color Index:   xx xx xx xx   :
+						|| || || ++---: start index of color list 
+						|| || ||      :     color list is provided in cfg.str
+						|| || ||      :     if cfg.str is empty color are taken from color wheel (0..255)
+						|| || ++------: == 0   : no inc / dec 
+						|| ||         : <  128 : inc step
+						|| ||         : >= 128 : dec step  (-1 = 255; -2 = 254)
+						|| ++---------: time t2 in ms: time between two color steps 
+						||            : 0xxxFF xxxx wait for trigger 
+						++------------: reserved 
 
-                case pause:
-                    diff = time - _lastCallTime;
-                    if (diff >= _pauseTime){
-                        _lastCallTime = time;
-                        pLed->set(_dim);
-                        _count = 0;
-                        _state = flashOn;
-                    }
-                    break;
-            }
-        }
+						standard color white, an be overwritten by color list or color wheel
+						p2:0  & str:""             ==> constant white
+						p2:0  & str:"0x0000 00FF"  ==> constant blue
+					
+
+	p3 : flash config:  xx xx xx xx   :
+						|| || || ++---: flashes per group (t1 = flash on time)
+						|| || ||      : 0:  flash modul switched off
+						|| || ++------: time t1 in ms: 		flashtime        .. time of one flash
+						|| ++---------: time t2 in ms: 		inter flash time .. time between two flashes
+						++------------: time t3 in 100ms: 	inter group time .. time between two flash groups
+									  :                     0xFFxx xxxx wait for trigger 
+									  .. standard  colors : flash white   , pause black
+									     can be overwritten by str color list   first color flash (if provided)
+										 										2nd color   pause (if provided)
+
+						0xXXXX XX00 flash module switched off
 
 
-    private:
-        enum MultiFlashState {stop,init,flashOn,flashOff,pause};
-        volatile MultiFlashState _state;
-        uint32_t _lastCallTime;
-        uint8_t _dim;
-        uint16_t  _onTime,_offTime;
-        uint16_t  _pauseTime;
-        uint16_t  _flashCount,_count;
-};
+	p4 : breath config: xx xx xx xx   :
+						|| || || ++---: delta dim increase (clipped at 255) for high level (p1 = low level) 
+						|| || ||      : 0: switch breath module off
+						|| |+-++------: time t5 in ms: time for dim up
+						++-++---------: time t6 in ms: time for dim down
 
-class LedBreathAni : public LedAni{
-    /*  
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  breath
-        -------+---------------+---------------------------
-        p1:    | 0x000A 2020   |  0xSSSS UUDD
-               |               |  S: step time in ms
-               |               |  U: nr steps for dim up
-               |               |  D: nr steps for dim down
-        -------+---------------+---------------------------
-        p2:    | 0x0000 FF10   |  0x0000 UULL
-               |               |  U: upper dim limit
-               |               |  B: lower dim limit
-        -------+---------------+---------------------------
-        p3     | N/A           | N/A
-        -------+---------------+---------------------------
-        p4     | N/A           | N/A
-        -------+---------------+---------------------------
-        str    | ""            | color list
-        -------+---------------+---------------------------
-        pData: | N/A           |  length (multiple of 4),pData:
-               |               |    color list       
+	str: string parameter : examples:
+					color list: "0x00FF 0000,0x0000 FF00,0x0000 00FF"
+					file list:  "3*rainbow.gif,2*alien.gif"    .. play 3 times rainbow.gif, 2 times alien.gif
 
-    */
 
-    public:
-        LedBreathAni():LedAni("breath")       {                        }
-        void reset()   { setup(0x00204040,0x0000FF10,0,0,"",0,NULL);   }
-        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData){
-            _state = stop; 
-            _stepTime  = H_WORD(p1);
-            _upSteps   = H_BYTE(p1);
-            _downSteps = L_BYTE(p1);
-            _upperLimit = H_BYTE(p2);
-            _lowerLimit = L_BYTE(p2);
-
-            // do some basic checks/correction of parameter set
-            if (_lowerLimit > _upperLimit){
-                uint8_t temp = _upperLimit;
-                _upperLimit = _lowerLimit;
-                _lowerLimit = temp;
-            }
-            if (_upSteps == 0)      _upSteps = 1;
-            if (_downSteps == 0)    _downSteps = 1;
-            if (_stepTime == 0)     _stepTime = 1;
-
-            _state = init;
-            return ANI_OK;
-        }
- 
-        void loop(uint32_t time,Led * pLed){
-            uint32_t diff;
-            uint8_t dim;
-            switch (_state){
-                case stop:
-                    // do nothing parameters are loocked by other thread
-                    // the setup will move forward to state init
-                    break;
-
-                case init:
-                    _state       = up;
-                    _stepCounter = 0;
-                    _lastUpdate  = time;
-                    _dimDiff     = _upperLimit-_lowerLimit;
-                    dim          = _lowerLimit;
-                    pLed->set(dim);
-                    break;
-                
-                case up:
-                    diff = time-_lastUpdate;
-                    if (diff >= _stepTime){
-                        _lastUpdate = time;
-                        if (_stepCounter >= _upSteps){
-                            dim = _upperLimit;
-                            _stepCounter=0;    
-                            _state = down;
-                        } else {
-                            dim = _lowerLimit + (_stepCounter * _dimDiff) / _upSteps;
-                            _stepCounter++;
-                        }
-                        pLed->set(dim);
-                    } 
-                    break;
-                
-                case down:
-                    diff = time-_lastUpdate;
-                    if (diff >= _stepTime){
-                        _lastUpdate = time;
-                        if (_stepCounter >= _downSteps){
-                            dim = _lowerLimit;
-                            _stepCounter=0;    
-                            _state = up;
-                        } else {
-                            dim = _upperLimit - (_stepCounter * _dimDiff) / _downSteps;
-                            _stepCounter++;
-                        }
-                        pLed->set(dim);
-                    } 
-            }
-        }
-        
-    private:
-        enum BreathState {stop,init,up,down};
-        volatile BreathState _state;
-        uint32_t   _stepTime,_upSteps,_downSteps;
-        uint32_t   _stepCounter,_lastUpdate;
-        uint8_t    _upperLimit,_lowerLimit;
-        uint8_t    _dimDiff;
-};
+	
+		
+*/

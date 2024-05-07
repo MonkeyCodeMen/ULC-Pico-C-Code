@@ -2,10 +2,7 @@
 #include <Arduino.h>
 #include <helper.h>
 #include <SimpleList.hpp>
-#include <ColorSelector.hpp>
-extern class DimCtrl;
-extern class FlashCtrl;
-extern class BreathCtrl;
+
 
 #define ANI_OK								0
 #define ANI_ERROR_GENERAL 					1
@@ -16,18 +13,12 @@ extern class BreathCtrl;
 #define ANI_ERROR_FILE_NOT_FOUND			6
 #define ANI_ERROR_OUT_OF_MEMORY				7
 
-
-class AniCfg{
-	public:
-		AniCfg (uint32_t p1=0,uint32_t p2=0,uint32_t p3=0,uint32_t p4=0,String str=""): _p1(p1),_p2(p2),_p3(p3),_p4(p4),_str(str) {}
-		~AniCfg() = default;
-
-		uint32_t _p1,_p2,_p3,_p4;
-		String	 _str;
-};
+#define DIM_MASK	0x80
+#define COLOR_MASK	0x40
+#define FLASH_MASK  0x20
+#define DARTH_VADER 0x10
 
 /*
-
 	basic layout for configuration:
 
 	p1 : dim value:		xx xx xx xx   :
@@ -84,7 +75,8 @@ class AniCfg{
 
 
 	p4 : breath config: xx xx xx xx   :
-						|| || || ++---: dim increase for high level (p1 = low level)
+						|| || || ++---: delta dim increase (clipped at 255) for high level (p1 = low level) 
+						|| || ||      : 0: switch breath module off
 						|| |+-++------: time t5 in ms: time for dim up
 						++-++---------: time t6 in ms: time for dim down
 
@@ -98,49 +90,115 @@ class AniCfg{
 */
 
 
-class Ani
-{
+class AniCfg{
+	public:
+		AniCfg (uint32_t p1=0,uint32_t p2=0,uint32_t p3=0,uint32_t p4=0,String str=""): _p1(p1),_p2(p2),_p3(p3),_p4(p4),_str(str) {}
+		~AniCfg() = default;
+
+		uint32_t _p1,_p2,_p3,_p4;
+		String	 _str;
+};
+
+
+class DimCtrl{
+	public:
+		DimCtrl() 						{ config(0); 							}
+		~DimCtrl() = default;
+
+        void config(uint32_t p=0);
+		uint32_t doDim(uint32_t color)	{ return dimColor255(color,_dim);		}
+		uint8_t  getDim()				{ return _dim;							}
+		uint16_t getSpeed()				{ return _speed;						}
+		void loop(uint32_t now)			{ /* nothing to do*/ 				   	}
+
+	private:
+		uint8_t _dim;
+		uint16_t _speed;
+};
+
+
+class ColorCtrl{
+    public:
+        ColorCtrl() 									{  config(0,"");    }       // setup with default values 
+        ~ColorCtrl() = default;
+
+        void config(uint32_t p=0,String colorList="")	{ config(L_BYTE(p),H_BYTE(p),HH_BYTE(p),colorList);    	}
+        uint32_t getColor()     						{ return _currentColor;   								}
+		uint32_t getSecondColor()						{ return _secondColor;									}
+
+        void config(uint8_t startIndex,uint8_t incStep,uint8_t time, String colorList);
+        void loop(uint32_t now);
+
+    private:
+        volatile bool       _run;
+        bool                _firstLoop;
+        bool                _useColorWheel;
+        int8_t              _timeStep;
+        uint32_t            _nextLoopTime;
+		uint8_t		        _currentColorIndex;
+        uint32_t    	    _currentColor,_secondColor;
+        uint8_t             _colorIndexMax;
+		SimpleList<int32_t> _colorList;
+        int8_t              _incStep;
+
+};
+
+
+class FlashCtrl{
+	public:
+		FlashCtrl()													{ config(0);											}		
+		~FlashCtrl() = default;
+
+		void config(uint8_t p=0);
+		void loop(uint32_t now);
+		void trigger()												{ _triggerActive = true; 								}
+		uint32_t selectColor(uint32_t colorOn,uint32_t colorOff)	{ return (_state == flashOn) ? colorOn : colorOff;		}
+	
+	private:
+		enum FlashState 	{stop,init,flashOn,flashOff,pause,waitTrigger};
+		volatile FlashState _state;
+		bool 				_waitForTrigger;
+		volatile bool		_triggerActive;
+        int8_t              _t1,_t2;
+		uint32_t			_t3;
+        uint32_t            _nextLoopTime;
+		uint8_t				_groupCount,_groupCounter;
+};
+
+
+
+class BreathCtrl{
+	public:
+		BreathCtrl()	{ config(0);	}
+		~BreathCtrl() = default;
+
+		void config(uint32_t p=0);
+		uint8_t modifyDimFactor(uint8_t dim)	{ return (uint8_t) clamp(0,(uint16_t) dim + (uint16_t)_dimDelta,255);		}
+		void loop(uint32_t now);
+
+	private:
+		enum BreathState 	{stop,init,up,down};
+		volatile BreathState _state;
+		uint8_t _dimDelta,_target;
+		uint32_t _t5,_t6,_lastTurn;
+};
+
+
+class Ani{
 	public:
 		Ani(const char * pName)  						{ _pName = pName;  reset();		}
 		~Ani() = default;
         const char *   getName()						{ return _pName;				}
 		virtual AniCfg getConfig()						{ return _cfg; 					}
 		virtual void   reset()  						{ config(AniCfg());				}
-        virtual int    config(AniCfg cfg) { 
-			_cfg = cfg; 
-			uint8_t ctrlByte = HHH_BYTE(cfg._p1);
-			#define DIM_MASK	0x80
-			#define COLOR_MASK	0x40
-			#define FLASH_MASK  0x20
-			#define DARTH_VADER 0x10
+        virtual int    config(AniCfg cfg);
+		virtual void   trigger() 						{ _flashCtrl.trigger();			}
+		virtual void   loop(uint32_t now);
+		static const char * getErrorText(int error);
 
-			if (ctrlByte & DIM_MASK)	_dimCtrl.config(cfg._p1);
-			if (ctrlByte & COLOR_MASK)	_colorCtrl.config(cfg._p2,cfg._str);
-			if (ctrlByte & FLASH_MASK)	_flashCtrl.config(cfg._p3);
-			if (ctrlByte & DARTH_VADER)	_breathCtrl.config(cfg._p4);
-			return ANI_OK;    
-		}
-		virtual void   trigger() 						{								}
-		virtual void   loop(uint32_t now) {	
-			_dimCtrl.loop(now);
-			_colorCtrl.loop(now);							
-			_flashCtrl.loop(now);
-			_breathCtrl.loop(now);
-		}
-
-		static const char * getErrorText(int error)		{
-			switch (error){
-				case ANI_OK:							return "OK";
-				case ANI_ERROR_GENERAL:					return "general error";
-				case ANI_ERROR_PROGRAM_DOES_NOT_EXIST:	return "program does not exist";
-				case ANI_ERROR_OUT_OF_RANGE:			return "parameter out of range";
-				case ANI_ERROR_INTERNAL:				return "internal error";
-				case ANI_ERROR_PAR_MISSING:				return "parameter missing";
-				case ANI_ERROR_FILE_NOT_FOUND:			return "file not found";
-				case ANI_ERROR_OUT_OF_MEMORY:			return "out of memory";
-			}
-			return "unknow error code";
-		}
+		virtual uint8_t  getDim()                      	{ return _dimCtrl.getDim();		}
+		virtual uint32_t getColor()						{ return _colorCtrl.getColor();	}
+		virtual uint16_t getSpeed()						{ return _dimCtrl.getSpeed();	}
 
 
 	protected:
@@ -148,13 +206,7 @@ class Ani
 		AniCfg			_cfg;
 		uint8_t			_dim;
 		DimCtrl			_dimCtrl;
-		ColorSelector 	_colorCtrl;
+		ColorCtrl 		_colorCtrl;
 		FlashCtrl		_flashCtrl;
 		BreathCtrl		_breathCtrl;
-
-
-
-
-
-
 };

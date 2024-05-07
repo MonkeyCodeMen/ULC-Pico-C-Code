@@ -25,9 +25,9 @@ class NeoStripeCtrl : public Ctrl
         void begin(WS2812FX * pNeoStripe);
 
         // overwrite virtuals    
-        int setup(int nr);         // change programm
-        int setup(const char *pName);   // change programm
-        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData); // config program
+        int select(int nr);                 // change programm
+        int select(const char *pName);      // change programm
+        int config(AniCfg cfg);             // config program
         void loop(uint32_t time);
 
         const char * getName();
@@ -37,10 +37,9 @@ class NeoStripeCtrl : public Ctrl
         WS2812FX *  _pNeoStripe;
         uint8_t     _current;
         int         _count;
+        Ani         _aniInterface;
 
         void setStdParameter();
         void setOff();
-
-
 };
 
