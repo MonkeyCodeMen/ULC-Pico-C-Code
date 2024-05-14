@@ -27,8 +27,6 @@ void Com::loop(){
         case STR_START:     getStrStart();      break;
         case STR_DATA:      getStrData();       break;
         case STR_END:       getStrEnd();        break;
-        case LENGTH:        getLength();        break;
-        case DATA:          getData();          break;
         case FRAME_DONE:    frameDone();        break;
 
         default:
@@ -172,10 +170,6 @@ void Com::getStrStart(){
         _frame.str = "";
     } else if (buffer == COM_FRAME_END) {
         _state = FRAME_DONE;
-    } else if (buffer == COM_FRAME_SEP) {
-        _state = LENGTH;
-        _field = "";
-        _maxFieldLength = COM_FRAME_MAX_PARAMETER_LENGTH;
     } else {
         reset();       
     }
@@ -205,45 +199,8 @@ void Com::getStrEnd(){
 
     if (buffer == COM_FRAME_END) {
         _state = FRAME_DONE;
-    } else if (buffer == COM_FRAME_SEP) {
-        _state = LENGTH;
-        _field = "";
-        _maxFieldLength = COM_FRAME_MAX_PARAMETER_LENGTH;
     } else {
         reset();       
-    }
-}
-
-void Com::getLength(){
-    if (collectField() == false)    {
-        return;            
-    }
-    if (_endFound == true){
-        reset();  // length without data???
-    } else {
-        _frame.length = convertStrToInt(_field);
-        _state = DATA;
-        _dataReceived = 0;
-        ASSERT(_frame.pData == NULL,F("frame binary buffer must be cleared at this point"));
-        _frame.pData = new uint8_t[_frame.length];
-    }
-}
-
-void Com::getData(){
-    uint8_t buffer;
-    if (getByte(&buffer) == false)  {
-        return;            
-    }
-
-    _dataReceived++;
-    if (_dataReceived  == _frame.length){
-        if (buffer == COM_FRAME_END){
-            _state = FRAME_DONE;
-        } else {
-            reset();
-        }
-    } else {
-        _frame.pData[_dataReceived-1]=buffer;
     }
 }
 

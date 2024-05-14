@@ -4,7 +4,7 @@
 ///////////////////////////////////////////////////
 // DimCtrl
 
-void DimCtrl::config(uint32_t p=0){
+void DimCtrl::config(uint32_t p){
     uint8_t soll = L_BYTE(p);
     int8_t  delta  = H_BYTE(p);
 
@@ -22,17 +22,18 @@ void DimCtrl::config(uint32_t p=0){
 ///////////////////////////////////////////////////
 // ColorCtrl
 
-void ColorCtrl::config(uint8_t startIndex,uint8_t incStep,uint16_t time, String colorList){
-    _run = false;
+void ColorCtrl::_config(uint8_t startIndex,uint8_t incStep,uint8_t time, uint8_t divider, String colorList){
+    _state = stop;
     _colorList.clear();
     _incStep   = (int8_t) incStep;
     _timeStep  = time;
-    _waitForTrigger = (_timeStep == 0xFFFF) ? true:false;
-    _firstLoop = true;
     _currentColorIndex = startIndex;
     _currentColor = 0; 
     _colorIndexMax = 255;
     _useColorWheel = true;
+    _triggerActive = false;
+    _eventCounter = 0;
+    _eventTarget = divider+1;
 
     if (colorList.length() > 0){
         StringList list(colorList.c_str(),',');
@@ -44,50 +45,66 @@ void ColorCtrl::config(uint8_t startIndex,uint8_t incStep,uint16_t time, String 
             _useColorWheel = false;
         }
     }
-    _run = (incStep == 0) ? false:true;
 
-    if ((_run == false) && (_waitForTrigger == false) && (_colorIndexMax > 0)){
-        // const color take first from list 
-        // if there is no list .. stay with black
-        _currentColor = _colorList.getFirst();
+    // now calc first color based on index
+    if (_useColorWheel == true){
+        _currentColor = getColorWheel24Bit(_currentColorIndex);
+    } else {
+        _currentColor = _colorList.get(_currentColorIndex);
     }
+
+    if (_incStep != 0){
+        _state = (_timeStep == 0xFF) ? waitTrigger:initTime;
+    }
+    
+
 }
 
 void ColorCtrl::loop(uint32_t now){
-    if (_waitForTrigger == true){
-        _loopTrigger();
-    } else if (_run == true) {
-        _loopTime(now);
-    } 
-    // else ==> no change of color 
-}
+    switch(_state){
+        case stop:
+        
+        case initTime:
+            _nextLoopTime = now+_timeStep;
+            _state = waitTime;
+            break;
 
-void ColorCtrl::_loopTime(uint32_t now){
-    if (_firstLoop == true){
-        _firstLoop = false;
-        _nextLoopTime = now+_timeStep;
-    } else if (now >= _nextLoopTime){
-        // time for update
-        _nextLoopTime += _timeStep;
+        case waitTime:
+            if (now >= _nextLoopTime){
+                // time for update
+                _eventCounter++;
+                _nextLoopTime += _timeStep;
+                _checkForUpdate();
+            }
+            break;
+
+        case waitTrigger:
+            if (_triggerActive == true){
+                _eventCounter++;
+                _triggerActive = false;
+                _checkForUpdate();
+            }
+            break;
         
-        // update Index
-        _currentColorIndex += _incStep;
-        _currentColorIndex %= _colorIndexMax;
-        
-        // now calc color based on index
-        if (_useColorWheel == true){
-            _currentColor = getColorWheel24Bit(_currentColorIndex);
-        } else {
-            _currentColor = _colorList.get(_currentColorIndex);
-        }
+        default:
+            LOG("ColorCtrl::loop  invalid state");
+            _state = stop;
     }
 }
 
-void ColorCtrl::_loopTrigger(){
-    if (_triggerActive == true){
-        // clear trigger for next time
-        _triggerActive = false;
-        
+void ColorCtrl::switchToTriggerMode(){
+    _state = stop;
+    _eventCounter = 0;
+    _triggerActive = false;
+    _nextLoopTime = 0;
+    _timeStep = 0xFF;
+    _state = waitTrigger;
+}
+
+void ColorCtrl::_checkForUpdate(){
+    if (_eventCounter >= _eventTarget){
+        _eventCounter = 0;
+
         // update Index
         _currentColorIndex += _incStep;
         _currentColorIndex %= _colorIndexMax;
@@ -104,7 +121,7 @@ void ColorCtrl::_loopTrigger(){
 ///////////////////////////////////////////////////
 // FlashCtrl
 
-void FlashCtrl::config(uint8_t p=0){
+void FlashCtrl::config(uint8_t p){
     _state        = stop;
     _triggerActive= false;
     _groupCount   = L_BYTE(p);
@@ -180,13 +197,14 @@ bool FlashCtrl::loop(uint32_t now){
             }
             break;
     }
+    return false;
 }
 
 
 ///////////////////////////////////////////////////
 // BreathCtrl
 
-void BreathCtrl::config(uint32_t p=0){
+void BreathCtrl::config(uint32_t p){
     _state = stop;
     _dimDelta = 0;
     _target = L_BYTE(p);

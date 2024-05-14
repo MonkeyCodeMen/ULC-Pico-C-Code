@@ -73,30 +73,30 @@ bool setupLed(){
     ledCtrl3.begin((Led*)&ledStripe3);
     ledCtrl4.begin((Led*)&ledStripe4);
     // set start animation
-    ledCtrl1.setup("breath");
-    ledCtrl2.setup("breath");
-    ledCtrl3.setup("breath");
-    ledCtrl4.setup("breath");
+    ledCtrl1.select("breath");
+    ledCtrl2.select("breath");
+    ledCtrl3.select("breath");
+    ledCtrl4.select("breath");
 
     LOG(F("setup: RGB LED"));
     rgbLedStrip1.begin(&I2C_slaveSoll.PWM_soll[4],&I2C_slaveSoll.PWM_soll[5],&I2C_slaveSoll.PWM_soll[6],false);
     rgbLedStrip2.begin(&I2C_slaveSoll.PWM_soll[7],&I2C_slaveSoll.PWM_soll[8],&I2C_slaveSoll.PWM_soll[9],false);
     rgbCtrl1.begin((RgbLed*)&rgbLedStrip1);
     rgbCtrl2.begin((RgbLed*)&rgbLedStrip2);
-    rgbCtrl1.setup("rainbow");  
-    rgbCtrl2.setup("rainbow");  
+    rgbCtrl1.select("rainbow");  
+    rgbCtrl2.select("rainbow");  
 
     LOG(F("setup: Neo stripe"));
     neoStripeCtrl1.begin(&ws2812strip1);
     neoStripeCtrl2.begin(&ws2812strip2);
-    neoStripeCtrl1.setup(13);  
-    neoStripeCtrl2.setup(13);  
+    neoStripeCtrl1.select(13);  
+    neoStripeCtrl2.select(13);  
 
     LOG(F("setup: Neo matrix"));
     neoMatrixCtrl1.begin(&neoMatrix1);
     neoMatrixCtrl2.begin(&neoMatrix2);
-    neoMatrixCtrl1.setup("circle");
-    neoMatrixCtrl2.setup("circle");   
+    neoMatrixCtrl1.select("circle");
+    neoMatrixCtrl2.select("circle");   
 
     return true;
 }

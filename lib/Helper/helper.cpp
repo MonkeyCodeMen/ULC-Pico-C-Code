@@ -160,6 +160,12 @@ uint16_t toColor565(uint32_t c){
   return ((((c>>16) & 0xFF) / 8) << 11) | ((((c>>8)& 0xFF) / 4) << 5) | ((c & 0xFF) / 8);
 }
 
+uint16_t toColor565(uint32_t c,uint8_t dim){
+  c = dimColor255(c,dim);
+  return toColor565(c);
+}
+
+
 uint16_t toColor565Dim(uint32_t c){
     c = dimRgb24ToRgb(c);
     return toColor565(c);

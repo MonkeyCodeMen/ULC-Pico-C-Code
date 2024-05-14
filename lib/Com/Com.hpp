@@ -16,7 +16,7 @@ public:
     void sendAnswer(bool res,ComFrame * pFrame);
 
 private:
-    enum ComState  {WAIT,START_FRAME,MODULE,INDEX,COMMAND,PAR1,PAR2,PAR3,PAR4,STR_START,STR_DATA,STR_END,LENGTH,DATA,FRAME_DONE};
+    enum ComState  {WAIT,START_FRAME,MODULE,INDEX,COMMAND,PAR1,PAR2,PAR3,PAR4,STR_START,STR_DATA,STR_END,FRAME_DONE};
     HardwareSerial * _pPort;
     ComState _state; 
 
@@ -32,8 +32,6 @@ private:
     void getStrStart();
     void getStrData();
     void getStrEnd();
-    void getLength();
-    void getData();
     void frameDone();
 
     bool getByte(uint8_t * pBuffer);

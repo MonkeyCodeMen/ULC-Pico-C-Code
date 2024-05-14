@@ -48,11 +48,12 @@
 						|| || || ++---: start index of color list   (0..255)
 						|| || ||      :     color list is provided in cfg.str
 						|| || ||      :     if cfg.str is empty color are taken from color wheel (0..255)
-						|| || ++------: == 0   : no inc / dec 
+						|| || ++------: == 0   : no inc / dec  = static
 						|| ||         : <  128 : inc step
 						|| ||         : >= 128 : dec step  (-1 = 255; -2 = 254)
-						++-++---------: time t2 in ms: time between two color steps 
-						              : 0xFFFF xxxx wait for trigger 
+						|| ++---------: time t2 in ms: time between two color steps 
+						||            : 0xxxFF xxxx wait for trigger 
+						++------------: event divider 0..255 = 1..256 (2 ==> 3 trigger or 3 time event until color change)			
 
 						standard color white, an be overwritten by color list or color wheel
 						p2:0  & str:"0x00FF FFFF"  ==> constant white
@@ -121,24 +122,28 @@ class ColorCtrl{
         void loop(uint32_t now);
         uint32_t getColor()     						{ return _currentColor;   								}
 		void trigger()									{ _triggerActive = true; 								}
-        void config(uint32_t p=0,String colorList="")	{ config(L_BYTE(p),H_BYTE(p),H_WORD(p),colorList);    	}
-        void config(uint8_t startIndex,uint8_t incStep,uint16_t time, String colorList);
+		uint32_t getConfigP()							{ return _configParam;									}
+        void config(uint32_t p=0,String colorList="")	{ _config(L_BYTE(p),H_BYTE(p),H_BYTE(p),HHH_BYTE(p),colorList);}
+		void switchToTriggerMode();
+
 
     private:
-        volatile bool       _run;
-        bool                _firstLoop;
+		enum ColorState 	{stop,initTime,waitTrigger,waitTime};
+		volatile ColorState _state;
         bool                _useColorWheel;
-		bool 				_waitForTrigger;
 		volatile bool		_triggerActive;
+		uint16_t            _eventCounter,_eventTarget;
         uint32_t            _nextLoopTime,_timeStep;
 		uint8_t		        _currentColorIndex;
         uint32_t    	    _currentColor,_secondColor;
         uint8_t             _colorIndexMax;
 		SimpleList<int32_t> _colorList;
         int8_t              _incStep;
+		uint32_t            _configParam;
+		String				_configStr;
 
-		void _loopTime(uint32_t now);
-		void _loopTrigger();
+		void _checkForUpdate();
+        void _config(uint8_t startIndex,uint8_t incStep,uint8_t time, uint8_t divider, String colorList);
 
 };
 
