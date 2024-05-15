@@ -13,10 +13,46 @@
 #define ANI_ERROR_FILE_NOT_FOUND			6
 #define ANI_ERROR_OUT_OF_MEMORY				7
 
-#define DIM_MASK	0x80
-#define COLOR_MASK	0x40
-#define FLASH_MASK  0x20
-#define DARTH_VADER 0x10
+#define ANI_WR_DIM		0x80000000
+#define ANI_WR_COLOR	0x40000000
+#define ANI_WR_FLASH  	0x20000000
+#define ANI_DARTH_VADER 0x10000000
+
+/*
+	Ani is a base class for led animations
+
+	it contains base fucntionality for :
+		+ dim handling 
+		+ color handling (incl. color list and color wheel)
+		+ flash and multi flash 
+		+ breath animation 
+	
+	the configuration is been done over 4 32-bit configuration paramter (one for each feature) plus a string () for color lists etc
+
+	the idea is that other concret classes derive from this base class and utilize the pretested color switch, dimming etc.
+	by doing this not only the functoinality is pretested, although the configuration interface is the same for a RGB LED and and standard LED channel and a NEO pixel amtrix
+	so all of this objects could be dimmed up or down with the same command / function call / menu action / hotekey event / com frame
+
+	the Ani class has three main interfaces:
+	+ constrcutor
+	+ loop   (including set trigger and hasChanged)
+	+ config 
+
+	1) the derived class/objects must atke care the the loop function is been called
+	2) can check over hasChanged()  if there is a new color or dim rate available
+	3) can request the current dim rate and color to perform their updates of their LED's
+	
+	a connection between the color list and the flash functionality is implemented to change color on flashes
+
+	for examples I would like to refer to the unity tests: AniTest.cpp in this project
+
+	Note:
+	the ani class is constructed for loop functionality 
+	so a config call will never influence directly the dim or color values 
+	after a config you need to call at least one time the loop interface to update the values
+
+*/
+
 
 /*
 	basic layout for configuration:
@@ -100,7 +136,7 @@ class AniCfg{
 
 class DimCtrl{
 	public:
-		DimCtrl() 						{ config(0); 							}
+		DimCtrl():_dim(0),_speed(0)		{ config(0); 							}
 		~DimCtrl() = default;
 
         void config(uint32_t p=0);
@@ -176,7 +212,7 @@ class BreathCtrl{
 		~BreathCtrl() = default;
 
 		void config(uint32_t p=0);
-		uint8_t modifyDimFactor(uint8_t dim)	{ return (uint8_t) clamp(0,(uint16_t) dim + (uint16_t)_dimDelta,255);		}
+		uint8_t modifyDimFactor(uint8_t dim)	{ return (uint8_t) clamp((uint32_t)0,(uint32_t) ((uint8_t)dim + (uint16_t)_dimDelta),(uint32_t)255);		}
 		void loop(uint32_t now);
 
 	private:
@@ -187,13 +223,14 @@ class BreathCtrl{
 };
 
 
+
 class Ani{
 	public:
 		Ani(const char * pName)  						{ _pName = pName;  reset();		}
 		~Ani() = default;
         const char *   getName()						{ return _pName;				}
 		virtual AniCfg getConfig()						{ return _cfg; 					}
-		virtual void   reset()  						{ config(AniCfg());				}
+		virtual void   reset();
         virtual int    config(AniCfg cfg);
 		virtual void   trigger() 						{ _flashCtrl.trigger();			}
 		virtual void   loop(uint32_t now);
@@ -203,7 +240,7 @@ class Ani{
 		virtual uint32_t getColor()						{ return _color;				}
 		virtual uint16_t getSpeed()						{ return _dimCtrl.getSpeed();	}
 
-		virtual bool     needsUpdate();
+		virtual bool     hasChanged();
 
 	protected:
 		const char* 	_pName;

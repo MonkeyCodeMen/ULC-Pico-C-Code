@@ -105,7 +105,7 @@ void Com::getPar1(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.par1 = convertStrToInt(_field);
+    _frame.cfg._p1 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -119,7 +119,7 @@ void Com::getPar2(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.par2 = convertStrToInt(_field);
+    _frame.cfg._p2 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -133,7 +133,7 @@ void Com::getPar3(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.par3 = convertStrToInt(_field);
+    _frame.cfg._p3 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -147,15 +147,13 @@ void Com::getPar4(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.par4 = convertStrToInt(_field);
+    _frame.cfg._p4 = convertStrToInt(_field);
     _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
         _state = STR_START;
-        _frame.length=0;
         _field = "";
-        _frame.pData = (uint8_t *) new String();
     }
 }
 
@@ -167,7 +165,7 @@ void Com::getStrStart(){
 
     if (buffer == COM_FRAME_TEXT_QUOTES){
         _state = STR_DATA;
-        _frame.str = "";
+        _frame.cfg._str = "";
     } else if (buffer == COM_FRAME_END) {
         _state = FRAME_DONE;
     } else {
@@ -184,8 +182,8 @@ void Com::getStrData(){
     if (buffer == COM_FRAME_TEXT_QUOTES){
         _state = STR_END;
     } else {
-        _frame.str+=(char)buffer;
-        if (_frame.str.length() > COM_FRAME_MAX_STR_LENGTH){
+        _frame.cfg._str+=(char)buffer;
+        if (_frame.cfg._str.length() > COM_FRAME_MAX_STR_LENGTH){
             reset();       
         }
     }
@@ -224,20 +222,17 @@ void Com::sendAnswer(bool res,ComFrame * pFrame){
     out += pFrame->command;
     if (pFrame->withPar == true){
         out += COM_FRAME_SEP;
-        out += String(pFrame->par1,HEX);
+        out += String(pFrame->cfg._p1,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->par2,HEX);
+        out += String(pFrame->cfg._p2,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->par3,HEX);
+        out += String(pFrame->cfg._p3,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->par4,HEX);
+        out += String(pFrame->cfg._p4,HEX);
         out += COM_FRAME_SEP;
         out += COM_FRAME_TEXT_QUOTES;
-        out += String(pFrame->str);
+        out += String(pFrame->cfg._str);
         out += COM_FRAME_TEXT_QUOTES;
-        out += COM_FRAME_SEP;
-        out += String(pFrame->length,HEX);
-        // do not repeat binary data (can be hugh)
     }
     if (res == true){
         out+=COM_FRAME_END;

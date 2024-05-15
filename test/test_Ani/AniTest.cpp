@@ -9,11 +9,199 @@
 #include <SDcard.hpp>
 #include <TFT_eSPI.h> // Hardware-specific library
 #include "Led.hpp"
-#include "LedCtrl.hpp"
+#include "Ani.hpp"
 #include "StringList.hpp"
 
 #include "unity.h"
 
+void setUp(void) {
+  // set stuff up here
+}
+
+void tearDown(void) {
+  // clean stuff up here
+}
+
+
+void test_dimCtrl_init(void){
+  Ani obj("testObjANi");
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  TEST_ASSERT_FALSE(obj.hasChanged());
+  obj.loop(0);
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  TEST_ASSERT_FALSE(obj.hasChanged());
+  obj.loop(10);
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  TEST_ASSERT_FALSE(obj.hasChanged());
+  obj.loop(100);
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  TEST_ASSERT_FALSE(obj.hasChanged());
+  obj.loop(1000);
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  TEST_ASSERT_FALSE(obj.hasChanged());
+  obj.loop(10*1000);
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  TEST_ASSERT_FALSE(obj.hasChanged());
+}
+
+
+void test_dimCtrl_set(void){
+  Ani obj("testObjANi");
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  obj.loop(0);
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  obj.loop(1000);
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM | 0x77,0,0,0,""));
+  // value will be taken over at next loop
+  TEST_ASSERT_EQUAL_UINT8( 0x0 , obj.getDim());
+  TEST_ASSERT_FALSE(obj.hasChanged());
+  obj.loop(1001);  
+  TEST_ASSERT_TRUE(obj.hasChanged());
+  TEST_ASSERT_EQUAL_UINT8( 0x77 , obj.getDim());
+
+
+  // test config without WR bit
+  obj.config(AniCfg(0x66,0,0,0,""));
+  // must be still the old value
+  TEST_ASSERT_EQUAL_UINT8( 0x77 , obj.getDim());  
+  obj.loop(2000);
+  TEST_ASSERT_EQUAL_UINT8( 0x77 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM | 0x11,0,0,0,""));
+  TEST_ASSERT_EQUAL_UINT8( 0x77 , obj.getDim());
+  obj.loop(3000);
+  TEST_ASSERT_EQUAL_UINT8( 0x11 , obj.getDim());
+}
+
+void test_dimCtrl_dimUp(void){
+  Ani obj("testObjANi");
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  obj.loop(0);
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+ 
+
+  obj.config(AniCfg(ANI_WR_DIM |  0x60,0,0,0,""));
+  // value will be taken over at next loop
+  TEST_ASSERT_EQUAL_UINT8( 0x0 , obj.getDim());
+  obj.loop(1001);  
+  TEST_ASSERT_EQUAL_UINT8( 0x60 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  obj.loop(2000);  
+  TEST_ASSERT_EQUAL_UINT8( 0x70 , obj.getDim());
+  
+  obj.config(AniCfg(ANI_WR_DIM |  0x2000,0,0,0,""));
+  obj.loop(2005);  
+  TEST_ASSERT_EQUAL_UINT8( 0x90 , obj.getDim());
+
+  obj.config(AniCfg(0x2000,0,0,0,""));
+  obj.loop(2010);  
+  TEST_ASSERT_EQUAL_UINT8( 0x90 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  obj.loop(3000);  
+  TEST_ASSERT_EQUAL_UINT8( 0xA0 , obj.getDim());
+  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  obj.loop(3001);  
+  TEST_ASSERT_EQUAL_UINT8( 0xB0 , obj.getDim());
+  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  obj.loop(3002);  
+  TEST_ASSERT_EQUAL_UINT8( 0xC0 , obj.getDim());
+  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  obj.loop(3003);  
+  TEST_ASSERT_EQUAL_UINT8( 0xD0 , obj.getDim());
+  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  obj.loop(3004);  
+  TEST_ASSERT_EQUAL_UINT8( 0xE0 , obj.getDim());
+  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  obj.loop(3005);  
+  TEST_ASSERT_EQUAL_UINT8( 0xF0 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  obj.loop(3010);  
+  TEST_ASSERT_EQUAL_UINT8( 0xFF , obj.getDim());  // limit on max 0xFF
+
+  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  obj.loop(3011);  
+  TEST_ASSERT_EQUAL_UINT8( 0xFF , obj.getDim());  // limit on max 0xFF
+
+}
+
+void test_dimCtrl_dimDown(void){
+  Ani obj("testObjANi");
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+  obj.loop(0);
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+ 
+
+  obj.config(AniCfg(ANI_WR_DIM |  51,0,0,0,""));
+  // value will be taken over at next loop
+  TEST_ASSERT_EQUAL_UINT8( 0x0 , obj.getDim());
+  obj.loop(1001);  
+  TEST_ASSERT_EQUAL_UINT8( 51 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM |  ((-10)<<8),0,0,0,""));
+  obj.loop(2000);  
+  TEST_ASSERT_EQUAL_UINT8( 41 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM |  ((-10)<<8),0,0,0,""));
+  obj.loop(2000);  
+  TEST_ASSERT_EQUAL_UINT8( 31 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM |  11,0,0,0,""));
+  obj.loop(2000);  
+  TEST_ASSERT_EQUAL_UINT8( 11 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM |  ((-10)<<8),0,0,0,""));
+  obj.loop(2000);  
+  TEST_ASSERT_EQUAL_UINT8( 1 , obj.getDim());
+
+  obj.config(AniCfg(ANI_WR_DIM |  ((-10)<<8),0,0,0,""));
+  obj.loop(2000);  
+  TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
+
+}
+
+// now we call here all test collections
+int runAllCollections(void) {
+  UNITY_BEGIN();
+  RUN_TEST(test_dimCtrl_init);
+  RUN_TEST(test_dimCtrl_set);
+  RUN_TEST(test_dimCtrl_dimUp);
+  RUN_TEST(test_dimCtrl_dimDown);
+  return UNITY_END();
+}
+
+
+
+/**
+  * For Arduino framework
+  */
+void setup() {
+  // Wait ~2 seconds before the Unity test runner
+  // establishes connection with a board Serial interface
+  delay(6000);
+  
+  runAllCollections();
+
+  pinMode(LED_BUILTIN,OUTPUT);
+}
+
+
+void loop() {
+    digitalWrite(LED_BUILTIN, HIGH);
+    delay(250);
+    digitalWrite(LED_BUILTIN, LOW);
+    delay(250);
+
+}
+
+
+
+
+#ifdef old
 void test_LedCtrl_constructor(void) {
   // create Sim LED object and test it
   Led *pSimLed;
@@ -119,11 +307,11 @@ void test_LedCtrl_on(void){
   TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
 
   // change mode
-  object.setup(1);
+  object.select(1);
   TEST_ASSERT_EQUAL_STRING("on",object.getName());
-  object.setup(0);
+  object.select(0);
   TEST_ASSERT_EQUAL_STRING("off",object.getName());
-  object.setup((const char *) "on");
+  object.select((const char *) "on");
   TEST_ASSERT_EQUAL_STRING("on",object.getName());
 
   // test loop
@@ -148,7 +336,7 @@ void test_LedCtrl_dim(void){
 
   // change mode
   TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
-  object.setup((const char *) "dim");
+  object.select((const char *) "dim");
   TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
   TEST_ASSERT_EQUAL_STRING("dim",object.getName());
 
@@ -160,7 +348,7 @@ void test_LedCtrl_dim(void){
   object.loop(1000);
   TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
 
-  object.setup(123,0,0,0,"",0,NULL);
+  object.select(123,0,0,0,"",0,NULL);
   TEST_ASSERT_EQUAL_UINT8( 0x80 , simLed.get());
   object.loop(1001);
   TEST_ASSERT_EQUAL_UINT8( 123 , simLed.get());
@@ -196,7 +384,7 @@ void test_LedCtrl_blink(void){
 
   // change mode
   TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
-  object.setup((const char *) "blink");
+  object.select((const char *) "blink");
   TEST_ASSERT_EQUAL_UINT8( 0 , simLed.get());
 
   object.loop(1);
@@ -234,7 +422,7 @@ void test_LedCtrl_blink(void){
   object.loop(1001);
   TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
 
-  object.setup(123,100,100,100,"",0,NULL);
+  object.select(123,100,100,100,"",0,NULL);
   TEST_ASSERT_EQUAL_UINT8( 0x0 , simLed.get());
 
   object.loop(1002);
@@ -252,53 +440,4 @@ void test_LedCtrl_blink(void){
 
 }
 
-
-
-void setUp(void) {
-  // set stuff up here
-}
-
-void tearDown(void) {
-  // clean stuff up here
-}
-
-
-
-
-// now we call here all test collections
-int runAllCollections(void) {
-  UNITY_BEGIN();
-  RUN_TEST(test_LedCtrl_constructor);
-  RUN_TEST(test_LedCtrl_init);
-  RUN_TEST(test_LedCtrl_aniList);
-  RUN_TEST(test_LedCtrl_off);
-  RUN_TEST(test_LedCtrl_on);
-  RUN_TEST(test_LedCtrl_dim);
-  RUN_TEST(test_LedCtrl_blink);
-  return UNITY_END();
-}
-
-
-
-/**
-  * For Arduino framework
-  */
-void setup() {
-  // Wait ~2 seconds before the Unity test runner
-  // establishes connection with a board Serial interface
-  delay(6000);
-  
-  runAllCollections();
-
-  pinMode(LED_BUILTIN,OUTPUT);
-}
-
-
-void loop() {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(250);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(250);
-
-}
-
+#endif

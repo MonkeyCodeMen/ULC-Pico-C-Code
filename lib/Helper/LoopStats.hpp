@@ -32,7 +32,7 @@ class LoopStats
                     _sum += diff;
                     _lastCall = now;
                     diff = diff / _factor_ms;
-                    diff = clamp(0,diff,_bands);
+                    diff = clamp((uint32_t)0,diff,_bands);
                     _pBuffer[diff]++;
                 }
             }

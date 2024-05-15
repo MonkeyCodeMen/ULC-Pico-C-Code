@@ -130,7 +130,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                     pMatrix->setBrightness(_dimCtrl.getDim());
                     _sizeX = pMatrix->width();
                     _sizeY = pMatrix->height();
-                    _border= clamp(1,_dimCtrl.getSpeed(),100);
+                    _border= clamp((uint32_t)1,(uint32_t)_dimCtrl.getSpeed(),(uint32_t)100);
                     pMatrix->fillScreen(0);
                     _lastStartColor=0;
                     _lastDimValue = _dimCtrl.getDim();
@@ -139,14 +139,10 @@ class MatrixBoxAni : public NeoMatrixAni{
                 
                 case run:
                     Ani::loop(time);
-                    uint32_t color = _colorCtrl.getColor();
-                    uint8_t dim    = _dimCtrl.getDim();
-                    if ((dim != _lastDimValue) || (color!=_lastStartColor)){
+                    if (hasChanged() == true){
                         ColorCtrl colorCtrlCopy = _colorCtrl;
                         colorCtrlCopy.switchToTriggerMode();
                         _update(pMatrix,colorCtrlCopy);
-                        _lastDimValue = dim;
-                        _lastStartColor = color;
                     }
                     break;
             }

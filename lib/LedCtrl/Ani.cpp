@@ -2,6 +2,65 @@
 
 
 ///////////////////////////////////////////////////
+// Ani Base class
+
+
+int Ani::config(AniCfg cfg) { 
+    if (cfg._p1 & ANI_WR_DIM)	    _dimCtrl.config(cfg._p1);
+    if (cfg._p1 & ANI_WR_COLOR)	    _colorCtrl.config(cfg._p2,cfg._str);
+    if (cfg._p1 & ANI_WR_FLASH)	    _flashCtrl.config(cfg._p3);
+    if (cfg._p1 & ANI_DARTH_VADER)	_breathCtrl.config(cfg._p4);
+    return ANI_OK;    
+}
+
+void Ani::loop(uint32_t now) {	
+    _dimCtrl.loop(now);
+    if (_flashCtrl.loop(now) == true) {
+        _colorCtrl.trigger();
+    }
+    _colorCtrl.loop(now);							
+    _breathCtrl.loop(now);
+
+    _color = _colorCtrl.getColor();
+    _dim = _breathCtrl.modifyDimFactor(_dimCtrl.getDim());
+}
+
+void Ani::reset() {	
+    config(AniCfg(0xF0000000,0,0,0,""));	
+
+    _color = _colorCtrl.getColor();
+    _dim = _breathCtrl.modifyDimFactor(_dimCtrl.getDim());
+    _dimLast = _dim;
+    _colorLast = _color;
+}
+
+
+bool Ani::hasChanged(){
+    if ((_color != _colorLast) || (_dim != _dimLast)){
+        _colorLast = _color;
+        _dimLast = _dim;
+        return true;
+    }
+    return false;
+}
+
+const char * Ani::getErrorText(int error)		{
+    switch (error){
+        case ANI_OK:							return "OK";
+        case ANI_ERROR_GENERAL:					return "general error";
+        case ANI_ERROR_PROGRAM_DOES_NOT_EXIST:	return "program does not exist";
+        case ANI_ERROR_OUT_OF_RANGE:			return "parameter out of range";
+        case ANI_ERROR_INTERNAL:				return "internal error";
+        case ANI_ERROR_PAR_MISSING:				return "parameter missing";
+        case ANI_ERROR_FILE_NOT_FOUND:			return "file not found";
+        case ANI_ERROR_OUT_OF_MEMORY:			return "out of memory";
+    }
+    return "unknow error code";
+}
+
+
+
+///////////////////////////////////////////////////
 // DimCtrl
 
 void DimCtrl::config(uint32_t p){
@@ -11,9 +70,9 @@ void DimCtrl::config(uint32_t p){
     if (delta == 0){
         _dim = soll;
     } else {
-        int16_t temp = _dim;
+        int32_t temp = _dim;
         temp += delta;
-        _dim = (uint8_t) clamp(0,temp,255);
+        _dim = clamp((int32_t)0,temp,(int32_t)255);
     }
     _speed = (p >> 16) & 0x0FFF;
 }
@@ -233,10 +292,10 @@ void BreathCtrl::loop(uint32_t now){
             if (elapsed >= _t5){
                 _state = down;
                 _lastTurn = now;
-                elapsed = clamp(0,elapsed,_t5);
+                elapsed = clamp((uint32_t)0,elapsed,_t5);
             }
             value = (_target * elapsed) / _t5;
-            _dimDelta = clamp(0,value,_target);
+            _dimDelta = clamp((uint32_t)0,value,(uint32_t)_target);
             break;
 
         case down:
@@ -244,60 +303,11 @@ void BreathCtrl::loop(uint32_t now){
             if (elapsed >= _t6){
                 _state = up;
                 _lastTurn = now;
-                elapsed = clamp(0,elapsed,_t6);
+                elapsed = clamp((uint32_t)0,elapsed,_t6);
             }
             value = (_target * elapsed) / _t6;
-            _dimDelta = clamp(0,_target - value,_target);
+            _dimDelta = clamp((uint32_t)0,_target - value,(uint32_t)_target);
             break;
     }
-}
-
-///////////////////////////////////////////////////
-// Ani Base class
-
-
-int Ani::config(AniCfg cfg) { 
-    _cfg = cfg; 
-    uint8_t ctrlByte = HHH_BYTE(cfg._p1);
-    if (ctrlByte & DIM_MASK)	_dimCtrl.config(cfg._p1);
-    if (ctrlByte & COLOR_MASK)	_colorCtrl.config(cfg._p2,cfg._str);
-    if (ctrlByte & FLASH_MASK)	_flashCtrl.config(cfg._p3);
-    if (ctrlByte & DARTH_VADER)	_breathCtrl.config(cfg._p4);
-    return ANI_OK;    
-}
-
-void Ani::loop(uint32_t now) {	
-    _dimCtrl.loop(now);
-    if (_flashCtrl.loop(now) == true) {
-        _colorCtrl.trigger();
-    }
-    _colorCtrl.loop(now);							
-    _breathCtrl.loop(now);
-
-    _color = _colorCtrl.getColor();
-    _dim = _breathCtrl.modifyDimFactor(_dimCtrl.getDim());
-}
-
-bool Ani::needsUpdate(){
-    if ((_color != _colorLast) || (_dim != _dimLast)){
-        _colorLast = _color;
-        _dimLast = _dim;
-        return true;
-    }
-    return false;
-}
-
-const char * Ani::getErrorText(int error)		{
-    switch (error){
-        case ANI_OK:							return "OK";
-        case ANI_ERROR_GENERAL:					return "general error";
-        case ANI_ERROR_PROGRAM_DOES_NOT_EXIST:	return "program does not exist";
-        case ANI_ERROR_OUT_OF_RANGE:			return "parameter out of range";
-        case ANI_ERROR_INTERNAL:				return "internal error";
-        case ANI_ERROR_PAR_MISSING:				return "parameter missing";
-        case ANI_ERROR_FILE_NOT_FOUND:			return "file not found";
-        case ANI_ERROR_OUT_OF_MEMORY:			return "out of memory";
-    }
-    return "unknow error code";
 }
 

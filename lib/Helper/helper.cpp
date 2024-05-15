@@ -147,6 +147,12 @@ uint32_t clamp(uint32_t lowEnd,uint32_t value,uint32_t highEnd){
     return value;
 }
 
+int32_t clamp(int32_t lowEnd,int32_t value,int32_t highEnd){
+    if (value < lowEnd)     return lowEnd;
+    if (value > highEnd)    return highEnd;
+    return value;
+}
+
 
 uint16_t toColor565(uint8_t r,uint8_t g,uint8_t b,uint8_t dim){
     return toColor565( dimColorChannel255(r,dim),dimColorChannel255(g,dim),dimColorChannel255(b,dim) );

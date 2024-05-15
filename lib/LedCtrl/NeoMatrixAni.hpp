@@ -3,7 +3,6 @@
 #include <Adafruit_NeoMatrix.h>
 #include "helper.h"
 #include "Debug.hpp"
-#include <ColorSelector.hpp>
 #include <AnimatedGIF.h>
 #include <SDcard.hpp>
 #include "PinMapping.h"
@@ -18,7 +17,7 @@ class NeoMatrixAni:public Ani
 		~NeoMatrixAni() = default;
 		virtual void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix)   {
             Ani::loop(time);
-            if (needsUpdate() == true){
+            if (hasChanged() == true){
                 pMatrix->setBrightness(_dim);
                 pMatrix->fillScreen(toColor565(_color));
                 pMatrix->show();

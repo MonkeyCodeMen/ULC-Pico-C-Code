@@ -128,8 +128,8 @@ class configItem{
 
         bool run(){
             if (_obj != NULL){
-                if (_obj->setup(_cmd.c_str()) == ANI_OK){
-                    _obj->setup(_param[0],_param[1],_param[2],_param[3],_str.c_str(),_dataSize,&_pData);
+                if (_obj->select(_cmd.c_str()) == ANI_OK){
+                    _obj->config(AniCfg(_param[0],_param[1],_param[2],_param[3],_str));
                     return true;
                 }
             }

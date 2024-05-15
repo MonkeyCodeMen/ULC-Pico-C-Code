@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include "unity_config.h"
-#define UNITY_PORT 0
+#define UNITY_PORT 1
 
 #if UNITY_PORT == 0
     void myUnityOutputWait(void)                      { while(!Serial){} }

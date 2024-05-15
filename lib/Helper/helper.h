@@ -16,6 +16,7 @@ uint32_t convertStrToInt(String str);
 
 // limit range of a value
 uint32_t clamp(uint32_t lowEnd,uint32_t value,uint32_t highEnd);
+int32_t clamp(int32_t lowEnd,int32_t value,int32_t highEnd);
 
 
 // color 565 format 

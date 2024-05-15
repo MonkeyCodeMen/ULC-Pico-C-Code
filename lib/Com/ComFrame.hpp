@@ -1,5 +1,6 @@
 #pragma once
 #include <Arduino.h>
+#include <Ani.hpp>
 
 /*
 
@@ -117,15 +118,12 @@ class ComFrame{
         void reset();
 
         char    module;
-        uint8_t    index;
+        uint8_t index;
         String  command;
 
         // parameter       
-        bool    withPar;                
-        uint32_t   par1,par2,par3,par4;    // uint32_t
-        String  str;                    // string 
-        uint32_t   length;                 // binary length
-        uint8_t *  pData;                  // binary data
+        bool        withPar;                
+        AniCfg      cfg;
 
         // result
         String res;

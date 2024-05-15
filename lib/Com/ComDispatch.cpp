@@ -108,12 +108,12 @@ bool ComDispatch::dispatchLedFrame(ComFrame * pFrame){
             return false;
     }
     if (pFrame->withPar == true){
-        res = pLedCtrl->setup(pFrame->command.c_str());
+        res = pLedCtrl->select(pFrame->command.c_str());
         if (res == ANI_OK) {
-            res = pLedCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->str,pFrame->length,&(pFrame->pData));
+            res = pLedCtrl->config(pFrame->cfg);
         }
     } else {
-        res = pLedCtrl->setup(pFrame->command.c_str());  // use default parameter for 
+        res = pLedCtrl->select(pFrame->command.c_str());  // use default parameter for 
     }
     pFrame->res = Ani::getErrorText(res);
     return res==ANI_OK?true:false;
@@ -131,12 +131,12 @@ bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame){
 
     int res;
     if (pFrame->withPar == true){
-        res = pRgbCtrl->setup(pFrame->command.c_str());
+        res = pRgbCtrl->select(pFrame->command.c_str());
         if (res == ANI_OK){
-            res = pRgbCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->str,pFrame->length,&(pFrame->pData));
+            res = pRgbCtrl->config(pFrame->cfg);
         }
     } else {
-        res = pRgbCtrl->setup(pFrame->command.c_str());  // use default parameter for 
+        res = pRgbCtrl->select(pFrame->command.c_str());  // use default parameter for 
     }
     pFrame->res = Ani::getErrorText(res);
     return res==ANI_OK?true:false;
@@ -153,12 +153,12 @@ bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame){
     }
     int res;
     if (pFrame->withPar == true){
-        res = pStripeCtrl->setup(pFrame->command.c_str());
+        res = pStripeCtrl->select(pFrame->command.c_str());
         if (res == ANI_OK) {
-            res = pStripeCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->str,pFrame->length,&(pFrame->pData));
+            res = pStripeCtrl->config(pFrame->cfg);
         }
     } else {
-        res = pStripeCtrl->setup(pFrame->command.c_str());  // use default parameter for 
+        res = pStripeCtrl->select(pFrame->command.c_str());  // use default parameter for 
     }
     pFrame->res = Ani::getErrorText(res);
     return res==ANI_OK?true:false;
@@ -175,12 +175,12 @@ bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame){
     }
     int res;
     if (pFrame->withPar == true){
-        res = pMatrixCtrl->setup(pFrame->command.c_str());
+        res = pMatrixCtrl->select(pFrame->command.c_str());
         if (res == ANI_OK){
-            res = pMatrixCtrl->setup(pFrame->par1,pFrame->par2,pFrame->par3,pFrame->par4,pFrame->str,pFrame->length,&(pFrame->pData));
+            res = pMatrixCtrl->config(pFrame->cfg);
         }
     } else {
-        res = pMatrixCtrl->setup(pFrame->command.c_str());  // use default parameter for 
+        res = pMatrixCtrl->select(pFrame->command.c_str());  // use default parameter for 
     }
     pFrame->res = Ani::getErrorText(res);
     return res==ANI_OK?true:false;

@@ -8,10 +8,7 @@
 #include <MainConfig.h>
 #include <SDcard.hpp>
 #include <LedObjects.hpp>
-
-#include "Ctrl.hpp"
-
-
+#include <Ctrl.hpp>
 #include <unity.h>
 
 
@@ -44,7 +41,7 @@ void test_Ctrl_changeByIndex(void){
   Ctrl object;
 
   // change to not existing animation
-  TEST_ASSERT_EQUAL_INT(ANI_ERROR_PROGRAM_DOES_NOT_EXIST,object.setup(3));  
+  TEST_ASSERT_EQUAL_INT(ANI_ERROR_PROGRAM_DOES_NOT_EXIST,object.select(3));  
   TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
   TEST_ASSERT_EQUAL_STRING("",object.getNameList());
   TEST_ASSERT_EQUAL_STRING("",object.getName());
@@ -55,7 +52,7 @@ void test_Ctrl_changeByName(void){
   Ctrl object;
 
   // change to not existing animation
-  TEST_ASSERT_EQUAL_INT(ANI_ERROR_PROGRAM_DOES_NOT_EXIST,object.setup("Roger Rabbit"));  
+  TEST_ASSERT_EQUAL_INT(ANI_ERROR_PROGRAM_DOES_NOT_EXIST,object.select("Roger Rabbit"));  
   TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
   TEST_ASSERT_EQUAL_STRING("",object.getNameList());
   TEST_ASSERT_EQUAL_STRING("",object.getName());
@@ -66,7 +63,7 @@ void test_Ctrl_setup(void) {
   Ctrl object;
 
   // try parameter change on not existing animation
-  TEST_ASSERT_EQUAL_INT(ANI_ERROR_PROGRAM_DOES_NOT_EXIST,object.setup(0,0,0,0,"",0,NULL));  
+  TEST_ASSERT_EQUAL_INT(ANI_ERROR_PROGRAM_DOES_NOT_EXIST,object.config(AniCfg(0,0,0,0,"")));  
   TEST_ASSERT_EQUAL_UINT32(0,object.getAniCount());
   TEST_ASSERT_EQUAL_STRING("",object.getNameList());
   TEST_ASSERT_EQUAL_STRING("",object.getName());

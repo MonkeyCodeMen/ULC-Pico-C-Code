@@ -27,6 +27,7 @@
  *    ToDo'S / aufräumen
  * 
  ******************************************************************
+  + use AniCfg in hotkey / scenario 
   + make bakup (and read back) of last setup data .. how to deal with binary data ?
   + implement startup test mode
   + implement boot screen
@@ -71,7 +72,7 @@ void mainMenu_syncToCtrl(){
     nrMenu = menuCtrlEntries[i]->getIndex();
     nrCtrl = ctrlObjectList[i]->getNr();
     if ((nrMenu >= 0) && (nrCtrl != nrMenu)){
-      ctrlObjectList[i]->setup(nrMenu);
+      ctrlObjectList[i]->select(nrMenu);
     }
   }
 }
