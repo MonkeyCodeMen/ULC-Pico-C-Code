@@ -5,6 +5,17 @@
 // Ani Base class
 
 
+void Ani::reset() {	
+    config(AniCfg(ANI_WR_DIM|ANI_WR_COLOR|ANI_WR_FLASH|ANI_DARTH_VADER,0,0,0,"0"));	
+
+    _color      = _colorCtrl.getColor();
+    _colorLast  = _color;
+    _dim        = _breathCtrl.modifyDimFactor(_dimCtrl.getDim());
+    _dimLast    = _dim;
+    
+}
+
+
 int Ani::config(AniCfg cfg) { 
     if (cfg._p1 & ANI_WR_DIM)	    _dimCtrl.config(cfg._p1);
     if (cfg._p1 & ANI_WR_COLOR)	    _colorCtrl.config(cfg._p2,cfg._str);
@@ -25,14 +36,6 @@ void Ani::loop(uint32_t now) {
     _dim = _breathCtrl.modifyDimFactor(_dimCtrl.getDim());
 }
 
-void Ani::reset() {	
-    config(AniCfg(0xF0000000,0,0,0,""));	
-
-    _color = _colorCtrl.getColor();
-    _dim = _breathCtrl.modifyDimFactor(_dimCtrl.getDim());
-    _dimLast = _dim;
-    _colorLast = _color;
-}
 
 
 bool Ani::hasChanged(){
@@ -81,47 +84,61 @@ void DimCtrl::config(uint32_t p){
 ///////////////////////////////////////////////////
 // ColorCtrl
 
-void ColorCtrl::_config(uint8_t startIndex,uint8_t incStep,uint8_t time, uint8_t divider, String colorList){
+void ColorCtrl::_config(uint8_t startIndex,int8_t incStep,uint8_t time, uint8_t divider, String str){
     _state = stop;
-    _colorList.clear();
-    _incStep   = (int8_t) incStep;
+    _incStep   = incStep;
     _timeStep  = time;
-    _currentColorIndex = startIndex;
-    _currentColor = 0; 
-    _colorIndexMax = 255;
-    _useColorWheel = true;
     _triggerActive = false;
     _eventCounter = 0;
     _eventTarget = divider+1;
 
-    if (colorList.length() > 0){
-        StringList list(colorList.c_str(),',');
+    // setup color list
+    _colorList.clear();         // clear old list
+    if (str.length() > 0){
+        StringList list(str.c_str(),',');
         while(list.isEndReached() == false){
             _colorList.add(convertStrToInt(list.getNextListEntry()));
         }
+    } 
+    _useColorWheel = (_colorList.size() == 0) ? true:false;
+    
+    // select color start condition
+    if (_useColorWheel == true){
+        // select color from wheel
+        _colorIndexMax = 255;
+        _currentColorIndex = startIndex;
+        _currentColor = getColorWheel24Bit(_currentColorIndex);    
+        _mode = COLOR_WHEEL;
+    } else {
+        // select color from list
         _colorIndexMax = _colorList.size();
-        if (_colorIndexMax > 0){
-            _useColorWheel = false;
+        _currentColorIndex = clamp((uint32_t)0,(uint32_t)startIndex,(uint32_t)_colorIndexMax);
+        _currentColor = _colorList.get(_currentColorIndex);    
+        _mode = COLOR_LIST;
+    }
+
+    if (_incStep == 0){
+        // static color mode
+        // stay in state stop
+        _mode |= LOOP_STOP;
+        // _state = stop;
+    } else {
+        // dynamic color
+        // wait for trigger or time
+        if (_timeStep == 0xFF){
+            _mode |= LOOP_TRIGGER;
+            _state = waitTrigger;
+        } else {
+            _mode |= LOOP_TIME;
+            _state = initTime;
         }
     }
-
-    // now calc first color based on index
-    if (_useColorWheel == true){
-        _currentColor = getColorWheel24Bit(_currentColorIndex);
-    } else {
-        _currentColor = _colorList.get(_currentColorIndex);
-    }
-
-    if (_incStep != 0){
-        _state = (_timeStep == 0xFF) ? waitTrigger:initTime;
-    }
-    
-
 }
 
 void ColorCtrl::loop(uint32_t now){
     switch(_state){
         case stop:
+            break;
         
         case initTime:
             _nextLoopTime = now+_timeStep;

@@ -136,7 +136,7 @@ class AniCfg{
 
 class DimCtrl{
 	public:
-		DimCtrl():_dim(0),_speed(0)		{ config(0); 							}
+		DimCtrl() 						{ config(); 							}
 		~DimCtrl() = default;
 
         void config(uint32_t p=0);
@@ -150,43 +150,52 @@ class DimCtrl{
 		uint16_t _speed;
 };
 
-
 class ColorCtrl{
+
     public:
-        ColorCtrl() 									{  config(0,"");    }       // setup with default values 
+		#define COLOR_WHEEL		0x01
+		#define COLOR_LIST		0x02
+		#define LOOP_STOP		0x10
+		#define LOOP_TRIGGER	0x20
+		#define LOOP_TIME   	0x30
+
+        ColorCtrl() 									{  config();    												}
         ~ColorCtrl() = default;
         void loop(uint32_t now);
-        uint32_t getColor()     						{ return _currentColor;   								}
-		void trigger()									{ _triggerActive = true; 								}
-		uint32_t getConfigP()							{ return _configParam;									}
-        void config(uint32_t p=0,String colorList="")	{ _config(L_BYTE(p),H_BYTE(p),H_BYTE(p),HHH_BYTE(p),colorList);}
+        uint32_t getColor()     						{ return _currentColor;   										}
+		void trigger()									{ _triggerActive = true; 										}
+        void config(uint32_t p=0,String str="0")		{ _config(L_BYTE(p),H_BYTE(p),HH_BYTE(p),HHH_BYTE(p),str);		}		// default static color with value 0
 		void switchToTriggerMode();
+
+		uint8_t getMode()								{ return _mode;													}
+		uint8_t getMaxIndex()							{ return _colorIndexMax;										}
 
 
     private:
 		enum ColorState 	{stop,initTime,waitTrigger,waitTime};
+
 		volatile ColorState _state;
+		uint8_t           	_mode;
+
         bool                _useColorWheel;
 		volatile bool		_triggerActive;
 		uint16_t            _eventCounter,_eventTarget;
         uint32_t            _nextLoopTime,_timeStep;
 		uint8_t		        _currentColorIndex;
-        uint32_t    	    _currentColor,_secondColor;
+        uint32_t    	    _currentColor;
         uint8_t             _colorIndexMax;
 		SimpleList<int32_t> _colorList;
         int8_t              _incStep;
-		uint32_t            _configParam;
-		String				_configStr;
 
 		void _checkForUpdate();
-        void _config(uint8_t startIndex,uint8_t incStep,uint8_t time, uint8_t divider, String colorList);
+        void _config(uint8_t startIndex,int8_t incStep,uint8_t time, uint8_t divider, String colorList);
 
 };
 
 
 class FlashCtrl{
 	public:
-		FlashCtrl()													{ config(0);											}		
+		FlashCtrl()													{ config();												}		
 		~FlashCtrl() = default;
 
 		void config(uint8_t p=0);
@@ -232,7 +241,8 @@ class Ani{
 		virtual AniCfg getConfig()						{ return _cfg; 					}
 		virtual void   reset();
         virtual int    config(AniCfg cfg);
-		virtual void   trigger() 						{ _flashCtrl.trigger();			}
+		virtual void   triggerFlash() 					{ _flashCtrl.trigger();			}
+		virtual void   triggerColor() 					{ _colorCtrl.trigger();			}
 		virtual void   loop(uint32_t now);
 		static const char * getErrorText(int error);
 
@@ -242,9 +252,12 @@ class Ani{
 
 		virtual bool     hasChanged();
 
+
+
+
 	protected:
 		const char* 	_pName;
-		AniCfg			_cfg;
+		AniCfg			_cfg;		// TODO .. brauchen wir das ????
 
 		DimCtrl			_dimCtrl;
 		ColorCtrl 		_colorCtrl;
