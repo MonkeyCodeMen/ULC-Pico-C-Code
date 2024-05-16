@@ -208,42 +208,42 @@ uint32_t getColorWheel24Bit(uint8_t pos){
 
 uint32_t dimRgb24ToRgb(uint32_t color){
     union uint32_t_byteAcess value;
-    value.ival=color;
-    uint8_t dim = value.bval.HHH;
-    value.bval.HH = dimColorChannel255(value.bval.HH,dim); // r
-    value.bval.H  = dimColorChannel255(value.bval.H ,dim); // g
-    value.bval.L  = dimColorChannel255(value.bval.L ,dim); // b
-    value.bval.HHH = 0;
-    return value.ival;
+    value.uint32=color;
+    uint8_t dim = value.byte.HHH;
+    value.byte.HH = dimColorChannel255(value.byte.HH,dim); // r
+    value.byte.H  = dimColorChannel255(value.byte.H ,dim); // g
+    value.byte.L  = dimColorChannel255(value.byte.L ,dim); // b
+    value.byte.HHH = 0;
+    return value.uint32;
 }
 
 uint32_t dimColor255(uint32_t color,uint8_t dim ){
     union uint32_t_byteAcess value;
-    value.ival=color;
-    value.bval.HH = dimColorChannel255(value.bval.HH,dim); // r
-    value.bval.H  = dimColorChannel255(value.bval.H ,dim); // g
-    value.bval.L  = dimColorChannel255(value.bval.L ,dim); // b
-    value.bval.HHH = 0;
-    return value.ival;
+    value.uint32=color;
+    value.byte.HH = dimColorChannel255(value.byte.HH,dim); // r
+    value.byte.H  = dimColorChannel255(value.byte.H ,dim); // g
+    value.byte.L  = dimColorChannel255(value.byte.L ,dim); // b
+    value.byte.HHH = 0;
+    return value.uint32;
 }
 
 uint32_t dimColor255(uint8_t r,uint8_t g,uint8_t b,uint8_t dim ){
     union uint32_t_byteAcess value;
-    value.bval.HH = dimColorChannel255(r,dim); // r
-    value.bval.H  = dimColorChannel255(g,dim); // g
-    value.bval.L  = dimColorChannel255(b,dim); // b
-    value.bval.HHH = 0;
-    return value.ival;
+    value.byte.HH = dimColorChannel255(r,dim); // r
+    value.byte.H  = dimColorChannel255(g,dim); // g
+    value.byte.L  = dimColorChannel255(b,dim); // b
+    value.byte.HHH = 0;
+    return value.uint32;
 
 }
 
 uint32_t color24Bit(uint8_t r,uint8_t g,uint8_t b){
     union uint32_t_byteAcess value;
-    value.bval.HH   = r; // r
-    value.bval.H    = g; // g
-    value.bval.L    = b; // b
-    value.bval.HHH  = 0;
-    return value.ival;
+    value.byte.HH   = r; // r
+    value.byte.H    = g; // g
+    value.byte.L    = b; // b
+    value.byte.HHH  = 0;
+    return value.uint32;
 
 }
 

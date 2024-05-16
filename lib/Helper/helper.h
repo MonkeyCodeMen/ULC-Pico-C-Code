@@ -40,22 +40,22 @@ uint16_t getColorWheel565(uint8_t pos);
 
 
 union uint32_t_byteAcess {
-    uint32_t ival;
+    uint32_t uint32;
     struct {
         uint8_t L; // least significant byte
         uint8_t H;
         uint8_t HH;
         uint8_t HHH; // most significant byte
-    } bval;
+    } byte;
 };
 
 
 union uint16_t_byteAcess {
-    uint16_t ival;
+    uint16_t uint16;
     struct {
         uint8_t L; // least significant byte
         uint8_t H;
-    } bval;
+    } byte;
 };
 
 #define HHH_BYTE(val)       (*(((uint8_t*)&val)+3))

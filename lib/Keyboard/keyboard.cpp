@@ -118,8 +118,8 @@ uint16_t Keyboard::_read16(uint8_t regAdr) {
 	_pBus->endTransmission();
 	_pBus->requestFrom(_deviceAdr, 2);
     //uint16_t_byteAcess res;
-    //res.bval.L = (uint8_t)_pBus->read();
-    //res.bval.H = (uint8_t)_pBus->read();
+    //res.byte.L = (uint8_t)_pBus->read();
+    //res.byte.H = (uint8_t)_pBus->read();
     uint16_t res;
     L_BYTE(res) = (uint8_t)_pBus->read();
     H_BYTE(res) = (uint8_t)_pBus->read();

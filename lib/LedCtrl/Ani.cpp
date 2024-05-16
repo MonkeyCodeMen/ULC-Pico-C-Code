@@ -17,10 +17,10 @@ void Ani::reset() {
 
 
 int Ani::config(AniCfg cfg) { 
-    if (cfg._p1 & ANI_WR_DIM)	    _dimCtrl.config(cfg._p1);
-    if (cfg._p1 & ANI_WR_COLOR)	    _colorCtrl.config(cfg._p2,cfg._str);
-    if (cfg._p1 & ANI_WR_FLASH)	    _flashCtrl.config(cfg._p3);
-    if (cfg._p1 & ANI_DARTH_VADER)	_breathCtrl.config(cfg._p4);
+    if (cfg._dimCfg.reg.WR_dim    == 1)	_dimCtrl.config(cfg._dimCfg);
+    if (cfg._dimCfg.reg.WR_color  == 1)	_colorCtrl.config(cfg._colorCfg,cfg._str);
+    if (cfg._dimCfg.reg.WR_flash  == 1)	_flashCtrl.config(cfg._flashCfg);
+    if (cfg._dimCfg.reg.WR_breath == 1)	_breathCtrl.config(cfg._breathCfg);
     return ANI_OK;    
 }
 
@@ -66,31 +66,29 @@ const char * Ani::getErrorText(int error)		{
 ///////////////////////////////////////////////////
 // DimCtrl
 
-void DimCtrl::config(uint32_t p){
-    uint8_t soll = L_BYTE(p);
-    int8_t  delta  = H_BYTE(p);
-
-    if (delta == 0){
-        _dim = soll;
+void DimCtrl::config(dimCtrl_t cfg)
+{
+    if (cfg.reg.incValue == 0){
+        _dim = cfg.reg.setValue;
     } else {
         int32_t temp = _dim;
-        temp += delta;
+        temp += cfg.reg.incValue;
         _dim = clamp((int32_t)0,temp,(int32_t)255);
     }
-    _speed = (p >> 16) & 0x0FFF;
+    _speed = cfg.reg.speed;
 }
 
 
 ///////////////////////////////////////////////////
 // ColorCtrl
 
-void ColorCtrl::_config(uint8_t startIndex,int8_t incStep,uint8_t time, uint8_t divider, String str){
+void ColorCtrl::config(colorCtrl_t cfg,String str){
     _state = stop;
-    _incStep   = incStep;
-    _timeStep  = time;
+    _incStep   = cfg.reg.incValue;
+    _timeStep  = cfg.reg.t2_ms;
     _triggerActive = false;
     _eventCounter = 0;
-    _eventTarget = divider+1;
+    _eventTarget = cfg.reg.eventCounter+1;
 
     // setup color list
     _colorList.clear();         // clear old list
@@ -106,13 +104,13 @@ void ColorCtrl::_config(uint8_t startIndex,int8_t incStep,uint8_t time, uint8_t 
     if (_useColorWheel == true){
         // select color from wheel
         _colorIndexMax = 255;
-        _currentColorIndex = startIndex;
+        _currentColorIndex = cfg.reg.startIndex;
         _currentColor = getColorWheel24Bit(_currentColorIndex);    
         _mode = COLOR_WHEEL;
     } else {
         // select color from list
         _colorIndexMax = _colorList.size();
-        _currentColorIndex = clamp((uint32_t)0,(uint32_t)startIndex,(uint32_t)_colorIndexMax);
+        _currentColorIndex = clamp((uint32_t)0,(uint32_t)cfg.reg.startIndex,(uint32_t)_colorIndexMax);
         _currentColor = _colorList.get(_currentColorIndex);    
         _mode = COLOR_LIST;
     }
@@ -197,19 +195,19 @@ void ColorCtrl::_checkForUpdate(){
 ///////////////////////////////////////////////////
 // FlashCtrl
 
-void FlashCtrl::config(uint8_t p){
+void FlashCtrl::config(flashCtrl_t cfg){
     _state        = stop;
     _triggerActive= false;
-    _groupCount   = L_BYTE(p);
+    _groupCount   = cfg.reg.flashPerGroup;
     _groupCounter = 0;
-    _t1           = H_BYTE(p)*10;
-    _t2           = HH_BYTE(p)*10;
-    _t3 		  = HHH_BYTE(p);
-    if (_t3 == 0xFF){
+    _t1           = cfg.reg.t1_10ms*10;
+    _t2           = cfg.reg.t2_10ms*10;
+    if (cfg.reg.t3_100ms == 0xFF){
         _waitForTrigger = true;
+        _t3 = 0;
     } else {
         _waitForTrigger = false;
-        _t3 = _t3*100;
+        _t3 = cfg.reg.t3_100ms*100;
     }
     if (_groupCount > 0){
         _state = init;
@@ -280,12 +278,12 @@ bool FlashCtrl::loop(uint32_t now){
 ///////////////////////////////////////////////////
 // BreathCtrl
 
-void BreathCtrl::config(uint32_t p){
+void BreathCtrl::config(breathCtrl_t cfg){
     _state = stop;
     _dimDelta = 0;
-    _target = L_BYTE(p);
-    _t5 = ((p >> 8)  & 0x0FFF) * 100;
-    _t6 = ((p >> 20) & 0x0FFF) * 100;
+    _target = cfg.reg.delta;
+    _t1 = cfg.reg.t1_100ms * 100;
+    _t2 = cfg.reg.t2_100ms * 100;
 
     if (_dimDelta > 0) { 
         _state = init;
@@ -306,23 +304,23 @@ void BreathCtrl::loop(uint32_t now){
 
         case up:
             elapsed = now-_lastTurn;
-            if (elapsed >= _t5){
+            if (elapsed >= _t1){
                 _state = down;
                 _lastTurn = now;
-                elapsed = clamp((uint32_t)0,elapsed,_t5);
+                elapsed = clamp((uint32_t)0,elapsed,_t1);
             }
-            value = (_target * elapsed) / _t5;
+            value = (_target * elapsed) / _t1;
             _dimDelta = clamp((uint32_t)0,value,(uint32_t)_target);
             break;
 
         case down:
             elapsed = now-_lastTurn;
-            if (elapsed >= _t6){
+            if (elapsed >= _t2){
                 _state = up;
                 _lastTurn = now;
-                elapsed = clamp((uint32_t)0,elapsed,_t6);
+                elapsed = clamp((uint32_t)0,elapsed,_t2);
             }
-            value = (_target * elapsed) / _t6;
+            value = (_target * elapsed) / _t2;
             _dimDelta = clamp((uint32_t)0,_target - value,(uint32_t)_target);
             break;
     }

@@ -225,8 +225,10 @@ void test_colorCtrl_triggerList(void){
   TEST_ASSERT_FALSE(           obj.hasChanged());
   
   AniCfg cfg;
-  cfg._p1  = ANI_WR_COLOR;
-  cfg._p2  = 0x00FF0100; 
+  cfg._dimCfg.reg.WR_color   = 1;
+  cfg._colorCfg.reg.t2_ms    = 0xFF; 
+  cfg._colorCfg.reg.incValue = 0x01; 
+  
   cfg._str = "0,1,2,3,4,5";
   /*
   	p2 : color Index:   xx xx xx xx   :
@@ -244,7 +246,7 @@ void test_colorCtrl_triggerList(void){
   TEST_ASSERT_EQUAL_UINT8(  (uint8_t) (COLOR_LIST | LOOP_TRIGGER) , obj.pColorCtrl->getMode());
   TEST_ASSERT_EQUAL_UINT8(  6   , obj.pColorCtrl->getMaxIndex());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());
+  TEST_ASSERT_FALSE(           obj.hasChanged());  // frist value of new color cfg has no change to init value .. no update necessary
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   obj.loop(100);
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
@@ -310,6 +312,61 @@ void test_colorCtrl_triggerList(void){
 }
 
 
+void test_colorCtrl_triggerListReverse(void){
+  AniTest obj;
+  TEST_ASSERT_EQUAL_UINT8(  (uint8_t) (COLOR_LIST | LOOP_STOP) , obj.pColorCtrl->getMode());
+  
+  AniCfg cfg;
+  cfg._dimCfg.reg.WR_color     = 1;
+  cfg._colorCfg.reg.t2_ms      = 0xFF; 
+  cfg._colorCfg.reg.incValue   = -1;
+  cfg._colorCfg.reg.startIndex = 2; 
+  cfg._str = "0,1,2,3";
+  /*
+  	p2 : color Index:   xx xx xx xx   :
+						|| || || ++---: start index of color list   (0..255)
+						|| || ||      :     color list is provided in cfg.str
+						|| || ||      :     if cfg.str is empty color are taken from color wheel (0..255)
+						|| || ++------: == 0   : no inc / dec  = static
+						|| ||         : <  128 : inc step
+						|| ||         : >= 128 : dec step  (-1 = 255; -2 = 254)
+						|| ++---------: time t2 in ms: time between two color steps 
+						||            : 0xxxFF xxxx wait for trigger 
+						++------------: event divider 0..255 = 1..256 (2 ==> 3 trigger or 3 time event until color change)			
+  */
+  TEST_ASSERT_EQUAL_INT( ANI_OK , obj.config(cfg));
+  TEST_ASSERT_EQUAL_UINT8(  (uint8_t) (COLOR_LIST | LOOP_TRIGGER) , obj.pColorCtrl->getMode());
+  TEST_ASSERT_EQUAL_UINT8(  4   , obj.pColorCtrl->getMaxIndex());
+  // reset Values
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+
+  // cfg values
+  obj.loop(100);
+  TEST_ASSERT_EQUAL_UINT32( 2, obj.getColor());
+  TEST_ASSERT_TRUE(            obj.hasChanged());  // ==> cfg change 
+  
+  obj.triggerColor();     // no change until next loop !!
+  obj.loop(101);
+  TEST_ASSERT_TRUE(               obj.hasChanged());
+  TEST_ASSERT_FALSE(              obj.hasChanged());
+  TEST_ASSERT_EQUAL_UINT32( 1   , obj.getColor());
+
+  obj.triggerColor();     // no change until next loop !!
+  obj.loop(102);
+  TEST_ASSERT_EQUAL_UINT32( 0   , obj.getColor());
+
+  obj.triggerColor();     // no change until next loop !!
+  obj.loop(103);
+  TEST_ASSERT_EQUAL_UINT32( 3   , obj.getColor());
+
+  obj.triggerColor();     // no change until next loop !!
+  obj.loop(104);
+  TEST_ASSERT_EQUAL_UINT32( 2   , obj.getColor());
+
+}
+
 // now we call here all test collections
 int runAllCollections(void) {
   UNITY_BEGIN();
@@ -320,6 +377,7 @@ int runAllCollections(void) {
 
   RUN_TEST(test_colorCtrl_init);
   RUN_TEST(test_colorCtrl_triggerList);
+  RUN_TEST(test_colorCtrl_triggerListReverse);
 
 
   return UNITY_END();

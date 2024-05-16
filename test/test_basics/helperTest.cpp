@@ -96,11 +96,11 @@ void test_helper_dimSingleColor(void){
 
 
 void test_helper_clamp(void){
-    TEST_ASSERT_EQUAL_UINT32(42,    clamp(0,42,255));
-    TEST_ASSERT_EQUAL_UINT32(100,   clamp(100,42,255));
-    TEST_ASSERT_EQUAL_UINT32(255,   clamp(100,300,255));
-    TEST_ASSERT_EQUAL_UINT32(100,   clamp(100,100,255));
-    TEST_ASSERT_EQUAL_UINT32(255,   clamp(100,255,255));
+    TEST_ASSERT_EQUAL_UINT32(42,    clamp((uint32_t)0,   (uint32_t)42,  (uint32_t)255));
+    TEST_ASSERT_EQUAL_UINT32(100,   clamp((uint32_t)100, (uint32_t)42,  (uint32_t)255));
+    TEST_ASSERT_EQUAL_UINT32(255,   clamp((uint32_t)100, (uint32_t)300, (uint32_t)255));
+    TEST_ASSERT_EQUAL_UINT32(100,   clamp((uint32_t)100, (uint32_t)100, (uint32_t)255));
+    TEST_ASSERT_EQUAL_UINT32(255,   clamp((uint32_t)100, (uint32_t)255, (uint32_t)255));
 }
 
 void test_helper_convertStrToIntDec1(void){
@@ -168,53 +168,53 @@ void test_helper_convertStrToIntNeg(void){
 void test_helper_uint32_t_byteAcess(void) {
     union uint32_t_byteAcess obj;
 
-    obj.ival = 0x44332211;
+    obj.uint32 = 0x44332211;
 
-    TEST_ASSERT_EQUAL_UINT8(0x44, obj.bval.HHH);
-    TEST_ASSERT_EQUAL_UINT8(0x33, obj.bval.HH);
-    TEST_ASSERT_EQUAL_UINT8(0x22, obj.bval.H);
-    TEST_ASSERT_EQUAL_UINT8(0x11, obj.bval.L);
+    TEST_ASSERT_EQUAL_UINT8(0x44, obj.byte.HHH);
+    TEST_ASSERT_EQUAL_UINT8(0x33, obj.byte.HH);
+    TEST_ASSERT_EQUAL_UINT8(0x22, obj.byte.H);
+    TEST_ASSERT_EQUAL_UINT8(0x11, obj.byte.L);
 
-    TEST_ASSERT_EQUAL_UINT8(0x44, obj.bval.HHH);
-    TEST_ASSERT_EQUAL_UINT8(0x33, obj.bval.HH);
-    TEST_ASSERT_EQUAL_UINT8(0x22, obj.bval.H);
-    TEST_ASSERT_EQUAL_UINT8(0x11, obj.bval.L);
+    TEST_ASSERT_EQUAL_UINT8(0x44, obj.byte.HHH);
+    TEST_ASSERT_EQUAL_UINT8(0x33, obj.byte.HH);
+    TEST_ASSERT_EQUAL_UINT8(0x22, obj.byte.H);
+    TEST_ASSERT_EQUAL_UINT8(0x11, obj.byte.L);
 
-    TEST_ASSERT_EQUAL_UINT32(0x44332211 , obj.ival);
+    TEST_ASSERT_EQUAL_UINT32(0x44332211 , obj.uint32);
 
-    obj.bval.HHH = 0x55;
-    obj.bval.HH  = 0x66;
-    obj.bval.H   = 0x77;
-    obj.bval.L   = 0x88;
+    obj.byte.HHH = 0x55;
+    obj.byte.HH  = 0x66;
+    obj.byte.H   = 0x77;
+    obj.byte.L   = 0x88;
 
-    TEST_ASSERT_EQUAL_UINT8(0x55, obj.bval.HHH);
-    TEST_ASSERT_EQUAL_UINT8(0x66, obj.bval.HH);
-    TEST_ASSERT_EQUAL_UINT8(0x77, obj.bval.H);
-    TEST_ASSERT_EQUAL_UINT8(0x88, obj.bval.L);
+    TEST_ASSERT_EQUAL_UINT8(0x55, obj.byte.HHH);
+    TEST_ASSERT_EQUAL_UINT8(0x66, obj.byte.HH);
+    TEST_ASSERT_EQUAL_UINT8(0x77, obj.byte.H);
+    TEST_ASSERT_EQUAL_UINT8(0x88, obj.byte.L);
 
-    TEST_ASSERT_EQUAL_UINT32(0x55667788 , obj.ival);
+    TEST_ASSERT_EQUAL_UINT32(0x55667788 , obj.uint32);
 }
 
 void test_helper_u16_byteAcess(void) {
     union uint16_t_byteAcess obj;
 
-    obj.ival = 0x2211;
+    obj.uint16 = 0x2211;
 
-    TEST_ASSERT_EQUAL_UINT32(obj.bval.H    , 0x22);
-    TEST_ASSERT_EQUAL_UINT32(obj.bval.L    , 0x11);
+    TEST_ASSERT_EQUAL_UINT32(obj.byte.H    , 0x22);
+    TEST_ASSERT_EQUAL_UINT32(obj.byte.L    , 0x11);
 
-    TEST_ASSERT_EQUAL_UINT32(obj.bval.H    , 0x22);
-    TEST_ASSERT_EQUAL_UINT32(obj.bval.L    , 0x11);
+    TEST_ASSERT_EQUAL_UINT32(obj.byte.H    , 0x22);
+    TEST_ASSERT_EQUAL_UINT32(obj.byte.L    , 0x11);
 
-    TEST_ASSERT_EQUAL_UINT32(obj.ival , 0x2211);
+    TEST_ASSERT_EQUAL_UINT32(obj.uint16 , 0x2211);
 
-    obj.bval.H   = 0x77;
-    obj.bval.L   = 0x88;
+    obj.byte.H   = 0x77;
+    obj.byte.L   = 0x88;
 
-    TEST_ASSERT_EQUAL_UINT32(obj.bval.H    , 0x77);
-    TEST_ASSERT_EQUAL_UINT32(obj.bval.L    , 0x88);
+    TEST_ASSERT_EQUAL_UINT32(obj.byte.H    , 0x77);
+    TEST_ASSERT_EQUAL_UINT32(obj.byte.L    , 0x88);
 
-    TEST_ASSERT_EQUAL_UINT32(obj.ival , 0x7788);
+    TEST_ASSERT_EQUAL_UINT32(obj.uint16 , 0x7788);
 }
 
 

@@ -105,7 +105,7 @@ void Com::getPar1(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.cfg._p1 = convertStrToInt(_field);
+    _frame.cfg._dimCfg.uint32 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -119,7 +119,7 @@ void Com::getPar2(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.cfg._p2 = convertStrToInt(_field);
+    _frame.cfg._colorCfg.uint32 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -133,7 +133,7 @@ void Com::getPar3(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.cfg._p3 = convertStrToInt(_field);
+    _frame.cfg._flashCfg.uint32 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -147,7 +147,7 @@ void Com::getPar4(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.cfg._p4 = convertStrToInt(_field);
+    _frame.cfg._breathCfg.uint32 = convertStrToInt(_field);
     _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
@@ -222,13 +222,13 @@ void Com::sendAnswer(bool res,ComFrame * pFrame){
     out += pFrame->command;
     if (pFrame->withPar == true){
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg._p1,HEX);
+        out += String(pFrame->cfg._dimCfg.uint32,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg._p2,HEX);
+        out += String(pFrame->cfg._colorCfg.uint32,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg._p3,HEX);
+        out += String(pFrame->cfg._flashCfg.uint32,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg._p4,HEX);
+        out += String(pFrame->cfg._breathCfg.uint32,HEX);
         out += COM_FRAME_SEP;
         out += COM_FRAME_TEXT_QUOTES;
         out += String(pFrame->cfg._str);
