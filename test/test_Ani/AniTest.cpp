@@ -99,22 +99,30 @@ void test_dimCtrl_dimUp(void){
   obj.loop(0);
   TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
  
-
-  obj.config(AniCfg(ANI_WR_DIM |  0x60,0,0,0,""));
+  AniCfg cfg;
+  cfg._dimCfg.reg.WR_dim    = 1;
+  cfg._dimCfg.reg.setValue  = 0x60;
+  obj.config(cfg);
   // value will be taken over at next loop
   TEST_ASSERT_EQUAL_UINT8( 0x0 , obj.getDim());
   obj.loop(1001);  
   TEST_ASSERT_EQUAL_UINT8( 0x60 , obj.getDim());
 
-  obj.config(AniCfg(ANI_WR_DIM |  0x1000,0,0,0,""));
+  cfg._dimCfg.reg.WR_dim    = 1;
+  cfg._dimCfg.reg.setValue  = 0x0;
+  cfg._dimCfg.reg.incValue  = 0x10;
+  obj.config(cfg);
   obj.loop(2000);  
   TEST_ASSERT_EQUAL_UINT8( 0x70 , obj.getDim());
   
-  obj.config(AniCfg(ANI_WR_DIM |  0x2000,0,0,0,""));
+  cfg._dimCfg.reg.WR_dim    = 0;
+  obj.config(cfg);
   obj.loop(2005);  
-  TEST_ASSERT_EQUAL_UINT8( 0x90 , obj.getDim());
+  TEST_ASSERT_EQUAL_UINT8( 0x70 , obj.getDim());
 
-  obj.config(AniCfg(0x2000,0,0,0,""));
+  cfg._dimCfg.reg.WR_dim    = 1;
+  cfg._dimCfg.reg.incValue  = 0x20;
+  obj.config(cfg);
   obj.loop(2010);  
   TEST_ASSERT_EQUAL_UINT8( 0x90 , obj.getDim());
 
