@@ -96,12 +96,49 @@ void test_helper_dimSingleColor(void){
 
 
 void test_helper_clamp(void){
-    TEST_ASSERT_EQUAL_UINT32(42,    clamp((uint32_t)0,   (uint32_t)42,  (uint32_t)255));
-    TEST_ASSERT_EQUAL_UINT32(100,   clamp((uint32_t)100, (uint32_t)42,  (uint32_t)255));
-    TEST_ASSERT_EQUAL_UINT32(255,   clamp((uint32_t)100, (uint32_t)300, (uint32_t)255));
-    TEST_ASSERT_EQUAL_UINT32(100,   clamp((uint32_t)100, (uint32_t)100, (uint32_t)255));
-    TEST_ASSERT_EQUAL_UINT32(255,   clamp((uint32_t)100, (uint32_t)255, (uint32_t)255));
+
+    TEST_ASSERT_EQUAL_UINT32(42,    clampUint32(0,    42,   255));
+    TEST_ASSERT_EQUAL_UINT32(100,   clampUint32(100,  42,   255));
+    TEST_ASSERT_EQUAL_UINT32(255,   clampUint32(100,  300,  255));
+    TEST_ASSERT_EQUAL_UINT32(100,   clampUint32(100,  100,  255));
+    TEST_ASSERT_EQUAL_UINT32(255,   clampUint32(100,  255,  255));
+    TEST_ASSERT_EQUAL_UINT32(0xFFFFFFF0,    clampUint32(0,    0xFFFFFFFF,  0xFFFFFFF0));
+    TEST_ASSERT_EQUAL_UINT32(0xF0,          clampUint32(0xF0, 0x0,         0xFFFFFFF0));
+
+    TEST_ASSERT_EQUAL_UINT32(42,    clamp(0,    42,   255));
+    TEST_ASSERT_EQUAL_UINT32(100,   clamp(100,  42,   255));
+    TEST_ASSERT_EQUAL_UINT32(255,   clamp(100,  300,  255));
+    TEST_ASSERT_EQUAL_UINT32(100,   clamp(100,  100,  255));
+    TEST_ASSERT_EQUAL_UINT32(255,   clamp(100,  255,  255));
+
+    TEST_ASSERT_EQUAL_INT32(-1,     clamp(-10, -1,    100));
+    TEST_ASSERT_EQUAL_INT32(-5,     clamp(-10, -5,    -1) );
+    TEST_ASSERT_EQUAL_INT32( 3,     clamp(-10, 3 ,    10) );
+    TEST_ASSERT_EQUAL_INT32(-5,     clamp(-5,  -10,   10) );
+    TEST_ASSERT_EQUAL_INT32(100,    clamp(-100,1000,  100));
+
+
 }
+
+
+void test_helper_wrapAround(void){
+    TEST_ASSERT_EQUAL_INT32(42,     wrapAround(0,   42, 255)    );
+    TEST_ASSERT_EQUAL_INT32(0,      wrapAround(0,   10, 9)      );
+    TEST_ASSERT_EQUAL_INT32(20,     wrapAround(20,  30, 29)     );
+    TEST_ASSERT_EQUAL_INT32(29,     wrapAround(20,  19, 29)     );
+    
+    TEST_ASSERT_EQUAL_INT32(9,      wrapAround(0,   -1, 9)      );
+    TEST_ASSERT_EQUAL_INT32(0,      wrapAround(0,   0,  9)      );
+    TEST_ASSERT_EQUAL_INT32(9,      wrapAround(0,   9,  9)      );
+    
+    TEST_ASSERT_EQUAL_INT32(-42,    wrapAround(-100, -42, -10)    );
+    TEST_ASSERT_EQUAL_INT32(-50,    wrapAround(-50,  -9,  -10)    );
+    TEST_ASSERT_EQUAL_INT32(-10,    wrapAround(-50,  -51, -10)    );
+
+    TEST_ASSERT_EQUAL_INT32(3,      wrapAround(0,  0-1, 3)        );
+
+}
+
 
 void test_helper_convertStrToIntDec1(void){
     TEST_ASSERT_EQUAL_UINT32(12345678,  convertStrToInt("12345678"));
@@ -281,6 +318,8 @@ void test_collection_helper(void) {
   RUN_TEST(test_helper_convertStrToIntNeg);
 
   RUN_TEST(test_helper_clamp);
+  RUN_TEST(test_helper_wrapAround);
+  
 
   RUN_TEST(test_helper_dimSingleColor);
   RUN_TEST(test_helper_dimColor255_1);

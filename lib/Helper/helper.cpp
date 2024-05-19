@@ -141,7 +141,7 @@ uint32_t convertStrToInt(String str){
     return convertStrToInt(str.c_str());
 }
 
-uint32_t clamp(uint32_t lowEnd,uint32_t value,uint32_t highEnd){
+uint32_t clampUint32(uint32_t lowEnd,uint32_t value,uint32_t highEnd){
     if (value < lowEnd)     return lowEnd;
     if (value > highEnd)    return highEnd;
     return value;
@@ -152,6 +152,42 @@ int32_t clamp(int32_t lowEnd,int32_t value,int32_t highEnd){
     if (value > highEnd)    return highEnd;
     return value;
 }
+
+
+int32_t wrapAround(int32_t lowEnd,int32_t value,int32_t highEnd){
+    if ((value <= highEnd) && (value >= lowEnd))  return value;
+    int32_t delta = highEnd-lowEnd+1;
+    if (value > highEnd){
+        return  ((value-lowEnd) % delta) + lowEnd;
+    }
+    
+    while (value < lowEnd){
+        value+=delta;
+    }
+    return value;
+}
+
+
+/*
+uint32_t wrapAround(uint32_t lowEnd,uint32_t value,uint32_t highEnd){
+    if ((value <= highEnd) && (value >= lowEnd))  return value;
+    int32_t delta = highEnd-lowEnd+1;
+    if (value > highEnd){
+        return  ((value-lowEnd) % delta) + lowEnd;
+    }
+    while (value < lowEnd){
+        value+=delta;
+    }
+    return value;
+
+}
+
+
+
+  const int mod = maxval + 1 - minval;
+  if (delta >= 0) {return  (v + delta                - minval) % mod + minval;}
+  else            {return ((v + delta) - delta * mod - minval) % mod + minval;}
+*/
 
 
 uint16_t toColor565(uint8_t r,uint8_t g,uint8_t b,uint8_t dim){

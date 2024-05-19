@@ -8,7 +8,7 @@ ComFrame::ComFrame():
 
 ComFrame::~ComFrame()
 {
-   cfg._str = "";   
+   cfg.str = "";   
 }
 
 void ComFrame::reset()

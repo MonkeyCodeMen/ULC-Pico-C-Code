@@ -105,7 +105,7 @@ void Com::getPar1(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.cfg._dimCfg.uint32 = convertStrToInt(_field);
+    _frame.cfg.dimCfg.uint32 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -119,7 +119,7 @@ void Com::getPar2(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.cfg._colorCfg.uint32 = convertStrToInt(_field);
+    _frame.cfg.colorCfg.uint32 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -133,7 +133,7 @@ void Com::getPar3(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.cfg._flashCfg.uint32 = convertStrToInt(_field);
+    _frame.cfg.flashCfg.uint32 = convertStrToInt(_field);
     if (_endFound == true){
         _state = FRAME_DONE;
     } else {
@@ -147,7 +147,7 @@ void Com::getPar4(){
     if (collectField() == false)    {
         return;            
     }
-    _frame.cfg._breathCfg.uint32 = convertStrToInt(_field);
+    _frame.cfg.breathCfg.uint32 = convertStrToInt(_field);
     _field = "";
     if (_endFound == true){
         _state = FRAME_DONE;
@@ -165,7 +165,7 @@ void Com::getStrStart(){
 
     if (buffer == COM_FRAME_TEXT_QUOTES){
         _state = STR_DATA;
-        _frame.cfg._str = "";
+        _frame.cfg.str = "";
     } else if (buffer == COM_FRAME_END) {
         _state = FRAME_DONE;
     } else {
@@ -182,8 +182,8 @@ void Com::getStrData(){
     if (buffer == COM_FRAME_TEXT_QUOTES){
         _state = STR_END;
     } else {
-        _frame.cfg._str+=(char)buffer;
-        if (_frame.cfg._str.length() > COM_FRAME_MAX_STR_LENGTH){
+        _frame.cfg.str+=(char)buffer;
+        if (_frame.cfg.str.length() > COM_FRAME_MAX_STR_LENGTH){
             reset();       
         }
     }
@@ -222,16 +222,16 @@ void Com::sendAnswer(bool res,ComFrame * pFrame){
     out += pFrame->command;
     if (pFrame->withPar == true){
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg._dimCfg.uint32,HEX);
+        out += String(pFrame->cfg.dimCfg.uint32,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg._colorCfg.uint32,HEX);
+        out += String(pFrame->cfg.colorCfg.uint32,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg._flashCfg.uint32,HEX);
+        out += String(pFrame->cfg.flashCfg.uint32,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg._breathCfg.uint32,HEX);
+        out += String(pFrame->cfg.breathCfg.uint32,HEX);
         out += COM_FRAME_SEP;
         out += COM_FRAME_TEXT_QUOTES;
-        out += String(pFrame->cfg._str);
+        out += String(pFrame->cfg.str);
         out += COM_FRAME_TEXT_QUOTES;
     }
     if (res == true){

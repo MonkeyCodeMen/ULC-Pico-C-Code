@@ -17,10 +17,10 @@ void Ani::reset() {
 
 
 int Ani::config(AniCfg cfg) { 
-    if (cfg._dimCfg.reg.WR_dim    == 1)	_dimCtrl.config(cfg._dimCfg);
-    if (cfg._dimCfg.reg.WR_color  == 1)	_colorCtrl.config(cfg._colorCfg,cfg._str);
-    if (cfg._dimCfg.reg.WR_flash  == 1)	_flashCtrl.config(cfg._flashCfg);
-    if (cfg._dimCfg.reg.WR_breath == 1)	_breathCtrl.config(cfg._breathCfg);
+    if (cfg.dimCfg.reg.WR_dim    == 1)	_dimCtrl.config(cfg.dimCfg);
+    if (cfg.dimCfg.reg.WR_color  == 1)	_colorCtrl.config(cfg.colorCfg,cfg.str);
+    if (cfg.dimCfg.reg.WR_flash  == 1)	_flashCtrl.config(cfg.flashCfg);
+    if (cfg.dimCfg.reg.WR_breath == 1)	_breathCtrl.config(cfg.breathCfg);
     return ANI_OK;    
 }
 
@@ -73,7 +73,7 @@ void DimCtrl::config(dimCtrl_t cfg)
     } else {
         int32_t temp = _dim;
         temp += cfg.reg.incValue;
-        _dim = clamp((int32_t)0,temp,(int32_t)255);
+        _dim = clamp(0,temp,255);
     }
     _speed = cfg.reg.speed;
 }
@@ -109,8 +109,8 @@ void ColorCtrl::config(colorCtrl_t cfg,String str){
         _mode = COLOR_WHEEL;
     } else {
         // select color from list
-        _colorIndexMax = _colorList.size();
-        _currentColorIndex = clamp((uint32_t)0,(uint32_t)cfg.reg.startIndex,(uint32_t)_colorIndexMax);
+        _colorIndexMax = _colorList.size()-1;
+        _currentColorIndex = clamp(0,cfg.reg.startIndex,_colorIndexMax);
         _currentColor = _colorList.get(_currentColorIndex);    
         _mode = COLOR_LIST;
     }
@@ -179,10 +179,9 @@ void ColorCtrl::_checkForUpdate(){
     if (_eventCounter >= _eventTarget){
         _eventCounter = 0;
 
-        // update Index
-        _currentColorIndex += _incStep;
-        _currentColorIndex %= _colorIndexMax;
-        
+        // calc new Index
+        _currentColorIndex = wrapAround(0,_currentColorIndex+_incStep,_colorIndexMax);
+
         // now calc color based on index
         if (_useColorWheel == true){
             _currentColor = getColorWheel24Bit(_currentColorIndex);
@@ -307,10 +306,10 @@ void BreathCtrl::loop(uint32_t now){
             if (elapsed >= _t1){
                 _state = down;
                 _lastTurn = now;
-                elapsed = clamp((uint32_t)0,elapsed,_t1);
+                elapsed = clampUint32(0,elapsed,_t1);
             }
             value = (_target * elapsed) / _t1;
-            _dimDelta = clamp((uint32_t)0,value,(uint32_t)_target);
+            _dimDelta = clampUint32(0,value,_target);
             break;
 
         case down:
@@ -318,10 +317,10 @@ void BreathCtrl::loop(uint32_t now){
             if (elapsed >= _t2){
                 _state = up;
                 _lastTurn = now;
-                elapsed = clamp((uint32_t)0,elapsed,_t2);
+                elapsed = clampUint32(0,elapsed,_t2);
             }
             value = (_target * elapsed) / _t2;
-            _dimDelta = clamp((uint32_t)0,_target - value,(uint32_t)_target);
+            _dimDelta = clampUint32(0,_target - value,_target);
             break;
     }
 }

@@ -130,7 +130,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                     pMatrix->setBrightness(_dimCtrl.getDim());
                     _sizeX = pMatrix->width();
                     _sizeY = pMatrix->height();
-                    _border= clamp((uint32_t)1,(uint32_t)_dimCtrl.getSpeed(),(uint32_t)100);
+                    _border= clamp(1,_dimCtrl.getSpeed(),100);
                     pMatrix->fillScreen(0);
                     _lastStartColor=0;
                     _lastDimValue = _dimCtrl.getDim();

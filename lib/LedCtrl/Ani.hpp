@@ -55,7 +55,15 @@
 
 
 /*
-	basic layout for configuration:
+	the basic configuration is been done over 4 parameter (sets)
+	for : dimming general, color, flash / multiflashes and breath behavior
+
+	all of this controls can be combined (even if some combinations does not make sense at all)
+
+	the configuration is very much like a register definition .. sorry i came from embedded
+	so for easy access I define unions / structs for various ways of accessing the invidual parameters 
+
+	for some examples see here the unity module tests too (AniTest.cpp)
 
 	dimCfg :         	xx xx xx xx   :
 						|| || || ++---: set dim value 0-255 (0 = off)
@@ -127,6 +135,12 @@
 
 union dimCtrl_u {
     uint32_t uint32;
+	    struct {
+        uint8_t L; // least significant byte
+        uint8_t H;
+        uint8_t HH;
+        uint8_t HHH; // most significant byte
+    } byte;
     struct {
 		uint8_t 	setValue;
 		int8_t  	incValue;
@@ -141,6 +155,12 @@ typedef union dimCtrl_u dimCtrl_t;
 
 union colorCtrl_u {
     uint32_t uint32;
+	    struct {
+        uint8_t L; // least significant byte
+        uint8_t H;
+        uint8_t HH;
+        uint8_t HHH; // most significant byte
+    } byte;
     struct {
 		uint8_t 	startIndex;
 		int8_t  	incValue;
@@ -152,6 +172,12 @@ typedef union colorCtrl_u colorCtrl_t;
 
 union flashCtrl_u {
     uint32_t uint32;
+	    struct {
+        uint8_t L; // least significant byte
+        uint8_t H;
+        uint8_t HH;
+        uint8_t HHH; // most significant byte
+    } byte;
     struct {
 		uint8_t 	flashPerGroup;
 		int8_t  	t1_10ms;
@@ -176,19 +202,19 @@ typedef union breathCtrl_u breathCtrl_t;
 class AniCfg{
 	public:
 		AniCfg (uint32_t dimCfg=0,uint32_t colorCfg=0,uint32_t flashCfg=0,uint32_t breathCfg=0,String str=""): 
-			_dimCfg{.uint32=dimCfg},
-			_colorCfg{.uint32=colorCfg},
-			_flashCfg{.uint32=flashCfg},
-			_breathCfg{.uint32=breathCfg},
-			_str(str) 
+			dimCfg{.uint32=dimCfg},
+			colorCfg{.uint32=colorCfg},
+			flashCfg{.uint32=flashCfg},
+			breathCfg{.uint32=breathCfg},
+			str(str) 
 			{}
 		~AniCfg() = default;
 
-		dimCtrl_t 	 _dimCfg;
-		colorCtrl_t  _colorCfg;
-		flashCtrl_t  _flashCfg;
-		breathCtrl_t _breathCfg;
-		String	 _str;
+		dimCtrl_t 	 	dimCfg;
+		colorCtrl_t  	colorCfg;
+		flashCtrl_t  	flashCfg;
+		breathCtrl_t 	breathCfg;
+		String	 		str;
 };
 
 
@@ -210,13 +236,14 @@ class DimCtrl{
 };
 
 class ColorCtrl{
-
-    public:
+	public:
 		#define COLOR_WHEEL		0x01
 		#define COLOR_LIST		0x02
 		#define LOOP_STOP		0x10
 		#define LOOP_TRIGGER	0x20
 		#define LOOP_TIME   	0x30
+		enum ColorState 	{stop,initTime,waitTrigger,waitTime};
+
 
         ColorCtrl() 									{  config();    									}
         ~ColorCtrl() = default;
@@ -227,13 +254,13 @@ class ColorCtrl{
         void config(colorCtrl_t cfg,String str);
 		void switchToTriggerMode();
 
-		uint8_t getMode()								{ return _mode;										}
-		uint8_t getMaxIndex()							{ return _colorIndexMax;							}
+		uint8_t getMode()								{ return _mode;				}
+		uint8_t getMaxIndex()							{ return _colorIndexMax;	}
+		ColorState getState()							{ return _state;			}
+		uint32_t getNextLoopTime()						{ return _nextLoopTime;		}
 
 
     private:
-		enum ColorState 	{stop,initTime,waitTrigger,waitTime};
-
 		volatile ColorState _state;
 		uint8_t           	_mode;
 
@@ -281,10 +308,10 @@ class BreathCtrl{
 		BreathCtrl()	{ config(0);	}
 		~BreathCtrl() = default;
 
-        void config(uint32_t p=0)									{ breathCtrl_t cfg; cfg.uint32=p; config(cfg);	}
+        void config(uint32_t p=0)				{ breathCtrl_t cfg; cfg.uint32=p; config(cfg);	}
 		void config(breathCtrl_t cfg); 
 
-		uint8_t modifyDimFactor(uint8_t dim)	{ return (uint8_t) clamp((uint32_t)0,(uint32_t) ((uint8_t)dim + (uint16_t)_dimDelta),(uint32_t)255);		}
+		uint8_t modifyDimFactor(uint8_t dim)	{ return clamp(0,dim + _dimDelta,255);		}
 		void loop(uint32_t now);
 
 	private:
