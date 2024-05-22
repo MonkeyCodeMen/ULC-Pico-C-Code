@@ -14,6 +14,15 @@
 
 #include "unity.h"
 
+struct timeListResult_s{
+  uint32_t    time;
+  bool        triggerColor,triggerFlash;
+  uint8_t     dim;
+  uint32_t    color;
+  bool        hasChanged;
+};
+typedef struct timeListResult_s timeListResult_t;
+
 void setUp(void) {
   // set stuff up here
 }
@@ -337,10 +346,75 @@ void test_colorCtrl_triggerList(void){
   TEST_ASSERT_TRUE(               obj.hasChanged());
   TEST_ASSERT_EQUAL_UINT32( 0   , obj.getColor());
   TEST_ASSERT_EQUAL_UINT8(  0   , obj.getDim());
-
-
 }
 
+void test_colorCtrl_wheel(void){
+  AniTest obj;
+  AniCfg cfg;
+
+  obj.loop(0);
+  cfg.dimCfg.reg.WR_color     = 1;
+  cfg.colorCfg.reg.t2_ms      = 0xFF; 
+  cfg.colorCfg.reg.incValue   = 1; 
+  cfg.colorCfg.reg.startIndex = 0;
+  cfg.str = "";
+  /*
+  	p2 : color Index:   xx xx xx xx   :
+						|| || || ++---: start index of color list   (0..255)
+						|| || ||      :     color list is provided in cfg.str
+						|| || ||      :     if cfg.str is empty color are taken from color wheel (0..255)
+						|| || ++------: == 0   : no inc / dec  = static
+						|| ||         : <  128 : inc step
+						|| ||         : >= 128 : dec step  (-1 = 255; -2 = 254)
+						|| ++---------: time t2 in ms: time between two color steps 
+						||            : 0xxxFF xxxx wait for trigger 
+						++------------: event divider 0..255 = 1..256 (2 ==> 3 trigger or 3 time event until color change)			
+  */
+  TEST_ASSERT_EQUAL_INT( ANI_OK , obj.config(cfg));
+  TEST_ASSERT_EQUAL_INT(  COLOR_WHEEL | LOOP_TRIGGER , obj.pColorCtrl->getMode());
+  TEST_ASSERT_EQUAL_UINT32( 0                   , obj.getColor());
+  TEST_ASSERT_FALSE(                              obj.hasChanged());  // frist value of new color cfg has no change to init value .. no update necessary
+  TEST_ASSERT_EQUAL_UINT8(  0                   , obj.getDim());
+  TEST_ASSERT_EQUAL_INT( ColorCtrl::waitTrigger , obj.pColorCtrl->getState());
+  
+  uint8_t index=0;
+  uint32_t sollColor;
+  uint32_t startTime=100;
+  for(int i=0; i < 500;i++ ){
+    String msg="loop: "+String(i);
+    sollColor = getColorWheel24Bit(index);
+    obj.loop(startTime+i);
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE( sollColor , obj.getColor(),msg.c_str());
+    index++;
+    obj.triggerColor();
+  }
+}
+
+void test_colorCtrl_copyWheel(void){
+  AniTest obj;
+  AniCfg cfg;
+
+  obj.loop(0);
+  cfg.dimCfg.reg.WR_color     = 1;
+  cfg.colorCfg.reg.t2_ms      = 0xFF; 
+  cfg.colorCfg.reg.incValue   = 1; 
+  cfg.colorCfg.reg.startIndex = 0;
+  cfg.str = "";
+
+  ColorCtrl colorCopy = *obj.pColorCtrl;
+  
+  uint8_t index=0;
+  uint32_t sollColor;
+  uint32_t startTime=100;
+  for(int i=0; i < 500;i++ ){
+    String msg="loop: "+String(i);
+    sollColor = getColorWheel24Bit(index);
+    colorCopy.loop(startTime+i);
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE( sollColor , colorCopy.getColor(),msg.c_str());
+    index++;
+    colorCopy.trigger();
+  }
+}
 
 void test_colorCtrl_triggerListReverse(void){
   AniTest obj;
@@ -456,55 +530,49 @@ void test_colorCtrl_timeList(void){
   TEST_ASSERT_FALSE(                    obj.hasChanged());
   // cfg does not change anything until first loop !!
 
-  struct timeListResult_s{
-    uint32_t    time;
-    uint32_t    color;
-    bool        hasChanged;
-  };
-  typedef struct timeListResult_s timeListResult_t;
 
   timeListResult_t res[] = {
-    {100  , 0x000000FF  , true },
-    {101  , 0x000000FF  , false },
-    {102  , 0x000000FF  , false },
-    {103  , 0x000000FF  , false },
-    {104  , 0x000000FF  , false },
-    {105  , 0x000000FF  , false },
-    {106  , 0x000000FF  , false },
-    {107  , 0x000000FF  , false },
-    {108  , 0x000000FF  , false },
-    {109  , 0x000000FF  , false },
-    {110  , 0x0000FF00  , true },
-    {111  , 0x0000FF00  , false },
-    {112  , 0x0000FF00  , false },
-    {113  , 0x0000FF00  , false },
-    {114  , 0x0000FF00  , false },
-    {115  , 0x0000FF00  , false },
-    {116  , 0x0000FF00  , false },
-    {117  , 0x0000FF00  , false },
-    {118  , 0x0000FF00  , false },
-    {119  , 0x0000FF00  , false },
-    {120  , 0x00FF0000  , true },
-    {121  , 0x00FF0000  , false },
-    {122  , 0x00FF0000  , false },
-    {123  , 0x00FF0000  , false },
-    {124  , 0x00FF0000  , false },
-    {125  , 0x00FF0000  , false },
-    {126  , 0x00FF0000  , false },
-    {127  , 0x00FF0000  , false },
-    {128  , 0x00FF0000  , false },
-    {129  , 0x00FF0000  , false },
-    {130  , 0x000000FF  , true },
-    {131  , 0x000000FF  , false },
-    {132  , 0x000000FF  , false },
-    {133  , 0x000000FF  , false },
-    {134  , 0x000000FF  , false },
-    {135  , 0x000000FF  , false },
-    {136  , 0x000000FF  , false },
-    {137  , 0x000000FF  , false },
-    {138  , 0x000000FF  , false },
-    {139  , 0x000000FF  , false },
-    {140  , 0x0000FF00  , true },
+    {100  , false, false, 0, 0x000000FF  , true },
+    {101  , false, false, 0, 0x000000FF  , false },
+    {102  , false, false, 0, 0x000000FF  , false },
+    {103  , false, false, 0, 0x000000FF  , false },
+    {104  , false, false, 0, 0x000000FF  , false },
+    {105  , false, false, 0, 0x000000FF  , false },
+    {106  , false, false, 0, 0x000000FF  , false },
+    {107  , false, false, 0, 0x000000FF  , false },
+    {108  , false, false, 0, 0x000000FF  , false },
+    {109  , false, false, 0, 0x000000FF  , false },
+    {110  , false, false, 0, 0x0000FF00  , true },
+    {111  , false, false, 0, 0x0000FF00  , false },
+    {112  , false, false, 0, 0x0000FF00  , false },
+    {113  , false, false, 0, 0x0000FF00  , false },
+    {114  , false, false, 0, 0x0000FF00  , false },
+    {115  , false, false, 0, 0x0000FF00  , false },
+    {116  , false, false, 0, 0x0000FF00  , false },
+    {117  , false, false, 0, 0x0000FF00  , false },
+    {118  , false, false, 0, 0x0000FF00  , false },
+    {119  , false, false, 0, 0x0000FF00  , false },
+    {120  , false, false, 0, 0x00FF0000  , true },
+    {121  , false, false, 0, 0x00FF0000  , false },
+    {122  , false, false, 0, 0x00FF0000  , false },
+    {123  , false, false, 0, 0x00FF0000  , false },
+    {124  , false, false, 0, 0x00FF0000  , false },
+    {125  , false, false, 0, 0x00FF0000  , false },
+    {126  , false, false, 0, 0x00FF0000  , false },
+    {127  , false, false, 0, 0x00FF0000  , false },
+    {128  , false, false, 0, 0x00FF0000  , false },
+    {129  , false, false, 0, 0x00FF0000  , false },
+    {130  , false, false, 0, 0x000000FF  , true },
+    {131  , false, false, 0, 0x000000FF  , false },
+    {132  , false, false, 0, 0x000000FF  , false },
+    {133  , false, false, 0, 0x000000FF  , false },
+    {134  , false, false, 0, 0x000000FF  , false },
+    {135  , false, false, 0, 0x000000FF  , false },
+    {136  , false, false, 0, 0x000000FF  , false },
+    {137  , false, false, 0, 0x000000FF  , false },
+    {138  , false, false, 0, 0x000000FF  , false },
+    {139  , false, false, 0, 0x000000FF  , false },
+    {140  , false, false, 0, 0x0000FF00  , true }
   };
 
   int count = sizeof(res) / sizeof(timeListResult_t);
@@ -514,9 +582,11 @@ void test_colorCtrl_timeList(void){
   for(int i=0;i< count;i++){
     time = startTime + res[i].time;
     obj.loop(time);
-    TEST_ASSERT_EQUAL_UINT8( (uint8_t) ColorCtrl::waitTime  , obj.pColorCtrl->getState());
-    TEST_ASSERT_EQUAL_INT( (int) res[i].hasChanged          , (int) obj.hasChanged());
-    TEST_ASSERT_EQUAL_UINT32( res[i].color                  , obj.getColor());
+    TEST_ASSERT_EQUAL_UINT8( (uint8_t) ColorCtrl::waitTime  , obj.pColorCtrl->getState()  );
+    TEST_ASSERT_EQUAL_INT(    res[i].hasChanged             , obj.hasChanged()            );
+    TEST_ASSERT_EQUAL_UINT32( res[i].color                  , obj.getColor()              );
+    TEST_ASSERT_EQUAL_UINT8(  res[i].dim                    , obj.getDim()                );
+
   }
 
   TEST_ASSERT_EQUAL_INT( ANI_OK       , obj.config(cfg));
@@ -525,8 +595,9 @@ void test_colorCtrl_timeList(void){
     time = startTime + res[i].time;
     obj.loop(time);
     TEST_ASSERT_EQUAL_UINT8( (uint8_t) ColorCtrl::waitTime  , obj.pColorCtrl->getState());
-    TEST_ASSERT_EQUAL_INT( (int) res[i].hasChanged          , (int) obj.hasChanged());
-    TEST_ASSERT_EQUAL_UINT32( res[i].color                  , obj.getColor());
+    TEST_ASSERT_EQUAL_INT(    res[i].hasChanged             , obj.hasChanged()            );
+    TEST_ASSERT_EQUAL_UINT32( res[i].color                  , obj.getColor()              );
+    TEST_ASSERT_EQUAL_UINT8(  res[i].dim                    , obj.getDim()                );
   }
 
 
@@ -549,11 +620,210 @@ void test_colorCtrl_timeList(void){
     String msg="loop: "+String(i)+"   time: " +String(time) + "ms    nextLoopTime: "+String(obj.pColorCtrl->getNextLoopTime())+"ms    call now loop!";
     obj.loop(time);
     TEST_ASSERT_EQUAL_UINT8_MESSAGE( ColorCtrl::waitTime  , obj.pColorCtrl->getState()  ,msg.c_str());
-    TEST_ASSERT_EQUAL_INT_MESSAGE( res[i].hasChanged      , (int) obj.hasChanged()      ,msg.c_str());
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE( res[i].color        , obj.getColor()              ,msg.c_str());
+    TEST_ASSERT_EQUAL_INT(    res[i].hasChanged             , obj.hasChanged()            );
+    TEST_ASSERT_EQUAL_UINT32( res[i].color                  , obj.getColor()              );
+    TEST_ASSERT_EQUAL_UINT8(  res[i].dim                    , obj.getDim()                );
   }
 
 }
+
+void test_flashCtrl_init(void){
+  AniTest obj;
+  TEST_ASSERT_EQUAL_INT( FlashCtrl::stop , obj.pFlashCtrl->getState());
+
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());
+  obj.loop(0);
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());
+  obj.loop(10);
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());
+  obj.loop(100);
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());
+  obj.loop(1000);
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());
+  obj.loop(10*1000);
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());
+
+  TEST_ASSERT_EQUAL_INT( FlashCtrl::stop , obj.pFlashCtrl->getState());
+}
+
+
+void test_flashCtrl_trigger(void){
+  AniTest obj;
+  AniCfg cfg;
+  cfg.dimCfg.reg.WR_dim   = 1;
+  cfg.dimCfg.reg.WR_color = 1;
+  cfg.dimCfg.reg.WR_flash = 1;
+  
+  cfg.dimCfg.reg.setValue = 77;
+  cfg.colorCfg.reg.eventCounter = 0;
+  cfg.colorCfg.reg.incValue     = 1;
+  cfg.colorCfg.reg.startIndex   = 0;
+  cfg.colorCfg.reg.t2_ms        = 0xFF;   // change color on trigger  (provided by flash ctrl)
+  cfg.str = "0,80,1,81,2,82";
+
+  cfg.flashCfg.reg.flashPerGroup = 3;
+  cfg.flashCfg.reg.t1_10ms       = 1;     // flash 10 ms
+  cfg.flashCfg.reg.t2_10ms       = 10;    // time between flashes 100ms
+  cfg.flashCfg.reg.t3_100ms      = 0xFF;  // wait for trigger to start flash group 
+
+  TEST_ASSERT_EQUAL_INT( FlashCtrl::stop , obj.pFlashCtrl->getState());
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());
+  obj.loop(0);
+  TEST_ASSERT_EQUAL_INT( FlashCtrl::stop , obj.pFlashCtrl->getState());
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());  
+
+  obj.config(cfg);
+  TEST_ASSERT_EQUAL_INT( FlashCtrl::init , obj.pFlashCtrl->getState());  // init state selected but not processed until now
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());  
+  obj.loop(1);      // init state processed
+  TEST_ASSERT_EQUAL_INT( FlashCtrl::waitTrigger , obj.pFlashCtrl->getState());  // init state selected but not processed until now
+  TEST_ASSERT_EQUAL_UINT8( 77, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32(0 , obj.getColor());
+  TEST_ASSERT_TRUE(            obj.hasChanged());  // dim has changed !! (from black 0 % to black 77/255 %)
+
+  timeListResult_t res[] = {
+    { 100  , false, false, 77, 0,  false },
+    { 101  , false, false, 77, 0,  false },
+    { 109  , false, false, 77, 0,  false },
+    { 110  , false, true,  77, 80, true  },
+    { 111  , false, false, 77, 80, false },
+    { 112  , false, false, 77, 80, false },
+    { 118  , false, false, 77, 80, false },
+    { 119  , false, false, 77, 80, false },
+    { 120  , false, false, 77, 1,  true  },
+    { 121  , false, false, 77, 1,  false },
+    { 122  , false, false, 77, 1,  false },
+    { 219  , false, false, 77, 1,  false },
+    { 220  , false, false, 77, 81, true  },
+    { 221  , false, false, 77, 81, false },
+    { 228  , false, false, 77, 81, false },
+    { 229  , false, false, 77, 81, false },
+    { 230  , false, false, 77, 2,  true  },
+    { 231  , false, false, 77, 2,  false },
+    { 329  , false, false, 77, 2,  false },
+    { 330  , false, false, 77, 82, true  },
+    { 331  , false, false, 77, 82, false },
+    { 339  , false, false, 77, 82, false },
+    { 340  , false, false, 77, 0,  true  },   // wait for new trigger
+    { 341  , false, false, 77, 0,  false },
+    { 499  , false, false, 77, 0,  false },  
+    { 500  , false, true,  77, 80, true  },
+    { 509  , false, false, 77, 80, false },
+    { 510  , false, false, 77, 1,  true  }
+ 
+  };  
+
+  int count = sizeof(res) / sizeof(timeListResult_t);
+  uint32_t time,startTime;
+
+  startTime = 0;
+  for(int i=0;i< count;i++){
+    time = startTime + res[i].time;
+    if ( res[i].triggerColor == true ) { obj.triggerColor(); }
+    if ( res[i].triggerFlash == true ) { obj.triggerFlash(); }
+    obj.loop(time);
+    String msg="loop: "+String(i)+"   time: " +String(time) + "ms ";
+    
+    TEST_ASSERT_EQUAL_INT_MESSAGE(    res[i].hasChanged       , obj.hasChanged()   , msg.c_str()  );
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE( res[i].color            , obj.getColor()     , msg.c_str()  );
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(  res[i].dim              , obj.getDim()       , msg.c_str()  );
+  }  
+}
+
+void test_flashCtrl_time(void){
+  AniTest obj;
+  AniCfg cfg;
+  cfg.dimCfg.reg.WR_dim   = 1;
+  cfg.dimCfg.reg.WR_color = 1;
+  cfg.dimCfg.reg.WR_flash = 1;
+  
+  cfg.dimCfg.reg.setValue = 77;
+  cfg.colorCfg.reg.eventCounter = 0;
+  cfg.colorCfg.reg.incValue     = 1;
+  cfg.colorCfg.reg.startIndex   = 0;
+  cfg.colorCfg.reg.t2_ms        = 0xFF;   // change color on trigger  (provided by flash ctrl)
+  cfg.str = "0,80,1,81,2,82";
+
+  cfg.flashCfg.reg.flashPerGroup = 3;
+  cfg.flashCfg.reg.t1_10ms       = 1;     // flash 10 ms
+  cfg.flashCfg.reg.t2_10ms       = 10;    // time between flashes 100ms
+  cfg.flashCfg.reg.t3_100ms      = 10;    // 1Sec time between flahs groups
+
+  obj.loop(0);
+  obj.config(cfg);
+  TEST_ASSERT_EQUAL_INT( FlashCtrl::init , obj.pFlashCtrl->getState());  // init state selected but not processed until now
+  TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
+  TEST_ASSERT_FALSE(           obj.hasChanged());  
+  obj.loop(1000);      // init state processed
+  TEST_ASSERT_EQUAL_INT( FlashCtrl::pause , obj.pFlashCtrl->getState());  // init state selected but not processed until now
+  TEST_ASSERT_EQUAL_UINT8( 77, obj.getDim());
+  TEST_ASSERT_EQUAL_UINT32(0 , obj.getColor());
+  TEST_ASSERT_TRUE(            obj.hasChanged());  // dim has changed !! (from black 0 % to black 77/255 %)
+
+  timeListResult_t res[] = {
+    { 1001  , false, true,  77, 0,  false },
+    { 1499  , false, true,  77, 0,  false },
+    { 1500  , false, false, 77, 0,  false }, // trigger has no influence in time mode
+    { 1999  , false, true,  77, 0,  false },
+    { 2000  , false, false, 77, 80, true  },
+    { 2009  , false, false, 77, 80, false },
+    { 2010  , false, false, 77, 1,  true  },
+    { 2109  , false, false, 77, 1,  false },
+    { 2110  , false, false, 77, 81, true  },
+    { 2119  , false, false, 77, 81, false },
+    { 2120  , false, false, 77, 2,  true  },
+    { 2219  , false, false, 77, 2,  false },
+    { 2220  , false, false, 77, 82, true  },
+    { 2229  , false, false, 77, 82, false },
+    { 2230  , false, false, 77, 0,  true  },
+    { 3000  , false, false, 77, 0,  false },
+    { 3229  , false, false, 77, 0,  false },
+    { 3230  , false, false, 77, 80, true  },
+    { 3239  , false, false, 77, 80, false },
+    { 3240  , false, false, 77, 1,  true  },
+    { 3339  , false, false, 77, 1,  false },
+    { 3340  , false, false, 77, 81, true  }
+  };  
+
+  int count = sizeof(res) / sizeof(timeListResult_t);
+  uint32_t time,startTime;
+
+  startTime = 0;
+  for(int i=0;i< count;i++){
+    time = startTime + res[i].time;
+    if ( res[i].triggerColor == true ) { obj.triggerColor(); }
+    if ( res[i].triggerFlash == true ) { obj.triggerFlash(); }
+    obj.loop(time);
+    String msg="loop: "+String(i)+"   time: " +String(time) + "ms ";
+    
+    TEST_ASSERT_EQUAL_INT_MESSAGE(    res[i].hasChanged       , obj.hasChanged()   , msg.c_str()  );
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE( res[i].color            , obj.getColor()     , msg.c_str()  );
+    TEST_ASSERT_EQUAL_UINT8_MESSAGE(  res[i].dim              , obj.getDim()       , msg.c_str()  );
+
+  }  
+
+}
+
+
 
 // now we call here all test collections
 int runAllCollections(void) {
@@ -571,6 +841,23 @@ int runAllCollections(void) {
   RUN_TEST(test_colorCtrl_triggerListReverse);
   RUN_TEST(test_colorCtrl_const);
   RUN_TEST(test_colorCtrl_timeList);
+  RUN_TEST(test_colorCtrl_wheel);
+
+  // color copy
+  RUN_TEST(test_colorCtrl_copyWheel);
+
+  // flash ctrl
+  RUN_TEST(test_flashCtrl_init);
+  RUN_TEST(test_flashCtrl_trigger);
+  RUN_TEST(test_flashCtrl_time);
+
+  /*
+    ToDo
+    + color ctrl obj copy test
+    + breath test init
+    + breath test time
+
+  */
 
 
 

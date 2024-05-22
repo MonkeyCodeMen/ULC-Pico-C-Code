@@ -221,9 +221,13 @@ bool FlashCtrl::loop(uint32_t now){
             break;
 
         case init:
-            _state = flashOn;
-            _nextLoopTime = now+_t1;
-            return true;   break;
+            if (_waitForTrigger == true){
+                _state = waitTrigger;
+            } else  {
+                _state = pause;
+                _nextLoopTime = now+_t3;
+            }
+            break;
         
         case flashOn:
             if (now >= _nextLoopTime){
@@ -264,7 +268,7 @@ bool FlashCtrl::loop(uint32_t now){
             if (_triggerActive == true){
                 _state = flashOn;
                 _groupCounter = 0;
-                now += _t1;
+                _nextLoopTime = now + _t1;
                 _triggerActive = false;
                 return true;
             }

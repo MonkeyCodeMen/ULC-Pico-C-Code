@@ -281,6 +281,7 @@ class ColorCtrl{
 
 class FlashCtrl{
 	public:
+		enum FlashState 	{stop,init,flashOn,flashOff,pause,waitTrigger};
 		FlashCtrl()													{ config();												}		
 		~FlashCtrl() = default;
 
@@ -290,9 +291,10 @@ class FlashCtrl{
 		bool loop(uint32_t now);		// if return == true : call trigger of colorCtrl
 		void trigger()												{ _triggerActive = true; 								}
 		uint32_t selectColor(uint32_t colorOn,uint32_t colorOff)	{ return (_state == flashOn) ? colorOn : colorOff;		}
-	
+		FlashState getState()							{ return _state;			}
+
+
 	private:
-		enum FlashState 	{stop,init,flashOn,flashOff,pause,waitTrigger};
 		volatile FlashState _state;
 		bool 				_waitForTrigger;
 		volatile bool		_triggerActive;
