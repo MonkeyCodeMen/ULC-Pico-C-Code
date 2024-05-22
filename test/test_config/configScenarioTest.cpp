@@ -21,14 +21,12 @@ String scenario_config(void){
   res += "     \"cmd\"  :    \"off\",                           \r\n";
   res += "     \"param\": [\"0x00FF00\",\"  2 \",\" 0 \",\"\"], \r\n";
   res += "     \"str\"  :  \"abc -# \",                         \r\n";
-  res += "     \"bin\":[0,2,255,40,30]                          \r\n";
   res += "    },                                                \r\n";
   res += "    {                                                 \r\n";
   res += "     \"obj\"  : \"LED1\",                             \r\n";
   res += "     \"cmd\"  :    \"off\",                           \r\n";
   res += "     \"param\": [\"0x00FF00\",\"  2 \",\" 0 \",\"\"], \r\n";
   res += "     \"str\"  :  \"def +* \",                         \r\n";
-  res += "     \"bin\":[0,2,255,40,30]                          \r\n";
   res += "    },                                                \r\n";
 
   res += "    {                                                 \r\n";
@@ -63,12 +61,12 @@ String scenario_config(void){
 #include "expectedConfigType.h"
 
 expectedConfigStruct expectedConfigs[6]= {
-  {&ledCtrl1,"off","abc -# ",0xFF00,2,0,0,5,{0,2,255,40,30}},
-  {&ledCtrl2,"off","def +* ",0xFF00,2,0,0,5,{0,2,255,40,30}},
-  {&ledCtrl3,"off","",0,0,0,0,0,{0,0,0,0,0}},
-  {&ledCtrl4,"off","",0,0,0,0,0,{0,0,0,0,0}},
-  {&neoStripeCtrl1,"off","",0,0,0,0,0,{0,0,0,0,0}},
-  {NULL,"off","",0,0,0,0,0,{0,0,0,0,0}}
+  {&ledCtrl1,"off","abc -# ",0xFF00,2,0,0},
+  {&ledCtrl2,"off","def +* ",0xFF00,2,0,0},
+  {&ledCtrl3,"off","",0,0,0,0},
+  {&ledCtrl4,"off","",0,0,0,0},
+  {&neoStripeCtrl1,"off","",0,0,0,0},
+  {NULL,"off","",0,0,0,0}
 };
 
 void test_empty_scenario(configScenario * pScen){

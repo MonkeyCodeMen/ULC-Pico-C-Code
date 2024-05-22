@@ -14,29 +14,21 @@ void setup_configIn(void){
   configIn += "     \"cmd\"  :    \"off\",                           \r\n";
   configIn += "     \"param\": [\"0x00FF00\",\"  2 \",\" 0 \",\"\"], \r\n";
   configIn += "     \"str\"  :  \"abc -# \",                         \r\n";
-  configIn += "     \"bin\":[0,2,255,40,30]                          \r\n";
   configIn += " }                                         ";
 }
 
 #include "expectedConfigType.h"
-expectedConfigStruct sollEmptyConfig = {NULL,"","",0,0,0,0,0,{0,0,0,0,0}};
-expectedConfigStruct sollConfig      = {&ledCtrl1,"off","abc -# ",0xFF00,2,0,0,5,{0,2,255,40,30}};
+expectedConfigStruct sollEmptyConfig = {NULL,"","",0,0,0,0};
+expectedConfigStruct sollConfig      = {&ledCtrl1,"off","abc -# ",0xFF00,2,0,0};
 
 void test_expected_config(expectedConfigStruct soll,configItem * pItem){
   TEST_ASSERT_EQUAL_PTR(soll.pObj       ,pItem->obj());
   TEST_ASSERT_EQUAL_STRING(soll.cmd     ,pItem->cmd().c_str());
-  TEST_ASSERT_EQUAL_STRING(soll.str     ,pItem->str().c_str());
-  TEST_ASSERT_EQUAL_UINT32(soll.p1      ,pItem->param(0));
-  TEST_ASSERT_EQUAL_UINT32(soll.p2      ,pItem->param(1));
-  TEST_ASSERT_EQUAL_UINT32(soll.p3      ,pItem->param(2));
-  TEST_ASSERT_EQUAL_UINT32(soll.p4      ,pItem->param(3));
-  TEST_ASSERT_EQUAL_UINT32(soll.size    ,pItem->size());
-  for(int i=0;i < soll.size;i++){
-    TEST_ASSERT_EQUAL_UINT8(soll.data[i]  ,pItem->data(i));
-  }
-  // test out of range  
-  TEST_ASSERT_EQUAL_UINT8(0  ,pItem->data(soll.size));
-  TEST_ASSERT_EQUAL_UINT32(0 ,pItem->param(4));
+  TEST_ASSERT_EQUAL_STRING(soll.str     ,pItem->cfg().str.c_str());
+  TEST_ASSERT_EQUAL_UINT32(soll.p1      ,pItem->cfg().dimCfg.uint32);
+  TEST_ASSERT_EQUAL_UINT32(soll.p2      ,pItem->cfg().colorCfg.uint32);
+  TEST_ASSERT_EQUAL_UINT32(soll.p3      ,pItem->cfg().flashCfg.uint32);
+  TEST_ASSERT_EQUAL_UINT32(soll.p4      ,pItem->cfg().breathCfg.uint32);
 }
 
 void test_empty_config(configItem * pItem){

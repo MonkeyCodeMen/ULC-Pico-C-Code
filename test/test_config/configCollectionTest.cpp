@@ -75,25 +75,25 @@ String collection_config(void){
 #include "expectedConfigType.h"
 
 expectedConfigStruct expectedScenario1[2]= {
-  {&ledCtrl1,"off","",0,0,0,0,0,{0,0,0,0,0}},
-  {&ledCtrl2,"off","",0,0,0,0,0,{0,0,0,0,0}}
+  {&ledCtrl1,"off","",0,0,0,0},
+  {&ledCtrl2,"off","",0,0,0,0}
 };
 
 expectedConfigStruct expectedScenario2[2]= {
-  {&ledCtrl1,"on","",0,0,0,0,0,{0,0,0,0,0}},
-  {&ledCtrl2,"on","",0,0,0,0,0,{0,0,0,0,0}}
+  {&ledCtrl1,"on","",0,0,0,0},
+  {&ledCtrl2,"on","",0,0,0,0}
 };
 
 void test_emptyConfig_collection(configItem item){
   TEST_ASSERT_EQUAL_PTR(NULL    ,item.obj());
   TEST_ASSERT_EQUAL_STRING(""   ,item.cmd().c_str());
-  TEST_ASSERT_EQUAL_STRING(""   ,item.str().c_str());
-  TEST_ASSERT_EQUAL_UINT32(0    ,item.param(0));
-  TEST_ASSERT_EQUAL_UINT32(0    ,item.param(1));
-  TEST_ASSERT_EQUAL_UINT32(0    ,item.param(2));
-  TEST_ASSERT_EQUAL_UINT32(0    ,item.param(3));
-  TEST_ASSERT_EQUAL_UINT32(0    ,item.size());
+  TEST_ASSERT_EQUAL_STRING(""   ,item.cfg().str.c_str());
+  TEST_ASSERT_EQUAL_UINT32(0    ,item.cfg().dimCfg.uint32);
+  TEST_ASSERT_EQUAL_UINT32(0    ,item.cfg().colorCfg.uint32);
+  TEST_ASSERT_EQUAL_UINT32(0    ,item.cfg().flashCfg.uint32);
+  TEST_ASSERT_EQUAL_UINT32(0    ,item.cfg().breathCfg.uint32);
 }
+
 
 void test_emptyScenrio_collection(configScenario item){
   TEST_ASSERT_EQUAL_STRING("",item.name().c_str());

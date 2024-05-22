@@ -12,8 +12,6 @@ struct  expectedConfigStruct {
   uint32_t      p2;
   uint32_t      p3;
   uint32_t      p4;
-  uint32_t      size;
-  uint8_t       data[5];
 };
 
 extern expectedConfigStruct sollEmptyConfig;

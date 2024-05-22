@@ -208,8 +208,17 @@ class AniCfg{
 			breathCfg{.uint32=breathCfg},
 			str(str) 
 			{}
+		AniCfg(const AniCfg & src) {*this = src;}		// copy constructor
 		~AniCfg() = default;
 
+		virtual void operator=(const AniCfg & src){
+			dimCfg    = src.dimCfg;
+			colorCfg  = src.colorCfg;
+			flashCfg  = src.flashCfg;
+			breathCfg = src.breathCfg;
+			str		  = src.str;
+		}
+		
 		dimCtrl_t 	 	dimCfg;
 		colorCtrl_t  	colorCfg;
 		flashCtrl_t  	flashCfg;
