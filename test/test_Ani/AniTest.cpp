@@ -818,9 +818,7 @@ void test_flashCtrl_time(void){
     TEST_ASSERT_EQUAL_INT_MESSAGE(    res[i].hasChanged       , obj.hasChanged()   , msg.c_str()  );
     TEST_ASSERT_EQUAL_UINT32_MESSAGE( res[i].color            , obj.getColor()     , msg.c_str()  );
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(  res[i].dim              , obj.getDim()       , msg.c_str()  );
-
   }  
-
 }
 
 

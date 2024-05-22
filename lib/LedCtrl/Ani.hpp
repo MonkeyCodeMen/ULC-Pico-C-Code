@@ -223,12 +223,12 @@ class DimCtrl{
 		DimCtrl() 						{ config(); 							}
 		~DimCtrl() = default;
 
-        void config(uint32_t p=0)		{dimCtrl_t cfg; cfg.uint32=p; config(cfg);	}
-		void config(dimCtrl_t cfg); 
-		uint32_t doDim(uint32_t color)	{ return dimColor255(color,_dim);		}
-		uint8_t  getDim()				{ return _dim;							}
-		uint16_t getSpeed()				{ return _speed;						}
-		void loop(uint32_t now)			{ /* nothing to do*/ 				   	}
+        virtual void config(uint32_t p=0)		{dimCtrl_t cfg; cfg.uint32=p; config(cfg);	}
+		virtual void config(dimCtrl_t cfg); 
+		virtual uint32_t doDim(uint32_t color)	{ return dimColor255(color,_dim);		}
+		virtual uint8_t  getDim()				{ return _dim;							}
+		virtual uint16_t getSpeed()				{ return _speed;						}
+		virtual void loop(uint32_t now)			{ /* nothing to do*/ 				   	}
 
 	private:
 		uint8_t _dim;
@@ -242,22 +242,24 @@ class ColorCtrl{
 		#define LOOP_STOP		0x10
 		#define LOOP_TRIGGER	0x20
 		#define LOOP_TIME   	0x30
-		enum ColorState 	{stop,initTime,waitTrigger,waitTime};
-
+		enum ColorState 		{stop,initTime,waitTrigger,waitTime};
 
         ColorCtrl() 									{  config();    									}
         ~ColorCtrl() = default;
-        void loop(uint32_t now);
-        uint32_t getColor()     						{ return _currentColor;   							}
-		void trigger()									{ _triggerActive = true; 							}
-        void config(uint32_t p=0,String str="0")		{ colorCtrl_t cfg; cfg.uint32=p; config(cfg,str);	}		// default static color with value 0
-        void config(colorCtrl_t cfg,String str);
-		void switchToTriggerMode();
 
-		uint8_t getMode()								{ return _mode;				}
-		uint8_t getMaxIndex()							{ return _colorIndexMax;	}
-		ColorState getState()							{ return _state;			}
-		uint32_t getNextLoopTime()						{ return _nextLoopTime;		}
+        virtual void loop(uint32_t now);
+        virtual uint32_t getColor()     						{ return _currentColor;   							}
+		virtual void trigger()									{ _triggerActive = true; 							}
+        virtual void config(uint32_t p=0,String str="0")		{ colorCtrl_t cfg; cfg.uint32=p; config(cfg,str);	}		// default static color with value 0
+        virtual void config(colorCtrl_t cfg,String str);
+		virtual void switchToTriggerMode();
+
+		virtual uint8_t getMode()								{ return _mode;				}
+		virtual uint8_t getMaxIndex()							{ return _colorIndexMax;	}
+		virtual ColorState getState()							{ return _state;			}
+		virtual uint32_t getNextLoopTime()						{ return _nextLoopTime;		}
+
+		virtual void operator=(ColorCtrl & src);
 
 
     private:
@@ -274,25 +276,23 @@ class ColorCtrl{
 		SimpleList<int32_t> _colorList;
         int8_t              _incStep;
 
-		void _checkForUpdate();
+		virtual void _checkForUpdate();
 
 };
 
 
 class FlashCtrl{
 	public:
-		enum FlashState 	{stop,init,flashOn,flashOff,pause,waitTrigger};
-		FlashCtrl()													{ config();												}		
+		enum FlashState 						{stop,init,flashOn,flashOff,pause,waitTrigger};
+		
+		FlashCtrl()								{ config();										}		
 		~FlashCtrl() = default;
 
-        void config(uint32_t p=0)									{ flashCtrl_t cfg; cfg.uint32=p; config(cfg);	}
-		void config(flashCtrl_t cfg); 
-
-		bool loop(uint32_t now);		// if return == true : call trigger of colorCtrl
-		void trigger()												{ _triggerActive = true; 								}
-		uint32_t selectColor(uint32_t colorOn,uint32_t colorOff)	{ return (_state == flashOn) ? colorOn : colorOff;		}
-		FlashState getState()							{ return _state;			}
-
+        virtual void config(uint32_t p=0)		{ flashCtrl_t cfg; cfg.uint32=p; config(cfg);	}
+		virtual void config(flashCtrl_t cfg); 
+		virtual bool loop(uint32_t now);		// if return == true : call trigger of colorCtrl
+		virtual void trigger()					{ _triggerActive = true; 						}
+		virtual FlashState getState()			{ return _state;								}
 
 	private:
 		volatile FlashState _state;
@@ -307,17 +307,18 @@ class FlashCtrl{
 
 class BreathCtrl{
 	public:
+		enum BreathState 	{stop,init,up,down};
+
 		BreathCtrl()	{ config(0);	}
 		~BreathCtrl() = default;
 
-        void config(uint32_t p=0)				{ breathCtrl_t cfg; cfg.uint32=p; config(cfg);	}
-		void config(breathCtrl_t cfg); 
-
-		uint8_t modifyDimFactor(uint8_t dim)	{ return clamp(0,dim + _dimDelta,255);		}
-		void loop(uint32_t now);
-
+        virtual void config(uint32_t p=0)				{ breathCtrl_t cfg; cfg.uint32=p; config(cfg);	}
+		virtual void config(breathCtrl_t cfg); 
+		virtual uint8_t modifyDimFactor(uint8_t dim)	{ return clamp(0,dim + _dimDelta,255);		}
+		virtual void loop(uint32_t now);
+		virtual BreathState getState()					{ return _state;								}
+	
 	private:
-		enum BreathState 	{stop,init,up,down};
 		volatile BreathState _state;
 		uint8_t _dimDelta,_target;
 		uint32_t _t1,_t2,_lastTurn;
@@ -330,7 +331,7 @@ class Ani{
 		Ani(const char * pName)  						{ _pName = pName;  reset();		}
 		~Ani() = default;
         const char *   getName()						{ return _pName;				}
-		virtual AniCfg getConfig()						{ return _cfg; 					}
+//		virtual AniCfg getConfig()						{ return _cfg; 					}
 		virtual void   reset();
         virtual int    config(AniCfg cfg);
 		virtual void   triggerFlash() 					{ _flashCtrl.trigger();			}
@@ -345,11 +346,9 @@ class Ani{
 		virtual bool     hasChanged();
 
 
-
-
 	protected:
 		const char* 	_pName;
-		AniCfg			_cfg;		// TODO .. brauchen wir das ????
+//		AniCfg			_cfg;		// TODO .. brauchen wir das ????
 
 		DimCtrl			_dimCtrl;
 		ColorCtrl 		_colorCtrl;
@@ -358,5 +357,4 @@ class Ani{
 
 		uint8_t			_dim,_dimLast;
 		uint32_t		_color,_colorLast;
-
 };

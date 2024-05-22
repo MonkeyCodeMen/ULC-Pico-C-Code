@@ -5,6 +5,8 @@
       Copyright (c) 2018 Stefan Kremser
              github.com/spacehuhn
    ===========================================
+        added: virtual operator=  
+
  */
 
 #include <type_traits>
@@ -59,6 +61,8 @@ class SimpleList {
         virtual void sort();
         virtual void clear();
 
+        virtual void operator=(SimpleList<T> & src);
+
     protected:
         int (* compare)(T& a, T& b) = NULL;
 
@@ -90,6 +94,24 @@ template<typename T>
 SimpleList<T>::~SimpleList() {
     clear();
 }
+
+// copy operator
+template<typename T>
+void SimpleList<T>::operator=(SimpleList<T> & src){
+    // copy content 
+    clear();  // first clear this object
+    for (int i=0; i < src.size();i++){
+        add(i,src.get(i));  // now copy element by element in same order
+    }
+    // size, begin,end are handled by content copy
+    // now copy status 
+    compare      = src.compare;
+    lastNodeGot  = src.lastNodeGot;
+    lastIndexGot = src.lastIndexGot;   
+    isCached     = src.isCached;
+    sorted       = src.sorted;
+}
+
 
 template<typename T>
 void SimpleList<T>::setCompare(int (* compare)(T& a, T& b)) {

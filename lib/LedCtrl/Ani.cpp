@@ -191,6 +191,31 @@ void ColorCtrl::_checkForUpdate(){
     }
 }
 
+void ColorCtrl::operator=(ColorCtrl & src){
+        // set src and this image obj to stop mode for copy
+        ColorState temp = src._state;
+        src._state = stop;
+        _state     = stop;
+		
+        _mode               = src._mode;
+        _useColorWheel      = src._useColorWheel;
+        _triggerActive      = src._triggerActive;
+        _eventCounter       = src._eventCounter;
+        _eventTarget        = src._eventTarget;
+        _nextLoopTime       = src._nextLoopTime;
+        _timeStep           = src._timeStep;
+        _currentColorIndex  = src._currentColorIndex;
+        _currentColor       = src._currentColor;
+        _colorIndexMax      = src._colorIndexMax;
+        _incStep            = src._incStep;
+        _colorList          = src._colorList;
+        
+        // restart src and image
+        src._state = temp;
+        _state     = temp;
+}
+
+
 ///////////////////////////////////////////////////
 // FlashCtrl
 
