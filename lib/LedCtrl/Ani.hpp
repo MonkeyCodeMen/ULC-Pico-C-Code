@@ -13,6 +13,7 @@
 #define ANI_ERROR_FILE_NOT_FOUND			6
 #define ANI_ERROR_OUT_OF_MEMORY				7
 
+#define ANI_WR_ALL      0xF0000000
 #define ANI_WR_DIM		0x80000000
 #define ANI_WR_COLOR	0x40000000
 #define ANI_WR_FLASH  	0x20000000
@@ -112,10 +113,6 @@
 						|| ++---------: time t2 in 10ms: 	inter flash time .. time between two flashes
 						++------------: time t3 in 100ms: 	inter group time .. time between two flash groups
 									  :                     0xFFxx xxxx wait for trigger 
-									  .. standard  colors : flash white   , pause black
-									     can be overwritten by str color list   first color flash (if provided)
-										 										2nd color   pause (if provided)
-
 						0xXXXX XX00 flash module switched off
 
 
@@ -193,6 +190,7 @@ union breathCtrl_u {
 		uint8_t 	delta;
 		uint8_t     t1_100ms;
 		uint8_t     t2_100ms;
+		uint8_t     reserved;
     } reg;
 };
 typedef union breathCtrl_u breathCtrl_t;
@@ -318,12 +316,12 @@ class BreathCtrl{
 	public:
 		enum BreathState 	{stop,init,up,down};
 
-		BreathCtrl()	{ config(0);	}
+		BreathCtrl()									{ config(0);									}
 		~BreathCtrl() = default;
 
         virtual void config(uint32_t p=0)				{ breathCtrl_t cfg; cfg.uint32=p; config(cfg);	}
 		virtual void config(breathCtrl_t cfg); 
-		virtual uint8_t modifyDimFactor(uint8_t dim)	{ return clamp(0,dim + _dimDelta,255);		}
+		virtual uint8_t modifyDimFactor(uint8_t dim)	{ return clamp(0,dim + _dimDelta,255);			}
 		virtual void loop(uint32_t now);
 		virtual BreathState getState()					{ return _state;								}
 	
@@ -366,4 +364,5 @@ class Ani{
 
 		uint8_t			_dim,_dimLast;
 		uint32_t		_color,_colorLast;
+		bool            _newConfig;
 };

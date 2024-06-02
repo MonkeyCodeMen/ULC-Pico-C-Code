@@ -20,16 +20,16 @@ class Ctrl
         Ctrl();
         ~Ctrl(); 
 
-        uint32_t            getAniCount()   { return _aniList.size();                       }
-        const char *        getNameList()   { return (const char *)_aniNameList.c_str();    }       // like :"0:xxx;1:yyy;..."
+        virtual uint32_t    getAniCount()   { return _aniList.size();                       }
+        virtual const char* getNameList()   { return (const char *)_aniNameList.c_str();    }       // like :"0:xxx;1:yyy;..."
         virtual const char* getName()       { return _currentNode.pName;                    }
         virtual int         getNr()         { return _currentNode.nr;                       } 
         virtual bool        isAniSelected() { return (_currentNode.nr == -1) ? false:true;  }
 
-        void addAni(Ani * pAni);
-        int select(int nr);
-        int select(const char * pName);
-        int config(AniCfg cfg);
+        virtual void addAni(Ani * pAni);
+        virtual int select(int nr);
+        virtual int select(const char * pName);
+        virtual int config(AniCfg cfg);
     
     protected:
         SimpleList<AniNode>     _aniList;

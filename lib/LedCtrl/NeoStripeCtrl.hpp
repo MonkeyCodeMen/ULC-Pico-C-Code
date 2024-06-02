@@ -31,15 +31,14 @@ class NeoStripeCtrl : public Ctrl
         void loop(uint32_t time);
 
         const char * getName();
-        int getNr() {return _current;}
-    
+        int getNr()                 { return _current;}
+        uint32_t    getAniCount()   { return _count;  } 
+        
     private:
         WS2812FX *  _pNeoStripe;
         uint8_t     _current;
         int         _count;
         Ani         _aniInterface;
-
-        void setStdParameter();
-        void setOff();
+        uint32_t    _cfgCounter;
 };
 

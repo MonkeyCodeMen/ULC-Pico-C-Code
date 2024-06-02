@@ -27,6 +27,7 @@ class NeoMatrixCtrl : public Ctrl
             addAni(new MatrixBreathAni());
             addAni(new MatrixBlinkAni());
             addAni(new MatrixMultiFlashAni());
+            addAni(new MatrixRainbowAni());
             addAni(new MatrixBoxAni("rect"));
             addAni(new MatrixBoxAni("circle"));
             addAni(new MatrixBoxAni("ver"));

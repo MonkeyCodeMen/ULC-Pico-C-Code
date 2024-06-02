@@ -65,7 +65,7 @@ class AniTest:public Ani{
 void test_dimCtrl_init(void){
   Ani obj("testObjANi");
   TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
-  TEST_ASSERT_FALSE(obj.hasChanged());
+  TEST_ASSERT_TRUE(obj.hasChanged());
   obj.loop(0);
   TEST_ASSERT_EQUAL_UINT8( 0 , obj.getDim());
   TEST_ASSERT_FALSE(obj.hasChanged());
@@ -95,7 +95,7 @@ void test_dimCtrl_set(void){
   obj.config(AniCfg(ANI_WR_DIM | 0x77,0,0,0,""));
   // value will be taken over at next loop
   TEST_ASSERT_EQUAL_UINT8( 0x0 , obj.getDim());
-  TEST_ASSERT_FALSE(obj.hasChanged());
+  TEST_ASSERT_TRUE(obj.hasChanged());
   obj.loop(1001);  
   TEST_ASSERT_TRUE(obj.hasChanged());
   TEST_ASSERT_EQUAL_UINT8( 0x77 , obj.getDim());
@@ -226,7 +226,7 @@ void test_colorCtrl_init(void){
   TEST_ASSERT_EQUAL_UINT8(  (uint8_t) (COLOR_LIST | LOOP_STOP) , obj.pColorCtrl->getMode());
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());
+  TEST_ASSERT_TRUE(            obj.hasChanged());
   obj.loop(0);
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
@@ -256,7 +256,7 @@ void test_colorCtrl_triggerList(void){
   TEST_ASSERT_EQUAL_UINT8(  (uint8_t) (COLOR_LIST | LOOP_STOP) , obj.pColorCtrl->getMode());
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());
+  TEST_ASSERT_TRUE(            obj.hasChanged());
   obj.loop(0);
   obj.loop(10);
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
@@ -285,7 +285,7 @@ void test_colorCtrl_triggerList(void){
   TEST_ASSERT_EQUAL_UINT8(  (uint8_t) (COLOR_LIST | LOOP_TRIGGER) , obj.pColorCtrl->getMode());
   TEST_ASSERT_EQUAL_UINT8(  5   , obj.pColorCtrl->getMaxIndex());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());  // frist value of new color cfg has no change to init value .. no update necessary
+  TEST_ASSERT_TRUE(            obj.hasChanged());  
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   obj.loop(100);
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
@@ -373,7 +373,7 @@ void test_colorCtrl_wheel(void){
   TEST_ASSERT_EQUAL_INT( ANI_OK , obj.config(cfg));
   TEST_ASSERT_EQUAL_INT(  COLOR_WHEEL | LOOP_TRIGGER , obj.pColorCtrl->getMode());
   TEST_ASSERT_EQUAL_UINT32( 0                   , obj.getColor());
-  TEST_ASSERT_FALSE(                              obj.hasChanged());  // frist value of new color cfg has no change to init value .. no update necessary
+  TEST_ASSERT_TRUE(                               obj.hasChanged());  
   TEST_ASSERT_EQUAL_UINT8(  0                   , obj.getDim());
   TEST_ASSERT_EQUAL_INT( ColorCtrl::waitTrigger , obj.pColorCtrl->getState());
   
@@ -404,15 +404,15 @@ void test_colorCtrl_copyWheel(void){
   ColorCtrl colorCopy = *obj.pColorCtrl;
   
   uint8_t index=0;
-  uint32_t sollColor;
   uint32_t startTime=100;
   for(int i=0; i < 500;i++ ){
     String msg="loop: "+String(i);
-    sollColor = getColorWheel24Bit(index);
     colorCopy.loop(startTime+i);
-    TEST_ASSERT_EQUAL_UINT32_MESSAGE( sollColor , colorCopy.getColor(),msg.c_str());
+    obj.pColorCtrl->loop(startTime+i);
+    TEST_ASSERT_EQUAL_UINT32_MESSAGE( obj.pColorCtrl->getColor() , colorCopy.getColor(),msg.c_str());
     index++;
     colorCopy.trigger();
+    obj.pColorCtrl->trigger();
   }
 }
 
@@ -443,7 +443,7 @@ void test_colorCtrl_triggerListReverse(void){
   TEST_ASSERT_EQUAL_UINT8(  3   , obj.pColorCtrl->getMaxIndex());
   // reset Values
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());
+  TEST_ASSERT_TRUE(            obj.hasChanged());
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
 
   // cfg values
@@ -485,7 +485,7 @@ void test_colorCtrl_const(void){
   
   // reset Values
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());
+  TEST_ASSERT_TRUE(            obj.hasChanged());
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
 
   // cfg values
@@ -511,7 +511,7 @@ void test_colorCtrl_timeList(void){
   TEST_ASSERT_EQUAL_UINT8(  (uint8_t) (COLOR_LIST | LOOP_STOP) , obj.pColorCtrl->getMode());
   // reset values
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());
+  TEST_ASSERT_TRUE(            obj.hasChanged());
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
 
 
@@ -527,7 +527,7 @@ void test_colorCtrl_timeList(void){
   TEST_ASSERT_EQUAL_UINT8(  (uint8_t) (COLOR_LIST | LOOP_TIME) , obj.pColorCtrl->getMode());
   TEST_ASSERT_EQUAL_UINT8(  (uint8_t) ColorCtrl::initTime      , obj.pColorCtrl->getState());
   TEST_ASSERT_EQUAL_UINT32( 0x00000000, obj.getColor());
-  TEST_ASSERT_FALSE(                    obj.hasChanged());
+  TEST_ASSERT_TRUE(                     obj.hasChanged());
   // cfg does not change anything until first loop !!
 
 
@@ -612,7 +612,7 @@ void test_colorCtrl_timeList(void){
   TEST_ASSERT_EQUAL_UINT8(  (uint8_t) (COLOR_LIST | LOOP_TIME) , obj.pColorCtrl->getMode());
   TEST_ASSERT_EQUAL_UINT8(  (uint8_t) ColorCtrl::initTime      , obj.pColorCtrl->getState());
   TEST_ASSERT_EQUAL_UINT32( 0x0000FF00, obj.getColor());     // last selected color 
-  TEST_ASSERT_FALSE_MESSAGE(  obj.hasChanged(),"init reverse");   // change has been checked / cleard in loop above
+  TEST_ASSERT_TRUE_MESSAGE(  obj.hasChanged(),"init reverse");   // change has been checked / cleard in loop above
 
   startTime = 374;
   for(int i=0;i< count;i++){
@@ -633,7 +633,7 @@ void test_flashCtrl_init(void){
 
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());
+  TEST_ASSERT_TRUE(            obj.hasChanged());
   obj.loop(0);
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
@@ -681,7 +681,7 @@ void test_flashCtrl_trigger(void){
   TEST_ASSERT_EQUAL_INT( FlashCtrl::stop , obj.pFlashCtrl->getState());
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());
+  TEST_ASSERT_TRUE(            obj.hasChanged());
   obj.loop(0);
   TEST_ASSERT_EQUAL_INT( FlashCtrl::stop , obj.pFlashCtrl->getState());
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
@@ -692,7 +692,7 @@ void test_flashCtrl_trigger(void){
   TEST_ASSERT_EQUAL_INT( FlashCtrl::init , obj.pFlashCtrl->getState());  // init state selected but not processed until now
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());  
+  TEST_ASSERT_TRUE(            obj.hasChanged());  
   obj.loop(1);      // init state processed
   TEST_ASSERT_EQUAL_INT( FlashCtrl::waitTrigger , obj.pFlashCtrl->getState());  // init state selected but not processed until now
   TEST_ASSERT_EQUAL_UINT8( 77, obj.getDim());
@@ -772,7 +772,7 @@ void test_flashCtrl_time(void){
   TEST_ASSERT_EQUAL_INT( FlashCtrl::init , obj.pFlashCtrl->getState());  // init state selected but not processed until now
   TEST_ASSERT_EQUAL_UINT8(  0, obj.getDim());
   TEST_ASSERT_EQUAL_UINT32( 0, obj.getColor());
-  TEST_ASSERT_FALSE(           obj.hasChanged());  
+  TEST_ASSERT_TRUE(            obj.hasChanged());  
   obj.loop(1000);      // init state processed
   TEST_ASSERT_EQUAL_INT( FlashCtrl::pause , obj.pFlashCtrl->getState());  // init state selected but not processed until now
   TEST_ASSERT_EQUAL_UINT8( 77, obj.getDim());

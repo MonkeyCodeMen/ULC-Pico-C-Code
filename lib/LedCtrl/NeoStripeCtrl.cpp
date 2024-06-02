@@ -24,8 +24,10 @@ void NeoStripeCtrl::begin(WS2812FX * pNeoStripe){
     }
     _pNeoStripe->setMode(0);
     _current = 1;
-    setStdParameter();
+    _cfgCounter = 0;
+    _aniInterface.config(AniCfg(ANI_WR_DIM | ANI_WR_COLOR | 0xFF,0,0,0,"0x0000 00FF"));
     _pNeoStripe->start();
+
 }
 
 
@@ -38,73 +40,52 @@ const char * NeoStripeCtrl::getName(){
 
 void NeoStripeCtrl::loop(uint32_t time){
     if (_pNeoStripe == NULL)            return;
-    if (_mutexSetup.isLocked()==true)   return;  // do not wait 
-
-    _mutexSetup.lock();
-    _pNeoStripe->service();;
-    _mutexSetup.free();
+    if (_aniInterface.hasChanged() == true){
+        _cfgCounter++;
+        _aniInterface.loop(_cfgCounter); // make new values available
+        _pNeoStripe->setBrightness(_aniInterface.getDim());
+        _pNeoStripe->setColor(_aniInterface.getColor());
+        _pNeoStripe->setSpeed(_aniInterface.getSpeed());
+    }
+    _pNeoStripe->service();
 }
 
 int NeoStripeCtrl::select(int nr){
     if (nr >= _count)        return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
     if (nr < 0 )             return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 
-    _mutexSetup.lock();
     if (nr == 0){
-        setOff();
+        _pNeoStripe->setMode(FX_MODE_STATIC);
+        _aniInterface.config(AniCfg(ANI_WR_DIM | ANI_WR_COLOR | 0,0,0,0,"0"));
+        _current = 0;
     } else {
         _pNeoStripe->setMode(nr-1);
-        setStdParameter();
+        _aniInterface.config(AniCfg(ANI_WR_DIM | ANI_WR_COLOR | 0xFF,0,0,0,"0x0000 00FF"));
     }
     _current = nr;
-    _mutexSetup.free();
     return ANI_OK;
 }
 
 int NeoStripeCtrl::select(const char *pName){
-    _mutexSetup.lock();
     // find matching entry or set all to NULL
     if (strcmp(pName , "Off") == 0){
-        setOff();
-        _current = 0;
-        _mutexSetup.free();
-        return ANI_OK;
+        return select(0);
     }
     for(int i=1;i < _count;i++){
         if (strcmp(pName, (const char *)_pNeoStripe->getModeName(i-1)) == 0){
-            _pNeoStripe->setMode(i-1);
-            setStdParameter();
-            _current = i;
-            _mutexSetup.free();
-            return ANI_OK;            
+            return select(i);            
         }
     }
     LOG(F("NeoStripeCtrl::setup could not find mode"));
-    _mutexSetup.free();
     return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
 }
 
 
 int NeoStripeCtrl::config(AniCfg cfg){
-    _mutexSetup.lock();
-        // functionality of base class Ani is not used 
-        // we just use the parameter decoding, to harmonize the interface of the different objects a little bit
-        // for example dim up / down for all modules now work with consistent parameter set
-        _aniInterface.config(cfg);
-        _pNeoStripe->setBrightness(_aniInterface.getDim());
-        _pNeoStripe->setColor(_aniInterface.getColor());
-        _pNeoStripe->setSpeed(_aniInterface.getSpeed());
-    _mutexSetup.free();
+    // functionality of base class Ani is not used 
+    // we just use the parameter decoding, to harmonize the interface of the different objects a little bit
+    // for example dim up / down for all modules now work with consistent parameter set
+    _aniInterface.config(cfg);
     return ANI_OK;
 }
 
-
-void NeoStripeCtrl::setStdParameter(){
-    config(AniCfg(0x800000FF,0,0,0,"0x0000 00FF"));
-}
-
-void NeoStripeCtrl::setOff(){
-    _pNeoStripe->setMode(FX_MODE_STATIC);
-    config(AniCfg(0));
-    _current = 0;
-}

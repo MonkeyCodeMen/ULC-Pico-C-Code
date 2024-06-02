@@ -109,7 +109,7 @@ class MatrixBoxAni : public NeoMatrixAni{
             else _type = none;
         }
 
-        void reset() { config(AniCfg(0xF0000080,0x02200A00,0,0,""));   /* config(0x020,1,0x200A,0,""); */   }
+        void reset() { config(AniCfg(ANI_WR_ALL | 0x40,0x02200A00,0,0,""));   /* config(0x020,1,0x200A,0,""); */   }
 
         virtual int config(AniCfg cfg)  {
             _state      = stop;
@@ -142,6 +142,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                     if (hasChanged() == true){
                         ColorCtrl colorCtrlCopy = _colorCtrl;
                         colorCtrlCopy.switchToTriggerMode();
+                        colorCtrlCopy.loop(0);
                         _update(pMatrix,colorCtrlCopy);
                     }
                     break;
@@ -165,11 +166,14 @@ class MatrixBoxAni : public NeoMatrixAni{
 
         void   _update(Adafruit_NeoMatrix * pMatrix,ColorCtrl colorCtrl){
             switch (_type){
-                case none:      pMatrix->fill(0);                   break;
                 case circle:    _drawCircles(pMatrix,colorCtrl);    break;
                 case rect:      _drawRect(pMatrix,colorCtrl);       break;
                 case hor:       _drawHor(pMatrix,colorCtrl);        break;
                 case ver:       _drawVer(pMatrix,colorCtrl);        break;
+                
+                case none:      
+                default:        pMatrix->fill(0);       
+
             }
             pMatrix->show();
         };
@@ -193,6 +197,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                     color565 = toColor565(color24);                 
                     pMatrix->drawRoundRect(x,y,w,h,i,color565 );    // rect with rounded corner
                     colorCtrl.trigger();                            // change color or repeat color 
+                    colorCtrl.loop(i+2);
                     color24 = colorCtrl.getColor();
                 }
             }
@@ -217,6 +222,7 @@ class MatrixBoxAni : public NeoMatrixAni{
                     color565 = toColor565(color24);                 
                     pMatrix->drawRect(x,y,w,h,color565 );           // draw 4 lines (rect)    
                     colorCtrl.trigger();                            // change color or repeat color 
+                    colorCtrl.loop(i+2);
                     color24 = colorCtrl.getColor();
                 }
             }
@@ -225,35 +231,28 @@ class MatrixBoxAni : public NeoMatrixAni{
         void _drawHor(Adafruit_NeoMatrix * pMatrix,ColorCtrl colorCtrl){
             uint32_t color24 = colorCtrl.getColor();
             uint16_t  color565;
-            uint8_t  borderLine = 0;
             uint16_t  steps = _sizeY;
             uint16_t  lastX  = _sizeX-1;
             for(int i=0; i < _sizeY; i++){
                     color565 = toColor565(color24);                 
                     pMatrix->drawLine(0,i,lastX,i,color565 );
                     colorCtrl.trigger();                            // change color or repeat color 
+                    colorCtrl.loop(i+2);
                     color24 = colorCtrl.getColor();
             }
         }
 
         void _drawVer(Adafruit_NeoMatrix * pMatrix,ColorCtrl colorCtrl){
-            ColorCtrl colorGen = _colorCtrl;
-            colorGen.switchToTriggerMode();
-            uint32_t color24 = colorGen.getColor();
+            uint32_t color24 = colorCtrl.getColor();
             uint16_t  color565;
-            uint8_t  borderLine = 0;
             uint16_t  steps = _sizeX;
             uint16_t  lastY  = _sizeY-1;
             for(int i=0; i < _sizeX; i++){
                     color565 = toColor565(color24);
                     pMatrix->drawLine(i,0,i,lastY,color565 );
-                    // change color or repeat color 
-                    borderLine++;
-                    if(borderLine >= _border){
-                        colorGen.trigger();
-                        color24 = colorGen.getColor();
-                        borderLine = 0;
-                    }
+                    colorCtrl.trigger();                            // change color or repeat color 
+                    colorCtrl.loop(i+2);
+                    color24 = colorCtrl.getColor();
             }
         }
 };

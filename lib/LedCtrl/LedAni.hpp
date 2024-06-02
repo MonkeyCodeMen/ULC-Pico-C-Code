@@ -4,96 +4,114 @@
 #include "Ani.hpp"
 #include "helper.h"
 
-class LedAni : public Ani
-{
-    
+class LedAni : public Ani{
     public:
         LedAni(const char * pName) : Ani(pName) {}
         ~LedAni() = default;
         virtual void loop(uint32_t time,Led * pLed)  { 
             Ani::loop(time);
-            if (_color > 0){
-                pLed->set(_dim);
-            } else {
-                pLed->set(LED_OFF);
+            if(hasChanged() == true){
+                if ((_dim > 0) && (_color > 0)) {
+                    pLed->set(_dim);
+                } else {
+                    pLed->set(LED_OFF);
+                }
             }
         }
 };
 
 class LedOffAni : public LedAni{
     public:
-        LedOffAni()  : LedAni((const char *) F("off"))          {                           }
-        void reset()                                            {                           }
-        void loop(uint32_t time,Led * pLed)                     { pLed->set(LED_OFF);       }
+        LedOffAni()  : LedAni((const char *) F("off"))          {                                               }
+        void reset()                                            { config(AniCfg(ANI_WR_ALL | 0x00,0,0,0,"0"));   }
 };
 
 
 class LedOnAni : public LedAni{
     public:
-        LedOnAni()  : LedAni((const char *) F("on"))            { reset();                                 }
-        void reset()                                            { config(AniCfg(0xF00000FF,0,0,0,"1,0"));  }
+        LedOnAni()  : LedAni((const char *) F("on"))            { reset();                                      }
+        void reset()                                            { config(AniCfg(ANI_WR_ALL | 0xFF,0,0,0,"1"));   }
 };
 
 
 class LedDimAni : public LedAni{
     public:
-        LedDimAni()  : LedAni((const char *) F("dim"))          { reset();                                 }
-        void reset()                                            { config(AniCfg(0xF0000080,0,0,0,"1,0"));  }
+        LedDimAni()  : LedAni((const char *) F("dim"))          { reset();                                      }
+        void reset()                                            { config(AniCfg(ANI_WR_ALL | 0x80,0,0,0,"1"));   }
 };
 
 class LedBlinkAni : public LedAni{
 /*
-	p3 : flash config:  xx xx xx xx   : def   : 
-						|| || || ++---:  0x01 : 1 flash per group 
-						|| || ++------:  0x19 : time t1 in 10ms:  250ms  flashtime        .. time of one flash
-						|| ++---------:  0x00 : time t2 in 10ms:  0ms    inter flash time (only one per group)
-						++------------:  0x05 : time t3 in 100ms: 500ms  inter group time .. time between two flash groups
+   	colorCfg :          xx xx xx xx   :
+						|| || || ++---: 0 start index of color list   
+						|| || ||      :     color list is provided in cfg.str
+						|| || ||      :     if cfg.str is empty color are taken from color wheel (0..255)
+						|| || ++------: 1  
+						|| ||         : <  128 : inc step
+						|| ||         : >= 128 : dec step  (-1 = 255; -2 = 254)
+						|| ++---------: time t2 in ms: time between two color steps 
+						||            : 0xxxFF xxxx wait for trigger 
+						++------------: event divider 0..255 = 1..256 (2 ==> 3 trigger or 3 time event until color change)			
 
-	p2 : color Index:   xx xx xx xx   :
-						|| || || ++---: def   : start index of color list 
-						|| || ||      : 0     
-						|| || ++------: 1     : each trigger next color
-						++-++---------: 0xFFFF FFFF : wait for trigger (from flashCtrl)
-						p2:0xFFFF0100 & str:"1,0"   switch between red and blue on trigger event  start with red
+						standard color white, an be overwritten by color list or color wheel
+						colorCfg:0  & str:"0x00FF FFFF"  ==> constant white
+						colorCfg:0  & str:"0x0000 00FF"  ==> constant blue
+						colorCfg:0xFFFF0100 & str:"0x00FF 0000,0x0000 00FF"   switch between red and blue on trigger event  start with red
 
     dim value: 0x80
 */
     public:
         LedBlinkAni() :LedAni((const char *) F("blink"))    {  reset();                                                     }
-        void reset()                                        {  config(AniCfg(0xF0000080,0xFFFF0100,0x05001901,0,"1,0"));    }
+        void reset()                                        {  config(AniCfg(ANI_WR_ALL | 0x80,0x00FF0100,0x05001901,0,"0,1"));    }
 };
 
 class LedMultiFlashAni : public LedAni{
 /*
-	p3 : flash config:  xx xx xx xx   : def   : 
-						|| || || ++---:  0x05 : 5 flash per group 
-						|| || ++------:  0x03 : time t1 in 10ms:  30ms  flashtime        .. time of one flash
-						|| ++---------:  0x0A : time t2 in 10ms:  100ms inter flash time .. time between flashes
-						++------------:  0x32 : time t3 in 100ms: 5000ms inter group time .. time between groups
+	colorCfg :          xx xx xx xx   :
+						|| || || ++---: start index of color list   (0..255)
+						|| || ||      :     color list is provided in cfg.str
+						|| || ||      :     if cfg.str is empty color are taken from color wheel (0..255)
+						|| || ++------: == 0   : no inc / dec  = static
+						|| ||         : <  128 : inc step
+						|| ||         : >= 128 : dec step  (-1 = 255; -2 = 254)
+						|| ++---------: time t2 in ms: time between two color steps 
+						||            : 0xxxFF xxxx wait for trigger 
+						++------------: event divider 0..255 = 1..256 (2 ==> 3 trigger or 3 time event until color change)			
 
-	p2 : color Index:   xx xx xx xx   :
-						|| || || ++---: def   : start index of color list 
-						|| || ||      : 0     
-						|| || ++------: 1     : each trigger next color
-						++-++---------: 0xFFFF FFFF : wait for trigger (from flashCtrl)
-						p2:0xFFFF0100 & str:"1,0"   switch between red and blue on trigger event  start with red
+						standard color white, an be overwritten by color list or color wheel
+						colorCfg:0  & str:"0x00FF FFFF"  ==> constant white
+						colorCfg:0  & str:"0x0000 00FF"  ==> constant blue
+						colorCfg:0xFFFF0100 & str:"0x00FF 0000,0x0000 00FF"   switch between red and blue on trigger event  start with red
+					
+
+	flashCfg :          xx xx xx xx   :
+						|| || || ++---: 5 flashes per group 
+						|| || ++------: time t1 in 10ms:  30ms  flashtime        .. time of one flash
+						|| ++---------: time t2 in 10ms:  160ms inter flash time .. time between two flashes
+						++------------: time t3 in 100ms: 3000ms	inter group time .. time between two flash groups
+
+						0xXXXX XX00 flash module switched off
 
 */
     public:
         LedMultiFlashAni() :LedAni((const char *) F("multi flash"))     { reset();                                                     }
-        void reset()                                                    { config(AniCfg(0xF00000FF,0xFFFF0100,0x320A0305,0,"1,0"));    }
+        void reset()                                                    { config(AniCfg(ANI_WR_ALL | 0xFF,0x00FF0100,0x1E0A0305,0,"0,1"));    }
 };
 
 class LedBreathAni : public LedAni{
     /*  
-        base dim level : 0x10
-    	p4 : breath config: xx xx xx xx   : def    :
-                            || || || ++---: 0xD0   : delta dim increase (dim between base : 0x10 and 0x10+0xD0)
-                            || |+-++------: 0x020  : time t5 in 100ms: 3200ms time for dim up
-                            ++-++---------: 0x010  : time t6 in 100ms: 1600ms time for dim down
+
+
+    breathCfg :         xx xx xx xx   :
+						|| || || ++---: 0xD0  :  delta dim increase (clipped at 255) for high level (dimCfg = low level) 
+						|| || ||      : 0: switch breath module off
+						|| || ++------: 0x20 : time t1 in 100ms: 3200ms time for dim up
+						|| ++---------: 0x10 : time t2 in 100ms: 1600ms time for dim up
+						++------------: reserved
+
     */
     public:
         LedBreathAni():LedAni((const char *) F("breath"))               { reset();                                                   }
-        void reset()                                                    { config(AniCfg(0xF0000010,0,0,0x010020D0,"0x00FF FFFF"));   }
+        void reset()                                                    { config(AniCfg(ANI_WR_ALL | 0x10,0,0,0x001020D0,"1"));   }
 };
 

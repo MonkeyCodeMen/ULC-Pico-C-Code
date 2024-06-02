@@ -12,15 +12,17 @@ void Ani::reset() {
     _colorLast  = _color;
     _dim        = _breathCtrl.modifyDimFactor(_dimCtrl.getDim());
     _dimLast    = _dim;
+    _newConfig  = true;
     
 }
 
 
 int Ani::config(AniCfg cfg) { 
-    if (cfg.dimCfg.reg.WR_dim    == 1)	_dimCtrl.config(cfg.dimCfg);
-    if (cfg.dimCfg.reg.WR_color  == 1)	_colorCtrl.config(cfg.colorCfg,cfg.str);
-    if (cfg.dimCfg.reg.WR_flash  == 1)	_flashCtrl.config(cfg.flashCfg);
-    if (cfg.dimCfg.reg.WR_breath == 1)	_breathCtrl.config(cfg.breathCfg);
+    if (cfg.dimCfg.reg.WR_dim    == 1)	_dimCtrl.config(cfg.dimCfg);                _newConfig = true;
+    if (cfg.dimCfg.reg.WR_color  == 1)	_colorCtrl.config(cfg.colorCfg,cfg.str);    _newConfig = true;
+    if (cfg.dimCfg.reg.WR_flash  == 1)	_flashCtrl.config(cfg.flashCfg);            _newConfig = true;
+    if (cfg.dimCfg.reg.WR_breath == 1)	_breathCtrl.config(cfg.breathCfg);          _newConfig = true;
+    
     return ANI_OK;    
 }
 
@@ -39,9 +41,10 @@ void Ani::loop(uint32_t now) {
 
 
 bool Ani::hasChanged(){
-    if ((_color != _colorLast) || (_dim != _dimLast)){
+    if ((_color != _colorLast) || (_dim != _dimLast) || (_newConfig == true)){
         _colorLast = _color;
         _dimLast = _dim;
+        _newConfig = false;
         return true;
     }
     return false;
@@ -313,7 +316,7 @@ void BreathCtrl::config(breathCtrl_t cfg){
     _t1 = cfg.reg.t1_100ms * 100;
     _t2 = cfg.reg.t2_100ms * 100;
 
-    if (_dimDelta > 0) { 
+    if (_target > 0) { 
         _state = init;
     }
 }
