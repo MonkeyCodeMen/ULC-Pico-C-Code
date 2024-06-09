@@ -31,7 +31,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
             _gif.begin(GIF_PALETTE_RGB888 );
         };
         
-        void reset() { setup(0x80,0,0,0,"START.GIF",0,NULL); }
+        void reset() { config(ANI_WR_ALL | 0x40,0,0,0,"START.GIF"); }
 
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
             switch (_state){

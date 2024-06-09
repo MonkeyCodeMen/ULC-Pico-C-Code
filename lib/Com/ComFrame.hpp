@@ -36,9 +36,7 @@
     str:        [string] 
                 text parameter with starting and ending COM_FRAME_TEXT_QUOTES  ==>  COM_FRAME_TEXT_QUOTES are not allowed inside of text
 
-    length,data#  
-                length [uint32_t as string]
-                data   [uint8_t binary]   length bytes of data
+    #           end of frame
 
 examples:
 

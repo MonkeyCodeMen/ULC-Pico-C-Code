@@ -251,7 +251,7 @@ class ColorCtrl{
 		#define LOOP_TIME   	0x30
 		enum ColorState 		{stop,initTime,waitTrigger,waitTime};
 
-        ColorCtrl() 									{  config();    									}
+        ColorCtrl() 											{  config();    									}
         ~ColorCtrl() = default;
 
         virtual void loop(uint32_t now);
