@@ -179,5 +179,4 @@ void test_collection_StringList(void) {
   RUN_TEST(test_StringList_empytStringStrSep);
   RUN_TEST(test_StringList_emptyListStrSep);
   RUN_TEST(test_StringList_threeEntriesStrSep);
-
 }

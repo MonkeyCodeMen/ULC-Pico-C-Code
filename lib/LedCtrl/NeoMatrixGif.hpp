@@ -1,39 +1,153 @@
 #pragma once
 #include <NeoMatrixAni.hpp>
 
+/*
+    for the gif ani module only diming is been used in same way like for the orther ani modules
+    the color is been only used for background/clear purpose 
+
+    nevertheless the timer of all config functionalities run independenly from the GIF frame animation
+
+    so you could combine a breath dim effect and overlay this to any gif animation 
+
+    
+	dimCfg :         	xx xx xx xx   :
+						|| || || ++---: set dim value 0-255 (0 = off)
+						|| || ++------: == 0   : no inc / dec 
+						|| ||         : <  128 : inc step
+						|| ||         : >= 128 : dec step
+						|+-++---------: NeoStripe speed parameter
+						+-------------: update CTRL bit field
+						              : 7654
+									  : |||+--- 1: update breath config
+									  : ||+---- 1: update flash config
+									  : |+----- 1: update color config
+									  : +------ 1: update dim config
+									
+									  0:  no update 
+									  8:  update dim
+									  9:  update dim & breath
+									  A:  update dim & flash
+									  B:  update dim & flash & breath
+									  .....
+
+						dimCfg: 0x8000 0030   set to dim level 0x30
+						dimCfg: 0x8000 1000 inc by 10 ==> results in 0x30 + 0x10 = 0x40 dim level 
+
+	colorCfg :          xx xx xx xx   :
+						|| || || ++---: start index of color list   (0..255)
+						|| || ||      :     color list is provided in cfg.str
+						|| || ||      :     if cfg.str is empty color are taken from color wheel (0..255)
+						|| || ++------: == 0   : no inc / dec  = static
+						|| ||         : <  128 : inc step
+						|| ||         : >= 128 : dec step  (-1 = 255; -2 = 254)
+						|| ++---------: time t2 in ms: time between two color steps 
+						||            : 0xxxFF xxxx wait for trigger 
+						++------------: event divider 0..255 = 1..256 (2 ==> 3 trigger or 3 time event until color change)			
+
+						standard color white, an be overwritten by color list or color wheel
+						colorCfg:0  & str:"0x00FF FFFF"  ==> constant white
+						colorCfg:0  & str:"0x0000 00FF"  ==> constant blue
+						colorCfg:0xFFFF0100 & str:"0x00FF 0000,0x0000 00FF"   switch between red and blue on trigger event  start with red
+					
+
+	flashCfg :          xx xx xx xx   :
+						|| || || ++---: flashes per group 
+						|| || ||      : 0:  flash modul switched off
+						|| || ++------: time t1 in 10ms:    flashtime        .. time of one flash
+						|| ++---------: time t2 in 10ms: 	inter flash time .. time between two flashes
+						++------------: time t3 in 100ms: 	inter group time .. time between two flash groups
+									  :                     0xFFxx xxxx wait for trigger 
+									  .. standard  colors : flash white   , pause black
+									     can be overwritten by str color list   first color flash (if provided)
+										 										2nd color   pause (if provided)
+
+						0xXXXX XX00 flash module switched off
+
+
+	breathCfg :         xx xx xx xx   :
+						|| || || ++---: delta dim increase (clipped at 255) for high level (dimCfg = low level) 
+						|| || ||      : 0: switch breath module off
+						|| || ++------: time t1 in 100ms: time for dim up
+						|| ++---------: time t2 in 100ms: time for dim down
+						++------------: reserved
+
+	str: string parameter : color list #~# file list
+					example: "0x0000 0000 #~# 3*rainbow.gif,2*alien.gif"
+                    default: "0x0000 0000 #~# 0*start.gif"      0 ==> endless
+*/
  
+
+
 class MatrixGifFileAni : public NeoMatrixAni{
-    /*  
+    struct AniGifNode{
+        int32_t count;
+        String  name;
+    };
 
-        ToDO neue GIF class die jedes Bild einzeln lädt (Wegen Speicher verbrauch !!!)
-
-        ref    | default value |  layout
-        =======+===============+===========================
-        name:  |               |  gif
-        -------+---------------+---------------------------
-        p1:    | 0x0000 0080   |  0xCCCC 00DD     
-               |               |  D:brightness 0..255
-               |               |  C:repeat count, 0 = endless   
-        -------+---------------+---------------------------
-        p2:    |               |  N/A
-        -------+---------------+---------------------------
-        p3:    |               |  N/A
-        -------+---------------+---------------------------
-        p4:    |               |  N/A
-        -------+---------------+---------------------------
-        str:   | "TEST.GIF"    |  filename of gif file on SD card
-        -------+---------------+---------------------------
-        pData: | N/A           |  length(0):
-               |               |    N/A        
-    */
     public:
         MatrixGifFileAni():NeoMatrixAni("gif")      {
             _gif.begin(GIF_PALETTE_RGB888 );
         };
         
-        void reset() { config(ANI_WR_ALL | 0x40,0,0,0,"START.GIF"); }
+        void reset() { config(AniCfg( ANI_WR_ALL | 0x40,0,0,0,"0x0000 0000 #~# 0*START.GIF" )); }
+
+        int  config(AniCfg cfg){
+            StringList *    pList;
+            StringList *    pEntryList;
+            String          entryStr,countStr,nameStr;
+            AniGifNode      entry;
+            int             res;
+
+            _state      = stop;
+
+            pList = new StringList(cfg.str.c_str(),"#~#");
+            String colorList = pList->getNextListEntry();
+            String fileList  = pList->getNextListEntry();
+            delete pList;
+
+            // do base class config 
+            cfg.str = colorList;
+            Ani::config(cfg);       
+
+            // do individual config (file list)
+    	    _fileList.clear();
+            pList = new StringList(fileList.c_str(),',');
+            while(pList->isEndReached() == false){
+                entryStr = pList->getNextListEntry();
+                
+                pEntryList = new StringList(entryStr.c_str(),"*");
+                countStr = pEntryList->getNextListEntry();
+                nameStr  = pEntryList->getNextListEntry();
+                delete pEntryList;
+
+                entry.count = convertStrToInt(countStr);
+                entry.name  = nameStr;
+                res = _checkFile(entry.name);
+                if (res != ANI_OK){
+                    _fileList.clear();
+                    return res;
+                }
+                _fileList.add(entry);
+            }
+            _fileCount = _fileList.size();
+            if (_fileCount == 0){
+                return ANI_ERROR_FILE_NOT_FOUND;
+            }
+            _fileIndex = 0;
+            _loopCount = _fileList.get(_fileIndex).count;
+            _loopIndex = 0;
+            _state  = init;
+            return ANI_OK;
+        }
 
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
+            String fileName;
+            AniGifNode entry;
+            u16_t color;
+            u8_t dim;
+            String errorMsg;
+            int nr;
+
             switch (_state){
                 case stop:
                     // do nothing parameters are loocked by other thread
@@ -41,11 +155,17 @@ class MatrixGifFileAni : public NeoMatrixAni{
                     break;
 
                 case init:
-                    pMatrix->fillScreen(0);
-                    pMatrix->setBrightness(_brightness);
+                    Ani::loop(time);
+                    color=toColor565(getColor());
+                    pMatrix->fillScreen(color);
+                    dim=getDim();
+                    pMatrix->setBrightness(dim);
+
                     _gif.close();
-                    _gif.open((const char *)_fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
-                    _count = 0;
+                    entry = _fileList.get(_fileIndex);
+                    fileName = entry.name;
+                    _loopCount = entry.count;
+                    _gif.open((const char *)fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
                     _state = run;
                     break;
                 
@@ -55,18 +175,24 @@ class MatrixGifFileAni : public NeoMatrixAni{
                         int res = _gif.playFrame(false,&_wait,pMatrix);
                         if(res == 0){
                             _gif.close();
-                            if (_repeat > 0){
-                                _count++;
-                                if (_count >= _repeat){
-                                    _state = stop;
+                            if (_loopCount > 0){
+                                _loopIndex++;
+                                if (_loopIndex >= _loopCount){
+                                    _fileIndex++;
+                                    if (_fileIndex >= _fileCount){
+                                        _fileIndex = 0;
+                                    }
                                     break;
                                 }
                             }
                             //_gif.reset();  does not work for me ???
-                            _gif.open((const char *)_fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
+                            entry = _fileList.get(_fileIndex);
+                            fileName = entry.name;
+                            _loopCount = entry.count;
+                            _gif.open((const char *)fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
                         } else if (res == -1){
-                            String errorMsg=" error in _gif.playFrame: ";
-                            int nr = _gif.getLastError();
+                            errorMsg=" error in _gif.playFrame: ";
+                            nr = _gif.getLastError();
                             switch(nr){
                                 case GIF_SUCCESS:               errorMsg+="GIF_SUCCESS";            break;
                                 case GIF_DECODE_ERROR:          errorMsg+="GIF_DECODE_ERROR";       break;
@@ -86,34 +212,21 @@ class MatrixGifFileAni : public NeoMatrixAni{
             }
         }
 
-        int setup(uint32_t p1,uint32_t p2,uint32_t p3,uint32_t p4,String str,uint32_t length,uint8_t ** pData)  {
-            _state      = stop;
-            //_gif.close(); do _gif handling only in main loop (reentrance)
-            _fileName   = str;  
-            _brightness = L_BYTE(p1);
-            _repeat     = H_WORD(p1);
-            int res = _checkFile();
-            if (res == ANI_OK){
-                _state  = init;
-            } 
-            return res;
-        }
-
     private:
         enum GifState {stop,init,run};
         volatile GifState   _state;
 
         AnimatedGIF         _gif; // static instance of the class uses 22.5K of RAM
         uint32_t            _lastFrame;
-        int                 _wait,_repeat,_count;                
-        uint8_t             _brightness;
-        String              _fileName;
+        int                 _wait,_loopCount,_loopIndex,_fileCount,_fileIndex;                
+
+        SimpleList<AniGifNode>  _fileList;
 
 
-        int _checkFile(){
+        int _checkFile(String fileName){
             SDFile file;
-            if (globalSDcard0.exists(_fileName.c_str())){
-                file = globalSDcard0.open(_fileName.c_str(),FILE_READ);
+            if (globalSDcard0.exists(fileName.c_str())){
+                file = globalSDcard0.open(fileName.c_str(),FILE_READ);
                 if (file.isDirectory()) {
                     return ANI_ERROR_FILE_NOT_FOUND;
                 }
