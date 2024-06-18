@@ -34,7 +34,7 @@ class MatrixOffAni : public NeoMatrixAni{
 class MatrixOnAni : public NeoMatrixAni{
     public:
         MatrixOnAni():NeoMatrixAni((const char *) F("on"))      { reset();                                       }
-        void reset()                                            { config(AniCfg(ANI_WR_ALL | 0x80,0,0,0,"0x0000 00FF"));      }
+        void reset()                                            { config(AniCfg(ANI_WR_ALL | 0x40,0,0,0,"0x00FF FFFF"));      }
 };
 
 

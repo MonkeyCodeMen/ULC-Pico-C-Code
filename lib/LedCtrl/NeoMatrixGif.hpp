@@ -89,7 +89,9 @@ class MatrixGifFileAni : public NeoMatrixAni{
             _gif.begin(GIF_PALETTE_RGB888 );
         };
         
-        void reset() { config(AniCfg( ANI_WR_ALL | 0x40,0,0,0,"0x0000 0000 #~# 0*START.GIF" )); }
+        void reset() { 
+            config(AniCfg( ANI_WR_ALL | 0x40,0,0,0,"0x0000 0000 #~# 0*START.GIF" )); 
+        }
 
         int  config(AniCfg cfg){
             StringList *    pList;
@@ -97,7 +99,6 @@ class MatrixGifFileAni : public NeoMatrixAni{
             String          entryStr,countStr,nameStr;
             AniGifNode      entry;
             int             res;
-
             _state      = stop;
 
             pList = new StringList(cfg.str.c_str(),"#~#");
@@ -114,7 +115,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
             pList = new StringList(fileList.c_str(),',');
             while(pList->isEndReached() == false){
                 entryStr = pList->getNextListEntry();
-                
+
                 pEntryList = new StringList(entryStr.c_str(),"*");
                 countStr = pEntryList->getNextListEntry();
                 nameStr  = pEntryList->getNextListEntry();
@@ -124,24 +125,22 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 entry.name  = nameStr;
                 res = _checkFile(entry.name);
                 if (res != ANI_OK){
-                    _fileList.clear();
-                    return res;
+                    LOG("file not found: " + entry.name);
+                } else {
+                    LOG("file: " + entry.name + " add to list and will be played " + String(entry.count) + " times");
+                    _fileList.add(entry);
                 }
-                _fileList.add(entry);
             }
             _fileCount = _fileList.size();
             if (_fileCount == 0){
+                LOG(" no file in list found");
                 return ANI_ERROR_FILE_NOT_FOUND;
             }
-            _fileIndex = 0;
-            _loopCount = _fileList.get(_fileIndex).count;
-            _loopIndex = 0;
             _state  = init;
             return ANI_OK;
         }
 
         void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
-            String fileName;
             AniGifNode entry;
             u16_t color;
             u8_t dim;
@@ -162,10 +161,11 @@ class MatrixGifFileAni : public NeoMatrixAni{
                     pMatrix->setBrightness(dim);
 
                     _gif.close();
+                    _fileIndex = 0;
+                    _loopIndex = 0;
                     entry = _fileList.get(_fileIndex);
-                    fileName = entry.name;
                     _loopCount = entry.count;
-                    _gif.open((const char *)fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
+                    _gif.open((const char *)entry.name.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
                     _state = run;
                     break;
                 
@@ -174,22 +174,20 @@ class MatrixGifFileAni : public NeoMatrixAni{
                         _lastFrame = time;
                         int res = _gif.playFrame(false,&_wait,pMatrix);
                         if(res == 0){
-                            _gif.close();
+                            // last gif frame has been played 
                             if (_loopCount > 0){
+                                // it is not and endless loop ==> select next one (same frame or next file)
                                 _loopIndex++;
                                 if (_loopIndex >= _loopCount){
-                                    _fileIndex++;
-                                    if (_fileIndex >= _fileCount){
-                                        _fileIndex = 0;
-                                    }
-                                    break;
+                                    _loopIndex = 0;
+                                    _fileIndex = wrapAround(0,_fileIndex+1,_fileCount-1);
                                 }
                             }
-                            //_gif.reset();  does not work for me ???
                             entry = _fileList.get(_fileIndex);
-                            fileName = entry.name;
                             _loopCount = entry.count;
-                            _gif.open((const char *)fileName.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
+                            //_gif.reset();  // does not work for me ???
+                            _gif.close();
+                            _gif.open((const char *)entry.name.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
                         } else if (res == -1){
                             errorMsg=" error in _gif.playFrame: ";
                             nr = _gif.getLastError();
