@@ -16,8 +16,6 @@ class NeoMatrixCtrl : public Ctrl
             ASSERT(pMatrix != NULL,F("pMatrix must not be NULL"));
             _pMatrix = pMatrix;
             _pMatrix->begin();
-            // does not work to dim colors down and then UP (original color is not stored)
-            // the implement dimming by color recalculation
             pMatrix->setBrightness(255);  
             pMatrix->fillScreen(pMatrix->Color(0,0,0));
             pMatrix->show();

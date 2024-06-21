@@ -136,6 +136,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 LOG(" no file in list found");
                 return ANI_ERROR_FILE_NOT_FOUND;
             }
+            LOG("GIF list contains now "+String(_fileCount)+ " entrie(s)");
             _state  = init;
             return ANI_OK;
         }
@@ -155,23 +156,30 @@ class MatrixGifFileAni : public NeoMatrixAni{
 
                 case init:
                     Ani::loop(time);
-                    color=toColor565(getColor());
-                    pMatrix->fillScreen(color);
-                    dim=getDim();
-                    pMatrix->setBrightness(dim);
+                    pMatrix->fillScreen(toColor565(getColor()));
+                    pMatrix->setBrightness(getDim());
 
-                    _gif.close();
                     _fileIndex = 0;
                     _loopIndex = 0;
+
                     entry = _fileList.get(_fileIndex);
                     _loopCount = entry.count;
+                    _gif.close();
                     _gif.open((const char *)entry.name.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
+
+                    _lastFrame = time;
+                    _wait = 1;
+
                     _state = run;
                     break;
                 
                 case run:
+                    Ani::loop(time);
                     if (time-_lastFrame >= _wait){
                         _lastFrame = time;
+                        if (hasChanged()){
+                            pMatrix->setBrightness(getDim());
+                        }
                         int res = _gif.playFrame(false,&_wait,pMatrix);
                         if(res == 0){
                             // last gif frame has been played 
@@ -188,6 +196,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
                             //_gif.reset();  // does not work for me ???
                             _gif.close();
                             _gif.open((const char *)entry.name.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
+                            pMatrix->fillScreen(toColor565(getColor()));
                         } else if (res == -1){
                             errorMsg=" error in _gif.playFrame: ";
                             nr = _gif.getLastError();

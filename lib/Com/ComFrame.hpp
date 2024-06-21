@@ -83,8 +83,8 @@ S:M0,static,0xFF0000FF#
 S:M0,rect#
 S:M0,circle#
 S:M0,gif#
-S:M0,gif,0x20,0,0,0,"day_1.gif"#
-S:M0,gif,0x20,0,0,0,"invader.gif"#   ==> will cause: A:M0,gif,20,0,0,0,"invader.gif",0#NOK-out of memory#
+S:M0,gif,0,0,0,0,"0x0 #~# day_1.gif"#
+S:M0,gif,0,0,0,0,"0x0 #~# invader.gif"#  
 S:C0,down#
 S:C0,up#
 S:C0,left#
@@ -93,6 +93,7 @@ S:C0,enter#
 S:C0,dir#
 
 
+S:M1,gif,0xF000 0001,00x000A0100,0,0x00408070,"0x0 #~# 0*ball.gif"#
 
 
 
