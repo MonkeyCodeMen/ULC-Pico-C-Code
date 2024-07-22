@@ -52,9 +52,13 @@ class configItem{
         void operator=(const configItem & src)  { _obj = src._obj;  _cmd = src._cmd;    _cfg = src._cfg;    }
         bool run(){
                 if (_obj != NULL){
-                    if (_obj->select(_cmd.c_str()) == ANI_OK){
-                        _obj->config(_cfg);
-                        return true;
+                    if (_cmd != "") {
+                        if(_obj->select(_cmd.c_str()) != ANI_OK){
+                            return false;
+                        } 
+                    }
+                    if (_obj->config(_cfg) != ANI_OK){
+                        return false;
                     }
                 }
                 return false;

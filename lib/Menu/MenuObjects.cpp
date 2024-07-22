@@ -59,16 +59,16 @@ MenuEntryPtr menuTest[MENU_TEST_COUNT] = {  &menuTestEntryBool1,
 
 
 MenuHeaderText menuMainHeader("main menu: (c) MonkeyCodeMen",true,true,2,2,TFT_BLUE,TFT_WHITE);
-MenuEntryList  menuMainSwitch1("LED 1: ",NULL,0,0,true,false,"[","]",2,2);
-MenuEntryList  menuMainSwitch2("LED 2: ",NULL,0,0,true,false,"[","]",2,2);
-MenuEntryList  menuMainSwitch3("LED 3: ",NULL,0,0,true,false,"[","]",2,2);
-MenuEntryList  menuMainSwitch4("LED 4: ",NULL,0,0,true,false,"[","]",2,2);
-MenuEntryList  menuMainRGB1(   "RGB 1: ",NULL,0,0,true,false,"[","]",2,2);
-MenuEntryList  menuMainRGB2(   "RGB 2: ",NULL,0,0,true,false,"[","]",2,2);
-MenuEntryList  menuMainNeo1(   "NEO 1: ",NULL,0,0,true,false,"[","]",2,2);
-MenuEntryList  menuMainNeo2(   "NEO 2: ",NULL,0,0,true,false,"[","]",2,2);
-MenuEntryList  menuMainMatrix1("MAT 1: ",NULL,0,0,true,false,"[","]",2,2);
-MenuEntryList  menuMainMatrix2("MAT 2: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainSwitch1("LED 0: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainSwitch2("LED 1: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainSwitch3("LED 2: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainSwitch4("LED 3: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainRGB1(   "RGB 0: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainRGB2(   "RGB 1: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainNeo1(   "NEO 0: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainNeo2(   "NEO 1: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainMatrix1("MAT 0: ",NULL,0,0,true,false,"[","]",2,2);
+MenuEntryList  menuMainMatrix2("MAT 1: ",NULL,0,0,true,false,"[","]",2,2);
 
 MenuEntryPtr menuMain[MENU_MAIN_COUNT] = { &menuMainSwitch1,&menuMainSwitch2,&menuMainSwitch3,&menuMainSwitch4,
                              &menuMainRGB1,&menuMainRGB2,&menuMainNeo1,&menuMainNeo2,&menuMainMatrix1,&menuMainMatrix2};
