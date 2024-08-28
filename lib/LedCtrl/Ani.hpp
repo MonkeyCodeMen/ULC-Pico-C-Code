@@ -132,7 +132,7 @@
 
 union dimCtrl_u {
     uint32_t uint32;
-	    struct {
+	struct {
         uint8_t L; // least significant byte
         uint8_t H;
         uint8_t HH;
@@ -152,7 +152,7 @@ typedef union dimCtrl_u dimCtrl_t;
 
 union colorCtrl_u {
     uint32_t uint32;
-	    struct {
+	struct {
         uint8_t L; // least significant byte
         uint8_t H;
         uint8_t HH;
@@ -169,7 +169,7 @@ typedef union colorCtrl_u colorCtrl_t;
 
 union flashCtrl_u {
     uint32_t uint32;
-	    struct {
+	struct {
         uint8_t L; // least significant byte
         uint8_t H;
         uint8_t HH;
@@ -208,6 +208,14 @@ class AniCfg{
 			{}
 		AniCfg(const AniCfg & src) {*this = src;}		// copy constructor
 		~AniCfg() = default;
+
+		virtual void clear(){
+			dimCfg.uint32    = 0;
+			colorCfg.uint32  = 0;
+			flashCfg.uint32  = 0; 
+			breathCfg.uint32 = 0;
+			str              = "";
+		}
 
 		virtual void operator=(const AniCfg & src){
 			dimCfg    = src.dimCfg;

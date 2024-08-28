@@ -88,7 +88,7 @@ class configCollection
             
             JsonDocument scenarioJson;
             JsonArray arr = config["scenarios"].as<JsonArray>();
-            if (arr == nullptr){
+            if (arr == nullptr){   
                 // configItems .. empty config scenario
                 String msg = "no scenarios found in file :"+ String(_configFileName);
                 debug.log(msg);

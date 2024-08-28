@@ -48,17 +48,17 @@ class configItem{
         CtrlPtr obj()                           { return _obj;                                              }   
         String cmd()                            { return _cmd;                                              }
         AniCfg cfg()                            { return _cfg;                                              }
-        void clear()                            { _obj = NULL;      _cmd = "";          _cfg = AniCfg();    }
+        void clear()                            { _obj = NULL;      _cmd = "";          _cfg.clear();       }
         void operator=(const configItem & src)  { _obj = src._obj;  _cmd = src._cmd;    _cfg = src._cfg;    }
         bool run(){
                 if (_obj != NULL){
                     if (_cmd != "") {
                         if(_obj->select(_cmd.c_str()) != ANI_OK){
-                            return false;
+                            return true;
                         } 
                     }
                     if (_obj->config(_cfg) != ANI_OK){
-                        return false;
+                        return true;
                     }
                 }
                 return false;
