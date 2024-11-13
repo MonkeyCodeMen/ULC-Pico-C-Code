@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <MainConfig.h>
+#include <helper.h>
 #include <Adafruit_NeoMatrix.h>
 #include <WS2812FX.h>
 #include <LedCtrl.hpp>

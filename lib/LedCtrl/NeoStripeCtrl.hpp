@@ -1,7 +1,8 @@
 #pragma once
 
 #include <Arduino.h>
-#include "Ctrl.hpp"
+#include <helper.h>
+#include <Ctrl.hpp>
 #include <WS2812FX.h>
 
 /*
