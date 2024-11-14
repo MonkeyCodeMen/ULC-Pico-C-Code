@@ -15,10 +15,13 @@
 // debug logs are visibile in the terminal
 #define WAIT_FOR_TERMINAL           4000  //[ms]    
 
-#define BLINK_SEQ_MAIN              {125, 500, 125, 500, 125, 2000}
+#define BLINK_SEQ_MAIN              {250, 500, 250, 500, 500, 1000}
 
 #define WITH_DSIPLAY_STARTUP_TEST
 //#define PRINT_LOOP_STATS    10000
+
+
+
 
 ///////////////////////////////////////////
 // uinty test configs   

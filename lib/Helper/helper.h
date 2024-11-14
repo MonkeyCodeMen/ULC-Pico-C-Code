@@ -90,3 +90,7 @@ union uint16_t_byteAcess {
 
 int findStringInArray(String * pFirst,int count,String target);
 
+String removeLeadingCharacters(String input, char charToRemove);
+String removeLeadingCharacters(String input, const String& charsToRemove);
+String removeTrailingCharacters(String input, char charToRemove);
+String removeTrailingCharacters(String input, const String& charsToRemove);

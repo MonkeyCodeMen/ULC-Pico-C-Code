@@ -85,9 +85,13 @@ class MatrixGifFileAni : public NeoMatrixAni{
     };
 
     public:
-        MatrixGifFileAni():NeoMatrixAni("gif")      {
+        MatrixGifFileAni():
+            NeoMatrixAni("gif"),
+            _state(stop),_lastFrame(0),_wait(0),
+            _loopCount(0),_loopIndex(0),_fileCount(0),_fileIndex(0) 
+        {
             _gif.begin(GIF_PALETTE_RGB888 );
-        };
+        }
         
         void reset() { 
             config(AniCfg( ANI_WR_ALL | 0x40,0,0,0,"0x0000 0000 #~# 0*START.GIF" )); 
@@ -145,7 +149,6 @@ class MatrixGifFileAni : public NeoMatrixAni{
             AniGifNode entry;
             u16_t color;
             u8_t dim;
-            String errorMsg;
             int nr;
 
             switch (_state){
@@ -198,28 +201,14 @@ class MatrixGifFileAni : public NeoMatrixAni{
                             _gif.open((const char *)entry.name.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
                             pMatrix->fillScreen(toColor565(getColor()));
                         } else if (res == -1){
-                            errorMsg=" error in _gif.playFrame: ";
-                            nr = _gif.getLastError();
-                            switch(nr){
-                                case GIF_SUCCESS:               errorMsg+="GIF_SUCCESS";            break;
-                                case GIF_DECODE_ERROR:          errorMsg+="GIF_DECODE_ERROR";       break;
-                                case GIF_TOO_WIDE:              errorMsg+="GIF_TOO_WIDE";           break;
-                                case GIF_INVALID_PARAMETER:     errorMsg+="GIF_INVALID_PARAMETER";  break;
-                                case GIF_UNSUPPORTED_FEATURE:   errorMsg+="GIF_UNSUPPORTED_FEATURE";break;
-                                case GIF_FILE_NOT_OPEN:         errorMsg+="GIF_FILE_NOT_OPEN";      break;
-                                case GIF_EARLY_EOF:             errorMsg+="GIF_EARLY_EOF";          break;
-                                case GIF_EMPTY_FRAME:           errorMsg+="GIF_EMPTY_FRAME";        break;
-                                case GIF_BAD_FILE:              errorMsg+="GIF_BAD_FILE";           break;
-                                case GIF_ERROR_MEMORY:          errorMsg+="GIF_ERROR_MEMORY";       break;
-                            }
-                            debug.log(errorMsg);
+                            _frameError();
                         }
                     }
                     break;
             }
         }
 
-    private:
+    protected:
         enum GifState {stop,init,run};
         volatile GifState   _state;
 
@@ -242,6 +231,23 @@ class MatrixGifFileAni : public NeoMatrixAni{
                 return ANI_OK;
             } 
             return ANI_ERROR_FILE_NOT_FOUND;
+        }
+
+        void _frameError(){
+            String errorMsg=" error in _gif.playFrame: ";
+            switch(_gif.getLastError()){
+                case GIF_SUCCESS:               errorMsg+="GIF_SUCCESS";            break;
+                case GIF_DECODE_ERROR:          errorMsg+="GIF_DECODE_ERROR";       break;
+                case GIF_TOO_WIDE:              errorMsg+="GIF_TOO_WIDE";           break;
+                case GIF_INVALID_PARAMETER:     errorMsg+="GIF_INVALID_PARAMETER";  break;
+                case GIF_UNSUPPORTED_FEATURE:   errorMsg+="GIF_UNSUPPORTED_FEATURE";break;
+                case GIF_FILE_NOT_OPEN:         errorMsg+="GIF_FILE_NOT_OPEN";      break;
+                case GIF_EARLY_EOF:             errorMsg+="GIF_EARLY_EOF";          break;
+                case GIF_EMPTY_FRAME:           errorMsg+="GIF_EMPTY_FRAME";        break;
+                case GIF_BAD_FILE:              errorMsg+="GIF_BAD_FILE";           break;
+                case GIF_ERROR_MEMORY:          errorMsg+="GIF_ERROR_MEMORY";       break;
+            }
+            debug.log(errorMsg);
         }
 
 

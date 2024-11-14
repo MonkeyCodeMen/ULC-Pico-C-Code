@@ -18,7 +18,7 @@
              Optionally, it uses a mutex for safe concurrent access.
 */
 /**********************************************************************/
-class Time {
+class BufferdClock {
     #define STD_SYNC_INTERVAL_MSEC  3*60*60*1000    //!< Default synchronization interval (3 hours)
     #define MIN_SYNC_INTERVAL_MSEC  500             //!< Minimum allowable synchronization interval (500 ms)
     #define NO_SYNC                 0               //!< Value indicating no synchronization after initialization
@@ -31,9 +31,9 @@ class Time {
                      January 1, 2024, and establishes the default sync interval.
         */
         /**********************************************************************/
-        Time(): _pBus(nullptr), _pMutex(&_dummyMutex), _validRTC(false), 
-                _startTimer(millis()), _startDate(2024, 1, 1, 0, 0, 0),
-                _syncInterval(STD_SYNC_INTERVAL_MSEC), _lastSync(_startTimer), _errorCounterInit(0) {}
+        BufferdClock(): _pBus(nullptr), _pMutex(&_dummyMutex), _validRTC(false), 
+                _startDate(2024, 1, 1, 0, 0, 0),
+                _syncInterval(STD_SYNC_INTERVAL_MSEC), _lastSync(millis()), _errorCounterInit(0) {}
 
         /**********************************************************************/
         /*!
@@ -41,12 +41,11 @@ class Time {
             @details Deletes the mutex if it was created internally by this class.
         */
         /**********************************************************************/
-        ~Time() = default;
+        ~BufferdClock() = default;
 
         /**********************************************************************/
         /*!
             @brief   Initializes the Time object with an RTC module and optional synchronization settings.
-            @param   now            The current system time in milliseconds.
             @param   pBus           Pointer to the TwoWire (I2C) bus connected to the RTC.
             @param   pMutex         Optional pointer to a mutex for safe access; if null, a mutex will be created.
             @param   syncInterval   Optional synchronization interval in milliseconds (default is 3 hours).
@@ -54,47 +53,7 @@ class Time {
                     If no mutex is provided, an internal mutex is created and managed by the class.
         */
         /**********************************************************************/
-        void begin(uint32_t now, TwoWire *pBus, Mutex * pMutex = nullptr, uint32_t syncInterval = STD_SYNC_INTERVAL_MSEC) {
-            // Step 1: Check if the provided I2C bus pointer is valid
-            if (pBus == nullptr) {
-                LOG(F("Invalid bus"));      // Log an error if the bus pointer is invalid
-                _pBus = nullptr;            // Set internal bus pointer to null
-                _validRTC = false;
-                return;                     // Exit the function early
-            }
-            _pBus = pBus;                   // Store the valid bus pointer
-
-            // Step 2: Initialize or assign mutex
-            if (pMutex == nullptr) {
-                _pMutex = &_dummyMutex;     // if no Mutex provided use internal dummy Mutex
-            } else {
-                _pMutex = pMutex;           // Use the provided mutex
-            }
-
-            // Step 3: Adjust sync interval if it is too short
-            if ((syncInterval > 0) && (syncInterval < MIN_SYNC_INTERVAL_MSEC)) {
-                LOG(F("Sync interval too small ... adjusted to minimum"));
-                _syncInterval = MIN_SYNC_INTERVAL_MSEC;  // Set to minimum interval
-            } else {
-                _syncInterval = syncInterval;            // Use the provided interval
-            }
-
-            // Step 4: Lock the mutex to ensure safe access to shared resources
-            _pMutex->lock();
-            if (_RTC.begin(_pBus)) {        // Attempt to start communication with the RTC
-                _startDate = _RTC.now();    // Sync software time with RTC
-                _startTimer = now;          // Set the reference start time
-                _lastSync = now;            // Set the last sync time to current time
-                _validRTC = true;           // Mark RTC as valid and synchronized
-            } else {
-                // If RTC fails, log an error and set a default date/time
-                LOG(F("Could not sync software clock with RTC .. setting to 2024-12-24 11:11:11"));
-                _startDate = DateTime(2024, 12, 24, 11, 11, 11);
-                _validRTC = false;          // Mark RTC as invalid
-                _errorCounterInit++;
-            }
-            _pMutex->free();                // Unlock the mutex after initialization
-        }
+        void begin(TwoWire *pBus, Mutex * pMutex = nullptr, uint32_t syncInterval = STD_SYNC_INTERVAL_MSEC);
 
         /**********************************************************************/
         /*!
@@ -105,47 +64,7 @@ class Time {
                     This method should be called regularly in the main loop.
         */
         /**********************************************************************/
-        void loop(uint32_t now) {
-            if ((now - _lastSync >= _syncInterval) && (_syncInterval != NO_SYNC)){
-                // time for sync
-                bool syncDone = false;
-                if (_validRTC == false){
-                        // no successfull init until now ==> try a new init
-                        if (_pMutex->tryLock()){ 
-                            if (_RTC.begin(_pBus)) {        // Attempt to start communication with the RTC
-                                _startDate = _RTC.now();    // Sync software time with RTC
-                                _startTimer = now;          // Set the reference start time
-                                _lastSync = now;            // only in case of success set the last sync time to current time
-                                _validRTC = true;           // Mark RTC as valid and synchronized                   
-                                syncDone = true;
-                            } else {
-                                _errorCounterInit++;
-                            }
-                            _pMutex->free();
-                        } 
-                } else {
-                    // read time from RTC and update/sync SW clock 
-                    if (_pMutex->tryLock() == true){
-                        _startDate = _RTC.now();    // Update the base date/time from RTC
-                        _pMutex->free();
-                        _startTimer = now;          // Reset the reference start time
-                        _lastSync   = now;          // only in case of success record the last sync time
-                        syncDone    = true;
-                    }
-                    // Attention: if MUTEX is haevily used by other applications a sync on regular base is not garantueed 
-
-                }
-                if (syncDone == false){
-                    // update was not successfull this time 
-                    // sync counter/timer are not reseted ==> sync will be tried next loop again
-                    // do for now SW update only
-                    _loopDate = _startDate + TimeSpan((now - _startTimer) / 1000);
-                }
-            } else {
-                // only SW clock update .. no HW access
-                _loopDate = _startDate + TimeSpan((now - _startTimer) / 1000);
-            }
-        }
+        void loop(uint32_t now);
 
         /**********************************************************************/
         /*!
@@ -157,6 +76,17 @@ class Time {
         /**********************************************************************/
         DateTime getLoopDateTime() const { return _loopDate; }
 
+
+        /**********************************************************************/
+        /*!
+            @brief   update the time of this object and the underlieing RTC 
+            @param   newDateTime   date/time for update
+            @param   blocking      set this flag to false if method should not wait if Mutex is not available
+            @return  true : success   false: failed
+        */
+        /**********************************************************************/
+        bool udateRTC(DateTime newDateTime,bool blocking=true);
+
         /**********************************************************************/
         /*!
             @brief   returns count of failed init tries
@@ -166,7 +96,6 @@ class Time {
         uint32_t getErrorCounterInit()  const { return _errorCounterInit; }
 
     protected:
-        uint32_t        _startTimer;     /*!< System time (in milliseconds) at last RTC synchronization */
         uint32_t        _syncInterval;   /*!< Interval between RTC and software clock syncs (in ms) */
         uint32_t        _lastSync;       /*!< System time (in milliseconds) of last RTC synchronization */
         DateTime        _startDate;      /*!< Last synced DateTime from the RTC */
@@ -181,3 +110,6 @@ class Time {
 
         uint32_t        _errorCounterInit; /*! RTC init error counter */
 };
+
+
+extern BufferdClock bufferedClock;

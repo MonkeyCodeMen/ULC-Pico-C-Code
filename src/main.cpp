@@ -1,6 +1,7 @@
 #include <Arduino.h>
 #include <MainConfig.h>
 #include <PinMapping.h>
+#include <Blink.hpp>
 
 #include <SPI.h>
 #include <Debug.hpp>
@@ -19,6 +20,7 @@
 
 #include <Display.hpp>
 #include <SDcard.hpp>
+#include <BufferedClock.hpp>
 
 #include <configCollection.hpp>
 
@@ -47,6 +49,7 @@
 volatile bool setupStartsecondCore = false;   // false:  first core0 setup .. then core1 setup      || true: core0 and core1 setup in parallel
 volatile bool waitForsecondCore    = true;    // false:  core0 starts with loop directly after setup|| true: core0 waits for core1 to finish setup first, then start loop
 
+BlinkingLED blink(LED_BUILTIN);
 
 // menuCtrlEntries  ist the selection of connected CTRL objects in the menus
 typedef MenuEntryList* MenuEntryListPtr;
@@ -54,9 +57,6 @@ MenuEntryListPtr menuCtrlEntries[CTRL_OBJECT_COUNT] = {&menuMainSwitch1,&menuMai
                                                       &menuMainRGB1,&menuMainRGB2,&menuMainNeo1,&menuMainNeo2,
                                                       &menuMainMatrix1,&menuMainMatrix2};
 
-
-I2C_SlaveReceiveReg_Struct  I2C_slaveSoll;
-I2C_SlaveTransmitReg_Struct I2C_slaveIst;
 
 
 /*****************************************************************
@@ -110,27 +110,6 @@ void mainMenu_begin(){
 }
 
 
-void toggleLed(uint32_t now){
-  static uint32_t timerLED=0;
-  uint32_t diff = now-timerLED;
-
-  if (diff < 250){
-    digitalWrite(LED_BUILTIN,HIGH);
-  } else if (diff < 500){
-    digitalWrite(LED_BUILTIN,LOW);
-  } else if (diff < 1000){
-    digitalWrite(LED_BUILTIN,HIGH);
-  } else if (diff < 1500){
-    digitalWrite(LED_BUILTIN,LOW);
-  } else if (diff < 1750){
-    digitalWrite(LED_BUILTIN,HIGH);
-  } else if (diff < 2000){
-    digitalWrite(LED_BUILTIN,LOW);
-  } else {
-    timerLED = now;
-  }
-}
-
 /* 
 ToDo: no longer used, but where should we place this
 void renderDisplay(uint32_t now){
@@ -160,8 +139,7 @@ void TestDebug(){
  */
 
 void setup() {
-  pinMode(LED_BUILTIN,OUTPUT);
-  digitalWrite(LED_BUILTIN, HIGH);
+  blink.on();
   #ifdef WAIT_FOR_TERMINAL
   while (millis()  < WAIT_FOR_TERMINAL) {  }; 
   #endif
@@ -180,7 +158,10 @@ void setup() {
   SPI.begin();
   SPI1.begin();
   Wire.begin();
-  Wire.setClock(400*1000);
+  Wire.setClock(I2C_DEFAULT_SPEED);
+
+  LOG(F("setup 0: RTC"));
+  bufferedClock.begin(&Wire,&I2C0_mutex);
   
   LOG(F("setup 0: PWM expander"));
   i2c_master.begin(&Wire,&I2C0_mutex);
@@ -206,13 +187,13 @@ void setup() {
   LOG(F("setup 0: LED"));
   setupLed();
 
-
+  blink.off();
   setupStartsecondCore = true;
   while(waitForsecondCore == true){
   }
 
+  blink.setup(BLINK_SEQ_MAIN);
   LOG(F("setup 0: done"));
-  digitalWrite(LED_BUILTIN, LOW);
 }
 
 void setup1() {
@@ -249,7 +230,7 @@ void setup1() {
  ******************************************************************
  */
 void loop() {
-  static uint8_t prgState=1;
+  static uint8_t loop1State=1;
   uint32_t now = millis();
   static uint32_t lastUpdate;
 
@@ -258,8 +239,10 @@ void loop() {
     stats.measureAndPrint(now,PRINT_LOOP_STATS,F_CONST("loop0 stats:"));
   #endif
 
+  blink.loop(now);
+  bufferedClock.loop(now);
 
-  switch(prgState){
+  switch(loop1State){
       case 1:   ledCtrl1.loop(now);               break;
       case 2:   ledCtrl2.loop(now);               break;
       case 3:   ledCtrl3.loop(now);               break;
@@ -267,10 +250,9 @@ void loop() {
       case 5:   rgbCtrl1.loop(now);               break;
       case 6:   rgbCtrl2.loop(now);               break;
       case 7:   com.loop();                       break;
-      case 8:   toggleLed(now);                   break;
-      default:  prgState = 0;                     break;
+      default:  loop1State = 0;                     break;
   }
-  prgState++;
+  loop1State++;
   if (now-lastUpdate >= 20){
     keyboard.loop(now);
     lastUpdate = now;
@@ -282,7 +264,7 @@ void loop() {
 
 
 void loop1(){
-  static uint8_t prgState=1;
+  static uint8_t loop2State=1;
   uint32_t now = millis();
   String time(now/1000);
   EventType event;
@@ -292,7 +274,7 @@ void loop1(){
     stats.measureAndPrint(now,PRINT_LOOP_STATS,F_CONST("loop1 stats:"));
   #endif
 
-  switch(prgState){
+  switch(loop2State){
       case 1:   neoMatrixCtrl1.loop(now);       break;
       case 2:   neoMatrixCtrl2.loop(now);       break;
       case 3:   neoStripeCtrl1.loop(now);       break;
@@ -318,9 +300,9 @@ void loop1(){
           // draw menu            
           menuHandler.loop(now);          
           break;
-      default:  prgState = 0;                     break;
+      default:  loop2State = 0;                     break;
   }
-  prgState++;
+  loop2State++;
 }
 
 

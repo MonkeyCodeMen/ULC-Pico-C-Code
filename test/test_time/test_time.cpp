@@ -22,11 +22,11 @@ Mutex           mockMutex;
 MockRTC_DS1307  mockRTC;
 
 // Global variable for the `Time` object
-Time testClock;
+BufferdClock testClock;
 
 void setUp(void) {
     // Reset the time object and initialize now
-    testClock = Time();
+    testClock = BufferdClock();
 }
 
 void tearDown(void) {

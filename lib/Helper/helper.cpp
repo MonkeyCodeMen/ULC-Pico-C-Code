@@ -297,3 +297,54 @@ int findStringInArray(String * pFirst,int size,String target){
     // end reached ==> string not found 
     return -1;
 }
+
+
+String removeLeadingCharacters(String input, char charToRemove) {
+    int startIndex = 0;
+    
+    // find first not matching position
+    while (startIndex < input.length() && input[startIndex] == charToRemove) {
+        startIndex++;
+    }
+    
+    // return resulting substring
+    return input.substring(startIndex);
+}
+
+String removeLeadingCharacters(String input, const String& charsToRemove) {
+    int startIndex = 0;
+
+    // find first not matching position
+    while (startIndex < input.length() && charsToRemove.indexOf(input[startIndex]) != -1) {
+        startIndex++;
+    }
+
+    // return resulting substring
+    return input.substring(startIndex);
+}
+
+
+String removeTrailingCharacters(String input, char charToRemove) {
+    int endIndex = input.length() - 1;
+    
+    // find last not matching position from tail
+    while (endIndex >= 0 && input[endIndex] == charToRemove) {
+        endIndex--;
+    }
+    
+    // return resulting substring
+    return input.substring(0, endIndex + 1);
+}
+
+String removeTrailingCharacters(String input, const String& charsToRemove) {
+    int endIndex = input.length() - 1;
+
+    // find last not matching position from tail
+    while (endIndex >= 0 && charsToRemove.indexOf(input[endIndex]) != -1) {
+        endIndex--;
+    }
+
+    // return resulting substring
+    return input.substring(0, endIndex + 1);
+}
+
