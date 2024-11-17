@@ -17,6 +17,9 @@
 
     this class now take the current date in a loop, select the coresponding animation directory and shows the content (various if animatoins for the day on the screen)
 
+    SDFile is reetrant safe 
+    SD use a separate bus (special ussage of SPI ) ==> no MUTEX needed  for SD access
+
 */
 
 class MatrixGifCalendarAni : public MatrixGifFileAni{
@@ -54,9 +57,9 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
                 return ANI_ERROR_FILE_NOT_FOUND;
             }
 
+            // now select the daily directory (fallback to default if not exist)
             _selectDirectory();
-
-
+            
             return ANI_OK;
         }
 
@@ -78,19 +81,51 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
         }
 
         bool _testDirectory(String path){
+            SDFile entry = globalSDcard0.open(path.c_str());
+            if (entry.isDirectory()){
+                entry.close();
+                return true;
+            }
+            entry.close();
             return false;
         }
 
         void _selectDirectory(){
             uint8_t day = _currentDate.day();
             if (day < 10){
-                _currentDir = _dirBase + "0" + 
+                _currentDir = _dirBase + "0" + String(day,DEC) + "/";
+            } else {
+                _currentDir = _dirBase + String(day,DEC) + "/";
             }
 
         }
 
         void _selectDirector(String& path){
 
+            while (true) {
+                SDFile entry =  dir.openNextFile();
+                if (! entry) {
+                    // no more files
+                    break;
+                }
+
+                for (uint8_t i = 0; i < numTabs; i++) {
+                    Serial.print('\t');
+                }
+
+                Serial.print(entry.name());
+                if (entry.isDirectory()) {
+                    Serial.println("/");
+                    printDirectory(entry, numTabs + 1);
+                } else {
+                    // files have sizes, directories do not
+                    Serial.print("\t\t");
+                    Serial.println(entry.size(), DEC);
+                }
+                entry.close();
+            }
+            printDirectory(root,0);
+            return false;
         }
         
 

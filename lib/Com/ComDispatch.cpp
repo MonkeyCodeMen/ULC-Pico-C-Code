@@ -88,7 +88,6 @@ bool ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
         reg.LED_BLINK ^= 1;
         i2c_master.writeCtrlReg(I2C_ADR_SLAVE,&reg); 
         return true;
-
     }
     pFrame->res = "unknown command for menu";
     return false;
