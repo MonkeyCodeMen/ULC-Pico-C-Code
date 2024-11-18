@@ -32,7 +32,7 @@ class NeoMatrixCtrl : public Ctrl
             addAni(new MatrixBoxAni("ver"));
             addAni(new MatrixBoxAni("hor"));
             addAni(new MatrixGifFileAni());
-            addAni(new MatrixGifCalendarAni());
+            //addAni(new MatrixGifCalendarAni());
             // select first
             select(0);
         }
