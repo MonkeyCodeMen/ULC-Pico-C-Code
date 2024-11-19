@@ -6,7 +6,7 @@ BlinkingLED  blink = BlinkingLED(LED_BUILTIN);
 std::vector<uint32_t> testBlinkSeq = BLINK_SEQ_TEST;
 
 #include <SPI.h>
-#include <Time.hpp>
+#include <BufferedClock.hpp>
 #include <Adafruit_GFX.h>  // why ??
 #include <LittleFS.h>
 

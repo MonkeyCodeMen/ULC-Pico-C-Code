@@ -1,9 +1,10 @@
 #pragma once
-
-#include <NeoMatrixGif.hpp>
-#include <BufferedClock.hpp>
+#include <Arduino.h>
 #include <vector>
 #include <helper.h>
+#include <NeoMatrixGif.hpp>
+#include <BufferedClock.hpp>
+
 
 /*
     class to implement an advents calendar based on NeoMatrixGif
@@ -301,7 +302,7 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
 
             // dir walk
             while (true) {
-                File entry = dir.openNextFile();
+                SDFile entry = dir.openNextFile();
                 if (!entry) {
                     break; // no more entries
                 }
