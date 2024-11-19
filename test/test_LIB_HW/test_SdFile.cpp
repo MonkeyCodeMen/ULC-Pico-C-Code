@@ -7,6 +7,7 @@
 #include <Adafruit_NeoMatrix.h>
 #include <TFT_eSPI.h> // Hardware-specific library
 #include <SDcard.hpp>
+#include <Display.hpp>
 
 
 #include <unity.h>
@@ -36,6 +37,11 @@ String createTestData(){
     data+="merry christams!!\n\n";
 
     return data;
+}
+
+void test_display(){
+    display.begin();
+
 }
 
 
@@ -104,6 +110,7 @@ void test_File_WriteRead(void) {
 // now we call here all test collections
 int runAllCollections(void) {
     UNITY_BEGIN();
+    RUN_TEST(test_display);
     RUN_TEST(test_SD_open);
     RUN_TEST(test_File_WriteRead);
     return UNITY_END();

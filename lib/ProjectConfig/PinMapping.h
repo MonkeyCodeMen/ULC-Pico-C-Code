@@ -6,7 +6,7 @@
 communication channels  and adress map:
 
 main communication chain:
-USER (LAN/WLAN) <==> (LAN/WLAN) Raspberry Pi (USB-serial) <==> (USB-serial) Raspberry Pico  (I2C0-Master) <==> (I2C-slave)  Arduino Nan
+USER PC  <==> (USB-serial) Raspberry Pico  (I2C0-Master) <==> (I2C-slave)  Arduino Nan
 
 
 
