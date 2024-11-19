@@ -82,7 +82,7 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             _weightDailyAdd(10),
             _weightGlobalAdd(1),
             _weightTotal(_weightDaily+_weightDailyAdd+_weightGlobalAdd) {
-            NeoMatrixAni("calendar");
+            _pName = "calendar";
             _clearAll();    // function instead of init list, because will be used several time
         };    
 
@@ -92,6 +92,8 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
 
         int  config(AniCfg cfg){
             _state = stop;
+            _clearAll();
+
 
             // setup dir structure names
             StringList *    pList;
@@ -99,29 +101,44 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             _dirBase = pList->getNextListEntry();
             _dirBase = removeLeadingCharacters(_dirBase,' ');
             _dirBase = removeTrailingCharacters(_dirBase,' ');
-            _dirGlobalAdd  = _dirBase + "add/";
-            _dirDefault    = _dirBase + "def/";
-            _dirDefaultAdd = _dirBase + "def/add/";
+            _dirGlobalAdd  = _dirBase + "ADD/";
+            _dirDefault    = _dirBase + "DEF/";
+            _dirDefaultAdd = _dirBase + "DEF/ADD/";
 
             // test required path
-            if ( (_testDirectory(_dirBase) == false)       ||
-                 (_testDirectory(_dirGlobalAdd) == false)  ||
-                 (_testDirectory(_dirDefault) == false)       ){
-                _clearAll();
+            String msg = " directory test failed for :";
+            if (_testDirectory(_dirBase) == false) {
+                msg += "base directory : " + _dirBase;
+                LOG(msg.c_str());
                 return ANI_ERROR_FILE_NOT_FOUND;
             }
-            _addFilesToList(_dirDefault    ,".gif", _defaultFileList   ,false ,100);
-            _addFilesToList(_dirDefaultAdd ,".gif", _defaultAddFileList,false ,100);
-            _addFilesToList(_dirGlobalAdd  ,".gif", _globalAddFileList ,true  ,100);
+            if (_testDirectory(_dirGlobalAdd) == false) {
+                msg += "_dirGlobalAdd directory : " + _dirGlobalAdd;
+                LOG(msg.c_str());
+                return ANI_ERROR_FILE_NOT_FOUND;
+            }
+            if (_testDirectory(_dirDefault) == false) {
+                msg += "_dirDefault directory : " + _dirDefault;
+                LOG(msg.c_str());
+                return ANI_ERROR_FILE_NOT_FOUND;
+            }
+            _addFilesToList(_dirDefault    ,".GIF", _defaultFileList   ,false ,100);
+            _addFilesToList(_dirDefaultAdd ,".GIF", _defaultAddFileList,false ,100);
+            _addFilesToList(_dirGlobalAdd  ,".GIF", _globalAddFileList ,true  ,100);
 
             // test if default directory is not empty
             if (_defaultFileList.empty()){
                 _clearAll();
+                LOG(F("there is no file in the default (fallback) directory"));
                 return ANI_ERROR_FILE_NOT_FOUND;
             }
 
             // now select the daily directory (fallback to default if not exist)
             _selectDirectory(true);
+
+            // do base class config 
+            cfg.str = "";
+            Ani::config(cfg); 
 
             _state = init;
             return ANI_OK;
@@ -248,6 +265,9 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
                     _currentFile = _dailyFileList[index];
                 }
             }
+
+            String msg = "next file selected :"+_currentFile;
+            LOG(msg.c_str());
         }
 
         bool _testDirectory(String path){
@@ -275,11 +295,11 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
                 _dirDaily = _dirBase + String(day,DEC) + "/";
             }
 
-            _dirDailyAdd= _dirDaily + "add/";
+            _dirDailyAdd= _dirDaily + "ADD/";
             _dailyFileList.clear();
             _dailyAddFileList.clear();
-            _addFilesToList(_dirDaily     ,".gif"  ,_dailyFileList    ,false, 100);
-            _addFilesToList(_dirDailyAdd  ,".gif"  ,_dailyAddFileList ,false, 100);
+            _addFilesToList(_dirDaily     ,".GIF"  ,_dailyFileList    ,false, 100);
+            _addFilesToList(_dirDailyAdd  ,".GIF"  ,_dailyAddFileList ,false, 100);
 
             if (_dailyFileList.empty()){
                 // fallback to default directory
@@ -315,9 +335,9 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
                 } else {
                     // check for GIF file and filesize > 0
                     String fileName = entry.name();
-                    if (fileName.endsWith(ext) && entry.size() >= minSize) {
+                    if ((fileName.endsWith(ext)) && (entry.size() >= minSize)) {
                         // add file name to list 
-                        fileList.push_back(path + "/" + fileName);
+                        fileList.push_back(path + fileName);
                     }
                 }
                 entry.close();

@@ -60,7 +60,6 @@ void BufferdClock::loop(uint32_t now) {
                     _pBus->setClock(I2C_100KHZ);
                     if (_RTC.begin(_pBus)) {        // Attempt to start communication with the RTC
                         _startDate = _RTC.now();    // Sync software time with RTC
-                        _lastSync = now;            // only in case of success set the last sync time to current time
                         _validRTC = true;           // Mark RTC as valid and synchronized                   
                         syncDone = true;
                     } else {
@@ -68,6 +67,7 @@ void BufferdClock::loop(uint32_t now) {
                     }
                     _pBus->setClock(I2C_DEFAULT_SPEED);
                     _pMutex->free();
+                    _lastSync = now;                // next sync or next init try after _syncInterval
                 } 
         } else {
             // read time from RTC and update/sync SW clock 

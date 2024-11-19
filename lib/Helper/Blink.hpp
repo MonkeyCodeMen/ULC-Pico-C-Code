@@ -139,6 +139,8 @@ class BlinkingLED {
         _currentStep = 0;                   // Reset the sequence to the beginning
         _currentState = _onState;
         digitalWrite(_pin, _currentState);  // Set the LED state
+
+        _static = false;
     }
 
     /////////////////////////////////////////////////////////////

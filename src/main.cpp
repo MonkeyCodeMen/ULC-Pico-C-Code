@@ -161,7 +161,7 @@ void setup() {
   Wire.setClock(I2C_DEFAULT_SPEED);
 
   LOG(F("setup 0: RTC"));
-  bufferedClock.begin(&Wire,&I2C0_mutex);
+  bufferedClock.begin(&Wire,&I2C0_mutex,2000);
   
   LOG(F("setup 0: PWM expander"));
   i2c_master.begin(&Wire,&I2C0_mutex);
