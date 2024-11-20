@@ -89,7 +89,7 @@ void tearDown(void) {
 
 
 // now we call here all test collections
-int runAllCollections(void) {
+int runAllTests(void) {
   UNITY_BEGIN();
   RUN_TEST(test_Ctrl_constructor0);
   RUN_TEST(test_Ctrl_emptyList);
@@ -100,26 +100,37 @@ int runAllCollections(void) {
 }
 
 
-
 /**
   * For Arduino framework
   */
+#include <MainConfig.h>
+#include <Blink.hpp>
+BlinkingLED  blink = BlinkingLED(LED_BUILTIN);
+std::vector<uint32_t> testBlinkSeq = BLINK_SEQ_TEST;
+
+void setUp(void) {
+  // set stuff up here
+}
+
+void tearDown(void) {
+  // clean stuff up here
+}
+
+
 void setup() {
+  blink.on();
+
   // Wait ~2 seconds before the Unity test runner
   // establishes connection with a board Serial interface
-  delay(6000);
-  
-  runAllCollections();
+  delay(WAIT_FOR_UINTY_FRAMEWORK);
 
-  pinMode(LED_BUILTIN,OUTPUT);
+  runAllTests();
+
+  blink.setup(testBlinkSeq);
 }
 
 
 void loop() {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(250);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(250);
-
+  uint32_t now = millis();
+  blink.loop(now);  
 }
-

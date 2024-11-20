@@ -39,10 +39,6 @@ String createTestData(){
     return data;
 }
 
-void test_display(){
-    display.begin();
-
-}
 
 
 void test_SD_open(void) {
@@ -108,9 +104,8 @@ void test_File_WriteRead(void) {
 
 
 // now we call here all test collections
-int runAllCollections(void) {
+int runAllTests(void) {
     UNITY_BEGIN();
-    RUN_TEST(test_display);
     RUN_TEST(test_SD_open);
     RUN_TEST(test_File_WriteRead);
     return UNITY_END();
@@ -118,6 +113,15 @@ int runAllCollections(void) {
 
 
 
+
+
+/**
+  * For Arduino framework
+  */
+#include <MainConfig.h>
+#include <Blink.hpp>
+BlinkingLED  blink = BlinkingLED(LED_BUILTIN);
+std::vector<uint32_t> testBlinkSeq = BLINK_SEQ_TEST;
 
 void setUp(void) {
   // set stuff up here
@@ -128,33 +132,20 @@ void tearDown(void) {
 }
 
 
-
-
-
-
-/**
-  * For Arduino framework
-  */
 void setup() {
-    // Wait ~2 seconds before the Unity test runner
-    // establishes connection with a board Serial interface
-    delay(6000);
+  blink.on();
 
-    runAllCollections();
+  // Wait ~2 seconds before the Unity test runner
+  // establishes connection with a board Serial interface
+  delay(WAIT_FOR_UINTY_FRAMEWORK);
 
-    pinMode(LED_BUILTIN,OUTPUT);
+  runAllTests();
+
+  blink.setup(testBlinkSeq);
 }
 
 
 void loop() {
-    digitalWrite(LED_BUILTIN, HIGH);
-    delay(250);
-    digitalWrite(LED_BUILTIN, LOW);
-    delay(250);
-
+  uint32_t now = millis();
+  blink.loop(now);  
 }
-
-
-
-
-

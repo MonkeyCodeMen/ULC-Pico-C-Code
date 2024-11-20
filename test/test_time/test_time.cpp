@@ -24,14 +24,6 @@ MockRTC_DS1307  mockRTC;
 // Global variable for the `Time` object
 BufferdClock testClock;
 
-void setUp(void) {
-    // Reset the time object and initialize now
-    testClock = BufferdClock();
-}
-
-void tearDown(void) {
-    // Clean up code after each test if needed
-}
 
 /* Test: Default Initialization */
 void test_default_initialization(void) {
@@ -105,11 +97,23 @@ void runAllTests() {
 }
 
 
-
-
 /**
   * For Arduino framework
   */
+#include <MainConfig.h>
+#include <Blink.hpp>
+BlinkingLED  blink = BlinkingLED(LED_BUILTIN);
+std::vector<uint32_t> testBlinkSeq = BLINK_SEQ_TEST;
+
+void setUp(void) {
+    // Reset the time object and initialize now
+    testClock = BufferdClock();
+}
+
+void tearDown(void) {
+    // Clean up code after each test if needed
+}
+
 void setup() {
   blink.on();
 

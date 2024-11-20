@@ -169,7 +169,7 @@ void test_StringList_threeEntriesStrSep(void) {
 
 
 // collect all tests of this file to one collection
-void test_collection_StringList(void) {
+void runAllTests(void) {
   RUN_TEST(test_StringList_empytString);
   RUN_TEST(test_StringList_emptyList);
   RUN_TEST(test_StringList_threeEntries);
@@ -179,4 +179,42 @@ void test_collection_StringList(void) {
   RUN_TEST(test_StringList_empytStringStrSep);
   RUN_TEST(test_StringList_emptyListStrSep);
   RUN_TEST(test_StringList_threeEntriesStrSep);
+}
+
+
+
+
+/**
+  * For Arduino framework
+  */
+#include <MainConfig.h>
+#include <Blink.hpp>
+BlinkingLED  blink = BlinkingLED(LED_BUILTIN);
+std::vector<uint32_t> testBlinkSeq = BLINK_SEQ_TEST;
+
+void setUp(void) {
+  // set stuff up here
+}
+
+void tearDown(void) {
+  // clean stuff up here
+}
+
+
+void setup() {
+  blink.on();
+
+  // Wait ~2 seconds before the Unity test runner
+  // establishes connection with a board Serial interface
+  delay(WAIT_FOR_UINTY_FRAMEWORK);
+
+  runAllTests();
+
+  blink.setup(testBlinkSeq);
+}
+
+
+void loop() {
+  uint32_t now = millis();
+  blink.loop(now);  
 }
