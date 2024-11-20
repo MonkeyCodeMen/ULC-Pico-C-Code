@@ -2,8 +2,11 @@
 
 #include <Arduino.h>
 #include <Wire.h>
-#include <Mutex.hpp>
-#include <Debug.hpp>
+#include "Mutex.hpp"
+#include "Debug.hpp"
+#include <Adafruit_I2CDevice.h>
+#include <Adafruit_I2CRegister.h>
+#include <Adafruit_BusIO_Register.h>
 #include <RTClib.h>
 
 /**********************************************************************/

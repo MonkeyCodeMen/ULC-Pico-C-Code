@@ -1,8 +1,11 @@
 // MockRTC_DS1307.hpp
 #pragma once
 
-#include <RTClib.h>
 #include <Arduino.h>
+#include <Adafruit_I2CDevice.h>
+#include <Adafruit_I2CRegister.h>
+#include <Adafruit_BusIO_Register.h>
+#include <RTClib.h>
 
 class MockRTC_DS1307{
 public:

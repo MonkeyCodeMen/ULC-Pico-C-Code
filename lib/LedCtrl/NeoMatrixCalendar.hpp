@@ -1,10 +1,12 @@
 #pragma once
 #include <Arduino.h>
-#include <vector>
-#include <helper.h>
-#include <NeoMatrixGif.hpp>
-#include <BufferedClock.hpp>
 
+#include "helper.h"
+#include "Debug.hpp"
+#include "BufferedClock.hpp"
+#include "NeoMatrixGif.hpp"
+
+#include <vector>
 
 /*
     class to implement an advents calendar based on NeoMatrixGif

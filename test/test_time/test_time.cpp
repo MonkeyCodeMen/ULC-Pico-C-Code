@@ -41,8 +41,7 @@ void test_default_initialization(void) {
 
 /* Test: Begin with Valid Bus and RTC */
 void test_begin_with_valid_bus_and_rtc(void) {
-    uint32_t now = millis();
-    testClock.begin(now, &mockWire, &mockMutex);                     // Call begin with valid mocks
+    testClock.begin(&mockWire, &mockMutex);                     // Call begin with valid mocks
     TEST_ASSERT_TRUE(testClock.getLoopDateTime().isValid());         // _loopDate should be valid
     TEST_ASSERT_EQUAL(0, testClock.getErrorCounterInit());           // Error counter should remain 0
 }
@@ -50,8 +49,7 @@ void test_begin_with_valid_bus_and_rtc(void) {
 /* Test: Failed RTC Initialization Increments Error Counter */
 void test_failed_rtc_initialization_increments_error_counter(void) {
     mockRTC.setFailInit(true);                                  // Set RTC to fail initialization
-    uint32_t now = millis();
-    testClock.begin(now, &mockWire, &mockMutex);                     // Call begin with failing RTC
+    testClock.begin( &mockWire, &mockMutex);                     // Call begin with failing RTC
     TEST_ASSERT_EQUAL(1, testClock.getErrorCounterInit());           // Error counter should increment by 1
     mockRTC.setFailInit(false);                                 // Reset RTC to succeed on next init
 }
@@ -59,7 +57,7 @@ void test_failed_rtc_initialization_increments_error_counter(void) {
 /* Test: Synchronization After Interval */
 void test_sync_after_interval(void) {
     uint32_t now = millis();
-    testClock.begin(now, &mockWire, &mockMutex, MIN_SYNC_INTERVAL_MSEC); // Begin with minimum sync interval
+    testClock.begin(&mockWire, &mockMutex, MIN_SYNC_INTERVAL_MSEC); // Begin with minimum sync interval
 
     delay(MIN_SYNC_INTERVAL_MSEC + 100);                        // Wait for interval to elapse
     testClock.loop(now + MIN_SYNC_INTERVAL_MSEC + 100);              // Call loop to trigger sync
@@ -70,7 +68,7 @@ void test_sync_after_interval(void) {
 /* Test: Software testClock Update Without Sync */
 void test_software_testClock_update_without_sync(void) {
     uint32_t now = millis();
-    testClock.begin(now, &mockWire, &mockMutex, NO_SYNC);            // Begin with NO_SYNC to prevent syncing
+    testClock.begin(&mockWire, &mockMutex, NO_SYNC);            // Begin with NO_SYNC to prevent syncing
 
     delay(1000);                                                // Wait 1 second
     testClock.loop(now + 1000);                                      // Update software testClock
@@ -86,7 +84,7 @@ void test_error_counter_increments_on_consecutive_failures(void) {
     mockRTC.setFailInit(true);                                  // Cause RTC to fail init
     uint32_t now = millis();
 
-    testClock.begin(now, &mockWire, &mockMutex);                     // First failure
+    testClock.begin(&mockWire, &mockMutex);                     // First failure
     TEST_ASSERT_EQUAL(1, testClock.getErrorCounterInit());
 
     testClock.loop(now + MIN_SYNC_INTERVAL_MSEC + 100);              // Retry init in loop
