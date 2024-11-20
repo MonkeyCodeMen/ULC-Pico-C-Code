@@ -337,15 +337,6 @@ void test_helper_H_WORD(void) {
     TEST_ASSERT_EQUAL_UINT32(0x99AABBCC, value);
 }
 
-void setUp(void) {
-  // set stuff up here
-}
-
-void tearDown(void) {
-  // clean stuff up here
-}
-
-
 
 // now we call here all test collections
 int runAllTests(void) {

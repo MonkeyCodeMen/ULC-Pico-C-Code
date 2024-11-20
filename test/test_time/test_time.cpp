@@ -1,9 +1,6 @@
 #include <Arduino.h>
 #include <MainConfig.h>
 #include <unity.h>
-#include <Blink.hpp>
-BlinkingLED  blink = BlinkingLED(LED_BUILTIN);
-std::vector<uint32_t> testBlinkSeq = BLINK_SEQ_TEST;
 
 #include <SPI.h>
 #include <BufferedClock.hpp>

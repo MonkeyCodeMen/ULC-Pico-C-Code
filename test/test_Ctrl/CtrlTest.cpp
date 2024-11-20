@@ -75,19 +75,6 @@ void test_Ctrl_setup(void) {
 
 
 
-
-
-void setUp(void) {
-  // set stuff up here
-}
-
-void tearDown(void) {
-  // clean stuff up here
-}
-
-
-
-
 // now we call here all test collections
 int runAllTests(void) {
   UNITY_BEGIN();

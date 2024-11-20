@@ -1,9 +1,7 @@
 #include <Arduino.h>
-
 #include <Debug.hpp>
-
-
 #include <helper.h>
+
 #include <SPI.h>
 #include <BufferedClock.hpp>
 #include <Adafruit_NeoMatrix.h>

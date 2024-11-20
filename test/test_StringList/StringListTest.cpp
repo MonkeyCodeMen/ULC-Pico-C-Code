@@ -1,5 +1,14 @@
+#include <Arduino.h>
+#include <Debug.hpp>
+#include <helper.h>
+#include <Adafruit_NeoMatrix.h>
+#include <TFT_eSPI.h> // Hardware-specific library
+
+#include <unity.h>
+
+
+
 #include "StringList.hpp"
-#include "unity.h"
 
 void test_StringList_empytString(void) {
   char list[]="";
@@ -170,6 +179,8 @@ void test_StringList_threeEntriesStrSep(void) {
 
 // collect all tests of this file to one collection
 void runAllTests(void) {
+  UNITY_BEGIN();
+  
   RUN_TEST(test_StringList_empytString);
   RUN_TEST(test_StringList_emptyList);
   RUN_TEST(test_StringList_threeEntries);
@@ -179,6 +190,8 @@ void runAllTests(void) {
   RUN_TEST(test_StringList_empytStringStrSep);
   RUN_TEST(test_StringList_emptyListStrSep);
   RUN_TEST(test_StringList_threeEntriesStrSep);
+
+  UNITY_END();
 }
 
 
