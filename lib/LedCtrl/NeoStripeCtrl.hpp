@@ -3,7 +3,12 @@
 #include <Arduino.h>
 #include <helper.h>
 #include <Ctrl.hpp>
+#include <MainConfig.h>
+
+#define max
 #include <WS2812FX.h>
+#undef max
+
 
 /*
 cmd's:

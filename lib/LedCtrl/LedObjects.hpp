@@ -4,12 +4,14 @@
 #include <MainConfig.h>
 #include <helper.h>
 #include <Adafruit_NeoMatrix.h>
-#include <WS2812FX.h>
 #include <LedCtrl.hpp>
 #include <RgbLedCtrl.hpp>
 #include <NeoStripeCtrl.hpp>
 #include <NeoMatrixCtrl.hpp>
 
+#define max
+#include <WS2812FX.h>
+#undef max 
 
 
 // LED switch stripes
