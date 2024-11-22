@@ -30,6 +30,11 @@ class Ctrl
         virtual int select(int nr);
         virtual int select(const char * pName);
         virtual int config(AniCfg cfg);
+
+        virtual int dump(String& out);                      // dump current animation
+        virtual int dump(String& out,int nr);
+        virtual int dump(String& out,const char * pName);
+        
     
     protected:
         SimpleList<AniNode>     _aniList;

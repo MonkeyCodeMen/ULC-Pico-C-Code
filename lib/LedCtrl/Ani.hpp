@@ -352,6 +352,8 @@ class Ani{
 		virtual void   triggerFlash() 					{ _flashCtrl.trigger();			}
 		virtual void   triggerColor() 					{ _colorCtrl.trigger();			}
 		virtual void   loop(uint32_t now);
+		virtual String dump();
+
 		static const char * getErrorText(int error);
 
 		virtual uint8_t  getDim()                      	{ return _dim;					}

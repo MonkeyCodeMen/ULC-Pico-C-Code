@@ -1,6 +1,24 @@
 #include <helper.h>
 //extern String emptyString;
 
+uint8_t convertCharToInt(const char c) {
+    if (c >= '0' && c <= '9') {
+        return c - '0'; // Convert numeric characters directly
+    } else if (c >= 'A' && c <= 'F') {
+        return c - 'A' + 10; // Convert uppercase hex letters
+    } else if (c >= 'a' && c <= 'f') {
+        return c - 'a' + 10; // Convert lowercase hex letters
+    }
+    return 255; // Default fallback for invalid characters
+}
+
+uint8_t convertDezCharToInt(const char c) {
+    if (c >= '0' && c <= '9') {
+        return c - '0'; // Convert numeric characters directly
+    } 
+    return 255; // Default fallback for invalid characters
+}
+
 uint32_t convertHexStrToInt(const char * str,int len){
     int   digitFound=0;  
     uint32_t sum = 0;
@@ -18,34 +36,11 @@ uint32_t convertHexStrToInt(const char * str,int len){
                 sum = 0;
                 return sum;     
             }
-            switch(str[i]){
-                case '0':   value=0;    break;
-                case '1':   value=1;    break;
-                case '2':   value=2;    break;
-                case '3':   value=3;    break;
-                case '4':   value=4;    break;
-                case '5':   value=5;    break;
-                case '6':   value=6;    break;
-                case '7':   value=7;    break;
-                case '8':   value=8;    break;
-                case '9':   value=9;    break;
-                case 'a':   
-                case 'A':   value=10;   break;
-                case 'b':   
-                case 'B':   value=11;   break;
-                case 'c':   
-                case 'C':   value=12;   break;
-                case 'd':   
-                case 'D':   value=13;   break;
-                case 'e':   
-                case 'E':   value=14;   break;
-                case 'f':   
-                case 'F':   value=15;   break;
-                default:    
-                    //LOG(F("convertHexStrToInt: hex convert invalid digit found"));
-                    sum = 0;
-                    return sum;
-            }  
+            value = convertCharToInt(str[i]);
+            if (value == 255){
+                sum=0;
+                return sum;
+            }
             sum+=value;
             i++;
         }
@@ -81,21 +76,10 @@ uint32_t convertDecStrToInt(const char * str,int len){
                 sum=0;
                 return sum;     
             }
-            switch(str[i]){
-                case '0':   value=0;    break;
-                case '1':   value=1;    break;
-                case '2':   value=2;    break;
-                case '3':   value=3;    break;
-                case '4':   value=4;    break;
-                case '5':   value=5;    break;
-                case '6':   value=6;    break;
-                case '7':   value=7;    break;
-                case '8':   value=8;    break;
-                case '9':   value=9;    break;
-                default:    
-                    //LOG(F("convertStrToInt: dez convert invalid digit found"));
-                    sum = 0;
-                    return sum;  // reuse sum for compiler optimization = avoid result copy  
+            value = convertDezCharToInt(str[i]);
+            if (value == 255){
+                sum=0;
+                return sum;
             }
             sum+=value;
             i++;

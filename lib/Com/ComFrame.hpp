@@ -85,6 +85,11 @@ S:M0,circle#
 S:M0,gif#
 S:M0,gif,0,0,0,0,"0x0 #~# day_1.gif"#
 S:M0,gif,0,0,0,0,"0x0 #~# invader.gif"#  
+
+S:M0,dump#   // dump of current animantion of M0
+S:M1,dump#
+
+-common commands
 S:C0,down#
 S:C0,up#
 S:C0,left#
@@ -93,6 +98,12 @@ S:C0,enter#
 S:C0,dir#
 
 S:C0,CLOCKSET,0,0,0,0,"2024-11-20T19:24:37#
+S:C0,CLOCK#
+S:C0,DUMP,0,0,0,0,"M0#~#calendar#   // dump any animation form ani module .. active and inactive 
+S:C0,DUMPCALENDAR0#
+S:C0,DUMPCALENDAR1#
+
+
 
 S:M1,gif,0xF000 0001,00x000A0100,0,0x00408070,"0x0 #~# 0*ball.gif"#
 

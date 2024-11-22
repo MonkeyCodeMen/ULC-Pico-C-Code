@@ -82,9 +82,9 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
         MatrixGifCalendarAni() :
             _weightDaily(100),
             _weightDailyAdd(10),
-            _weightGlobalAdd(1),
-            _weightTotal(_weightDaily+_weightDailyAdd+_weightGlobalAdd) {
+            _weightGlobalAdd(1) {
             _pName = "calendar";
+            _weightTotal = _weightDaily+_weightDailyAdd+_weightGlobalAdd;
             _clearAll();    // function instead of init list, because will be used several time
         };    
 
@@ -192,7 +192,7 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
         }
 
         String dump(){
-            String out = "dump of object MatrixGifCalendarAni at :" + String((uint32_t)this,HEX) + "\n";
+            String out = Ani::dump();
             out += "current date: " + _currentDate.timestamp() + "; last date : " + _lastDate.timestamp() + "\n";
             out += "dir:             " + _dirBase        + "\n";
             out += "dir global add:  " + _dirGlobalAdd   + "\n";

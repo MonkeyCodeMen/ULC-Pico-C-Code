@@ -84,4 +84,37 @@ int Ctrl::config(AniCfg cfg){
     return res;
 }
 
-    
+
+
+int Ctrl::dump(String& out){
+    if ( _currentNode.pAni == NULL) return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
+    out += _currentNode.pAni->dump();   
+    return ANI_OK;
+}
+
+        
+int Ctrl::dump(String& out,int nr){
+    if ( (_aniList.size()==0)  || (nr >= _aniList.size()) || (nr < 0 )){
+        return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
+    }  
+    out += _aniList.get(nr).pAni->dump();
+    return ANI_OK;
+}
+
+int Ctrl::dump(String& out,const char * pName){
+    if (_aniList.size()==0) return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
+    AniNode elm;
+    elm.nr = -1;
+    for(int i=0;i < _aniList.size(); i++){
+        elm = _aniList.get(i);
+        if (strcmp(pName,elm.pName) == 0)   break;  // machting entry found
+    }
+
+    if (elm.nr == -1){
+        return ANI_ERROR_PROGRAM_DOES_NOT_EXIST;
+    } 
+
+    out += elm.pAni->dump();
+    return ANI_OK;
+}
+

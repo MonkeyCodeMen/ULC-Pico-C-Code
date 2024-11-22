@@ -1,5 +1,6 @@
 #pragma once
 #include "ComFrame.hpp"
+#include <Ctrl.hpp>
 
 class ComDispatch
 {
@@ -10,10 +11,10 @@ public:
     bool dispatchFrame(ComFrame * pFrame);
 
 private:
-    bool dispatchCommonFrame(ComFrame * pFrame);
-    bool dispatchLedFrame(ComFrame * pFrame);
-    bool dispatchRgbLedFrame(ComFrame * pFrame);
-    bool dispatchNeoStripeFrame(ComFrame * pFrame);
-    bool dispatchNeoMatrixFrame(ComFrame * pFrame);
+    bool _dump(ComFrame * pFrame);
+    bool _dispatchLedFrame(ComFrame * pFrame);
+    bool _dispatchCommonFrame(ComFrame * pFrame);
+
+    Ctrl * _refToObj(char module,uint8_t index);
 
 };

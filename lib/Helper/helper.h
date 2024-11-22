@@ -31,6 +31,8 @@ negative numbers (leading '-') will be evaluated as signed int 32 and casted bef
 
 for some ideas how to use see test module: helperTest.cpp
 */
+uint8_t  convertCharToInt(const char c);            // returns 255 if not in ['0' .. '9'] and ['a'..'f'] and ['A'..'F']
+uint8_t  convertDezCharToInt(const char c);         // returns 255 if not in ['0' .. '9']
 uint32_t convertStrToInt(const char * str);
 uint32_t convertStrToInt(String str);
 

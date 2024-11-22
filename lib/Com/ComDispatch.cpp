@@ -12,7 +12,8 @@
 
 extern void mainMenu_syncFromCtrl();
 
-void printDirectory(SDFile dir, int numTabs) {
+String printDirectory(SDFile dir, String in=String("") , int numTabs=0) {
+  String res=in;
   while (true) {
     SDFile entry =  dir.openNextFile();
     if (! entry) {
@@ -21,20 +22,22 @@ void printDirectory(SDFile dir, int numTabs) {
     }
 
     for (uint8_t i = 0; i < numTabs; i++) {
-      Serial.print('\t');
+      res += "  ";
     }
 
-    Serial.print(entry.name());
+    res += entry.name();
     if (entry.isDirectory()) {
-      Serial.println("/");
-      printDirectory(entry, numTabs + 1);
+      res += ("/\n");
+      res = printDirectory(entry, res , numTabs + 1);
     } else {
       // files have sizes, directories do not
-      Serial.print("\t\t");
-      Serial.println(entry.size(), DEC);
+      res+=("    ");
+      res+=String(entry.size(), DEC);
+      res+="\n";
     }
     entry.close();
   }
+  return res;
 }
 
 
@@ -45,26 +48,56 @@ ComDispatch::ComDispatch()
 bool ComDispatch::dispatchFrame(ComFrame * pFrame)
 {
     bool res=false;
+    int resNr;
     switch(pFrame->module){
-        case('C'):  res = dispatchCommonFrame(pFrame);    break;
-        case('L'):  res = dispatchLedFrame(pFrame);       break;
-        case('R'):  res = dispatchRgbLedFrame(pFrame);    break;
-        case('S'):  res = dispatchNeoStripeFrame(pFrame); break;
-        case('M'):  res = dispatchNeoMatrixFrame(pFrame); break;
-        
+        case('C'):  res = _dispatchCommonFrame(pFrame);    break;
+        case('L'):
+        case('R'):
+        case('S'):
+        case('M'):  res = _dispatchLedFrame(pFrame);        break;
         default:
-            pFrame->res=F("unknown module");
-            return false;
+            pFrame->res=F("invalid module");
+            res = false;
     }
+
     if (res == true){
         mainMenu_syncFromCtrl();
     }
+
     return res;
 }
 
-bool ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
+bool ComDispatch::_dispatchLedFrame(ComFrame * pFrame){
+    Ctrl* pObj = _refToObj(pFrame->module,pFrame->index);
+    int resNr=ANI_ERROR_GENERAL;
+    bool res=false;
+    if (pObj == nullptr){
+        pFrame->res = F("invalid index");
+        return false;
+    }
+    if ((pFrame->command == "dump") || (pFrame->command=="Dump") || (pFrame->command=="DUMP")){
+        resNr = pObj->dump(pFrame->res);
+    }       
+    if (pFrame->withPar == true){
+        resNr = pObj->select(pFrame->command.c_str());
+        if (res == ANI_OK) {
+            resNr = pObj->config(pFrame->cfg);
+        } 
+    } else {
+        resNr = pObj->select(pFrame->command.c_str());  // use default parameter for this program change
+    }
+
+    if (resNr == ANI_OK) return true;
+
+    pFrame->res = Ani::getErrorText(resNr);     
+    return false;       
+}
+
+
+bool ComDispatch::_dispatchCommonFrame(ComFrame * pFrame){
     // ignore index 
     pFrame->command.toUpperCase();
+
     if (pFrame->command == "UP"){
         return menuHandler.onEvent(EVENT_UP);
     } else if (pFrame->command == "DOWN"){
@@ -76,9 +109,7 @@ bool ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
     } else if (pFrame->command == "ENTER"){
         return menuHandler.onEvent(EVENT_ENTER);
     } else if (pFrame->command == "DIR"){
-        Serial.println("directory of SD card");
-        SDFile root = globalSDcard0.open("/");
-        printDirectory(root,0);
+        pFrame->res = printDirectory(globalSDcard0.open("/"),"directory of SD card:\n "); 
         return true;
     } else if (pFrame->command == "MEM"){
         LOG_MEM(F("mem log requested by COM interface"));
@@ -90,109 +121,86 @@ bool ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
         i2c_master.writeCtrlReg(I2C_ADR_SLAVE,&reg); 
         return true;
     } else if (pFrame->command == "CLOCK") {
-        Serial.println(bufferedClock.getLoopDateTime().timestamp());
+        pFrame->res = bufferedClock.getLoopDateTime().timestamp();
         return true;
     } else if (pFrame->command == "CLOCKSET") {
         // e.g. "2020-06-25T15:29:37".
         DateTime set=DateTime(pFrame->cfg.str.c_str());
         bufferedClock.udateRTC(set);
-        Serial.println(bufferedClock.getLoopDateTime().timestamp().c_str());
+        pFrame->res = bufferedClock.getLoopDateTime().timestamp().c_str();
         return true;
-    } else if (pFrame->command == "DUMPCALENDAR") {
-        return true;
+    } else if (pFrame->command == "DUMPCALENDAR0") {
+        return neoMatrixCtrl1.dump(pFrame->res,"calendar");
+    } else if (pFrame->command == "DUMPCALENDAR1") {
+        return neoMatrixCtrl2.dump(pFrame->res,"calendar");
+    } else if (pFrame->command == "DUMP") {
+        return _dump(pFrame);
     }
-    pFrame->res = "unknown command for menu";
+
+    pFrame->res = "unknown common comand";
     return false;
 }
 
+bool ComDispatch::_dump(ComFrame * pFrame){
+    int resNr=ANI_ERROR_GENERAL;
 
-bool ComDispatch::dispatchLedFrame(ComFrame * pFrame){
-    LedCtrl * pLedCtrl;
-    int res;
-    switch(pFrame->index){
-        case 0: pLedCtrl = &ledCtrl1; break;
-        case 1: pLedCtrl = &ledCtrl2; break;
-        case 2: pLedCtrl = &ledCtrl3; break;
-        case 3: pLedCtrl = &ledCtrl4; break;
-        default:
-            pFrame->res = F("unknown index");
-            return false;
+    char module;
+    uint8_t index;
+    String ref,prg;
+    StringList strList(pFrame->cfg.str.c_str(),"#~#");
+    ref = strList.getNextListEntry();
+    prg = strList.getNextListEntry();
+    if (ref.length() != 2) {
+        pFrame->res = F("invalid module/index reference");
+        return false;
     }
-    if (pFrame->withPar == true){
-        res = pLedCtrl->select(pFrame->command.c_str());
-        if (res == ANI_OK) {
-            res = pLedCtrl->config(pFrame->cfg);
-        }
+    module = ref[0];
+    index = convertDezCharToInt(ref[1]);
+    Ctrl* pObj = _refToObj(module,index);
+    if (pObj == nullptr ){
+        pFrame->res = F("invalid module/index reference");
+        return false;
+    }
+
+    if (prg == ""){ 
+        // use current program
+        resNr = pObj->dump(pFrame->res);
     } else {
-        res = pLedCtrl->select(pFrame->command.c_str());  // use default parameter for 
+        // use given program
+        resNr = pObj->dump(pFrame->res,prg.c_str());
     }
-    pFrame->res = Ani::getErrorText(res);
-    return res==ANI_OK?true:false;
+
+    if (resNr == ANI_OK) return true;
+
+    pFrame->res = Ani::getErrorText(resNr);     
+    return false;  
 }
 
-bool ComDispatch::dispatchRgbLedFrame(ComFrame * pFrame){
-    RgbLedCtrl * pRgbCtrl;
-    switch(pFrame->index){
-        case 0: pRgbCtrl = &rgbCtrl1; break;
-        case 1: pRgbCtrl = &rgbCtrl2; break;
-        default:
-            pFrame->res=F("unknown index");
-            return false;
-    }
 
-    int res;
-    if (pFrame->withPar == true){
-        res = pRgbCtrl->select(pFrame->command.c_str());
-        if (res == ANI_OK){
-            res = pRgbCtrl->config(pFrame->cfg);
-        }
-    } else {
-        res = pRgbCtrl->select(pFrame->command.c_str());  // use default parameter for 
-    }
-    pFrame->res = Ani::getErrorText(res);
-    return res==ANI_OK?true:false;
-}
-
-bool ComDispatch::dispatchNeoStripeFrame(ComFrame * pFrame){
-    NeoStripeCtrl * pStripeCtrl;
-    switch(pFrame->index){
-        case 0: pStripeCtrl = &neoStripeCtrl1; break;
-        case 1: pStripeCtrl = &neoStripeCtrl2; break;
-        default:
-            pFrame->res=F("unknown index");
-            return false;
-    }
-    int res;
-    if (pFrame->withPar == true){
-        res = pStripeCtrl->select(pFrame->command.c_str());
-        if (res == ANI_OK) {
-            res = pStripeCtrl->config(pFrame->cfg);
-        }
-    } else {
-        res = pStripeCtrl->select(pFrame->command.c_str());  // use default parameter for 
-    }
-    pFrame->res = Ani::getErrorText(res);
-    return res==ANI_OK?true:false;
-}
-
-bool ComDispatch::dispatchNeoMatrixFrame(ComFrame * pFrame){
-    NeoMatrixCtrl * pMatrixCtrl;
-    switch(pFrame->index){
-        case 0: pMatrixCtrl = &neoMatrixCtrl1; break;
-        case 1: pMatrixCtrl = &neoMatrixCtrl2; break;
-        default:
-            pFrame->res=F("unknown index");
-            return false;
-    }
-    int res;
-    if (pFrame->withPar == true){
-        res = pMatrixCtrl->select(pFrame->command.c_str());
-        if (res == ANI_OK){
-            res = pMatrixCtrl->config(pFrame->cfg);
-        }
-    } else {
-        res = pMatrixCtrl->select(pFrame->command.c_str());  // use default parameter for 
-    }
-    pFrame->res = Ani::getErrorText(res);
-    return res==ANI_OK?true:false;
+Ctrl * ComDispatch::_refToObj(char module,uint8_t index){
+switch(module){
+        case('L'):
+            if      (index == 0)    { return &ledCtrl1;       }
+            else if (index == 1)    { return &ledCtrl2;       }
+            else if (index == 2)    { return &ledCtrl3;       }
+            else if (index == 3)    { return &ledCtrl4;       }
+            else                    { return nullptr;         }
+            break;
+        case('R'):
+            if      (index == 0)    { return &rgbCtrl1;       }
+            else if (index == 1)    { return &rgbCtrl2;       }
+            else                    { return nullptr;         }
+            break;
+        case('S'):
+            if      (index == 0)    { return &neoStripeCtrl1; }
+            else if (index == 1)    { return &neoStripeCtrl2; }
+            else                    { return nullptr;         }
+            break;
+        case('M'):
+            if      (index == 0)    { return &neoMatrixCtrl1; }
+            else if (index == 1)    { return &neoMatrixCtrl2; }
+            else                    { return nullptr;         }
+            break;
+    }    
+    return nullptr;
 }

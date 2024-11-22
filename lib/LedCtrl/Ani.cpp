@@ -38,6 +38,11 @@ void Ani::loop(uint32_t now) {
     _dim = _breathCtrl.modifyDimFactor(_dimCtrl.getDim());
 }
 
+String Ani::dump(){
+    String out = "Object Dump (" + String(_pName) + ") at:0x" + String((uint32_t)this,HEX) +"  at time:"+String(millis())+" \n";
+    return out;
+}
+
 
 
 bool Ani::hasChanged(){

@@ -78,7 +78,7 @@ void Com::getModule(){
         return;   
     }      
     _frame.module = buffer[0];
-    _frame.index = String((char)buffer[1]).toInt();
+    _frame.index =  convertDezCharToInt(buffer[1]);
     _state = COMMAND;
     _field = "";
     _maxFieldLength = COM_FRAME_MAX_COMMAND_LENGTH;
@@ -236,7 +236,8 @@ void Com::sendAnswer(bool res,ComFrame * pFrame){
     }
     if (res == true){
         out+=COM_FRAME_END;
-        out+="OK";
+        out+="OK-";
+        out+=pFrame->res;
         out+=COM_FRAME_END;
     } else {
         out+=COM_FRAME_END;
