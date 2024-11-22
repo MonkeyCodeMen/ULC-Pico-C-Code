@@ -3,6 +3,7 @@
 #include "helper.h"
 
 #include <LedObjects.hpp>
+#include <BufferedClock.hpp>
 #include <Menu.hpp>
 
 #include <SDcard.hpp>
@@ -87,6 +88,17 @@ bool ComDispatch::dispatchCommonFrame(ComFrame * pFrame){
         i2c_master.readStatusReg(I2C_ADR_SLAVE,&reg);
         reg.LED_BLINK ^= 1;
         i2c_master.writeCtrlReg(I2C_ADR_SLAVE,&reg); 
+        return true;
+    } else if (pFrame->command == "CLOCK") {
+        Serial.println(bufferedClock.getLoopDateTime().timestamp());
+        return true;
+    } else if (pFrame->command == "CLOCKSET") {
+        // e.g. "2020-06-25T15:29:37".
+        DateTime set=DateTime(pFrame->cfg.str.c_str());
+        bufferedClock.udateRTC(set);
+        Serial.println(bufferedClock.getLoopDateTime().timestamp().c_str());
+        return true;
+    } else if (pFrame->command == "DUMPCALENDAR") {
         return true;
     }
     pFrame->res = "unknown command for menu";

@@ -35,9 +35,32 @@ void BufferdClock::begin(TwoWire *pBus, Mutex * pMutex, uint32_t syncInterval) {
     _pMutex->lock();
     _pBus->setClock(I2C_100KHZ);
     if (_RTC.begin(_pBus)) {        // Attempt to start communication with the RTC
+        if (! _RTC.isrunning()) {
+            LOG(F("RTC is NOT running, let's set the time!"));
+            _RTC.adjust(DateTime(F(__DATE__), F(__TIME__)));
+        }
         _startDate = _RTC.now();    // Sync software time with RTC
+        _loopDate  = _startDate;
         _lastSync = now;            // Set the last sync time to current time
         _validRTC = true;           // Mark RTC as valid and synchronized
+
+        _RTC.writenvram(5,11);
+        if (_RTC.readnvram(5) != 11){
+            LOG(F("NVRAM access failed"));
+            _startDate = DateTime(2024, 12, 24, 11, 11, 11);
+            _validRTC = false;          // Mark RTC as invalid
+            _errorCounterInit++;
+        }
+        _RTC.writenvram(5,0xAA);
+        if (_RTC.readnvram(5) != 0xAA){
+            LOG(F("NVRAM access failed"));
+            _startDate = DateTime(2024, 12, 24, 11, 11, 11);
+            _validRTC = false;          // Mark RTC as invalid
+            _errorCounterInit++;
+        }
+
+
+
     } else {
         // If RTC fails, log an error and set a default date/time
         LOG(F("Could not sync software clock with RTC .. setting to 2024-12-24 11:11:11"));
@@ -45,6 +68,7 @@ void BufferdClock::begin(TwoWire *pBus, Mutex * pMutex, uint32_t syncInterval) {
         _validRTC = false;          // Mark RTC as invalid
         _errorCounterInit++;
     }
+    
     _pBus->setClock(I2C_DEFAULT_SPEED);
     _pMutex->free();                // Unlock the mutex after initialization
 }

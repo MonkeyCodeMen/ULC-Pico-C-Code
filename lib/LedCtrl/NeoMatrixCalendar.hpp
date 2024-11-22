@@ -93,13 +93,12 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
         }
 
         int  config(AniCfg cfg){
-            _state = stop;
             _clearAll();
 
-
             // setup dir structure names
+            // until now only one list entry .. but prepared for further extension use a StringList
             StringList *    pList;
-            pList = new StringList(cfg.str.c_str(),"#~#");
+            pList = new StringList(cfg.str.c_str(),"#~#"); 
             _dirBase = pList->getNextListEntry();
             _dirBase = removeLeadingCharacters(_dirBase,' ');
             _dirBase = removeTrailingCharacters(_dirBase,' ');
@@ -134,19 +133,16 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
                 LOG(F("there is no file in the default (fallback) directory"));
                 return ANI_ERROR_FILE_NOT_FOUND;
             }
-
-            // now select the daily directory (fallback to default if not exist)
-            _selectDirectory(true);
-
             // do base class config 
-            cfg.str = "";
+            cfg.str = "";   // list completly handled in this instance .. so delete list for base class init
             Ani::config(cfg); 
 
+            _selectNextFile(true);  // select start file with force of directory update
             _state = init;
             return ANI_OK;
         }
 
-        void loop(uint32_t time,Adafruit_NeoMatrix * pMatrix){
+        void loop(uint32_t now,Adafruit_NeoMatrix * pMatrix){
             u16_t color;
             u8_t dim;
             int nr;
@@ -158,27 +154,23 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
                     break;
 
                 case init:
-                    Ani::loop(time);
+                    Ani::loop(now);
                     pMatrix->fillScreen(toColor565(getColor()));
                     pMatrix->setBrightness(getDim());
 
-                    _fileIndex = 0;
-                    _loopIndex = 0;
-
-                    _selectNextFile();
                     _gif.close();
                     _gif.open((const char *)_currentFile.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
 
-                    _lastFrame = time;
+                    _lastFrame = now;
                     _wait = 1;
 
                     _state = run;
                     break;
                 
                 case run:
-                    Ani::loop(time);
-                    if (time-_lastFrame >= _wait){
-                        _lastFrame = time;
+                    Ani::loop(now);
+                    if (now-_lastFrame >= _wait){
+                        _lastFrame = now;
                         if (hasChanged()){
                             pMatrix->setBrightness(getDim());
                         }
@@ -186,15 +178,59 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
                         if(res == 0){
                             // last gif frame has been played 
                             _gif.close();
-                            _selectNextFile();
                             _gif.open((const char *)_currentFile.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
-                            pMatrix->fillScreen(toColor565(getColor()));
+                            //pMatrix->fillScreen(toColor565(getColor()));
+                            _gif.playFrame(false,&_wait,pMatrix);
+                            // now it's time to select new/next file  (with possible update of filelists)
+                            _selectNextFile();
                         } else if (res == -1){
                             _frameError();
                         }
                     }
                     break;
             }
+        }
+
+        String dump(){
+            String out = "dump of object MatrixGifCalendarAni at :" + String((uint32_t)this,HEX) + "\n";
+            out += "current date: " + _currentDate.timestamp() + "; last date : " + _lastDate.timestamp() + "\n";
+            out += "dir:             " + _dirBase        + "\n";
+            out += "dir global add:  " + _dirGlobalAdd   + "\n";
+            out += "dir default:     " + _dirDefault     + "\n";
+            out += "dir default add: " + _dirDefaultAdd  + "\n";
+            out += "dir daily:       " + _dirDaily       + "\n";
+            out += "dir daily add:   " + _dirDailyAdd    + "\n";
+            out += "current File:    " + _currentFile    + "\n";
+
+            out += "weights::  total(" +String(_weightTotal) + ") /daily(" + String(_weightDaily) + ") /dailyAdd(" + String(_weightDailyAdd) +") /globalAdd(" + String(_weightGlobalAdd) +")\n";
+            out += "current random number: " + String(_randomValue) +"\n"; 
+
+            out += "File list global add:\n";
+            for(int i=0; i < _globalAddFileList.size(); i++){
+                out += "     " + _globalAddFileList[i] + "\n";
+            }
+
+            out += "File list default:\n";
+            for(int i=0; i < _defaultFileList.size(); i++){
+                out += "     " + _defaultFileList[i] + "\n";
+            }
+
+            out += "File list default add:\n";
+            for(int i=0; i < _defaultAddFileList.size(); i++){
+                out += "     " + _defaultAddFileList[i] + "\n";
+            }
+
+            out += "File list daily:\n";
+            for(int i=0; i < _dailyFileList.size(); i++){
+                out += "     " + _dailyFileList[i] + "\n";
+            }
+
+            out += "File list daily add:\n";
+            for(int i=0; i < _dailyAddFileList.size(); i++){
+                out += "     " + _dailyAddFileList[i] + "\n";
+            }
+
+            return out;
         }
 
 
@@ -213,9 +249,11 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
         uint32_t                    _weightDaily;
         uint32_t                    _weightDailyAdd;
         uint32_t                    _weightGlobalAdd;
+        uint32_t                    _randomValue;
         
 
         void _clearAll(){
+            _state          = stop;
             _dirBase        = "";
             _dirGlobalAdd   = "";
             _dirDefault     = "";
@@ -225,28 +263,27 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             _currentFile    = "";
             _lastDate       = DateTime(2000,1,1,0,0,0);
             _currentDate    = DateTime(2000,1,2,0,0,0);
+            _randomValue    = 0;
             _dailyFileList.clear();
             _dailyAddFileList.clear();
             _defaultFileList.clear();
             _defaultAddFileList.clear();
             _globalAddFileList.clear();
-            
-            _state          = stop;
         }
 
-        void _selectNextFile(){
-            // update dirs if new date (will be checked in function)
-            _selectDirectory();
+        void _selectNextFile(bool forceDirUpdate = false){
+            // update dirs if new date or forced (will be checked in function)
+            _selectDirectory(forceDirUpdate);
 
             // Generate a random number between 0 and totalWeight - 1
-            uint16_t randomValue = random(_weightTotal);
+            _randomValue = random(_weightTotal);
 
             // Select the appropriate list based on the random value
-            if (randomValue < _weightDaily) {
+            if (_randomValue < _weightDaily) {
                 // standard daily animation
                 int index = random(_dailyFileList.size());
                 _currentFile = _dailyFileList[index];
-            } else if (randomValue < (_weightDaily + _weightDailyAdd)) {
+            } else if (_randomValue < (_weightDaily + _weightDailyAdd)) {
                 // daily additional animation
                 int count = _dailyAddFileList.size();
                 if (count > 0){
@@ -287,9 +324,11 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             uint8_t day = _currentDate.day();
 
             if ((day == _lastDate.day()) && (forceNew == false)){
-                // no change in day number
+                // no change in day number ==> keep file lists
                 return;
             }
+
+            _lastDate = _currentDate;
 
             if (day < 10){
                 _dirDaily = _dirBase + "0" + String(day,DEC) + "/";

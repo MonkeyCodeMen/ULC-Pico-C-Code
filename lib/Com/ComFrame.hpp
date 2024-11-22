@@ -92,6 +92,7 @@ S:C0,right#
 S:C0,enter#
 S:C0,dir#
 
+S:C0,CLOCKSET,0,0,0,0,"2024-11-20T19:24:37#
 
 S:M1,gif,0xF000 0001,00x000A0100,0,0x00408070,"0x0 #~# 0*ball.gif"#
 
