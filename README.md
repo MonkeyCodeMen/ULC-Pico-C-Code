@@ -24,6 +24,9 @@ I tried several other things like:
 ![Layout](./pictures/day_3_a.gif)
 ![Layout](./pictures/day_t5.gif)
 
+.. I think I show you a picture of the current state:
+![system architecture](./pictures/Sys-Arch.svg)
+
 I just want to explore how it works and it lead to this  .. but it will not be the end, it just reached a state where I decided to make it public to give something back to the community, in the hope it may be usefull for somebody. 
 And don’t forget: always stay curious and persistent. The best way to learn is through mistakes. But only those who try something new and unfamiliar can make mistakes to learn from. Every day without learning something is a lost day.
 
@@ -78,6 +81,7 @@ some more details:
 ---
 ## **System architecture**
 ![system architecture](./pictures/Sys-Arch.svg)
+
 ---
 ## **Software architecture**
 ![software architecture](./pictures/SW-Arch.png)
