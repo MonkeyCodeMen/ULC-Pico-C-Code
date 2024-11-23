@@ -30,7 +30,7 @@ And don’t forget: always stay curious and persistent. The best way to learn is
 So, search behind every tree and under very stone for the three-headed monkey, and if you need a boat, just ask for Stan.
 
 
-it grows and grows .. then I needed a PCB .. I found KiCad :
+The project keeps growing and growing .. I needed a PCB .. I found KiCad :
 @KiCad Team .. a professional layout tool for free .. great work ... 
 
 ![Layout](./pictures/Layout.PNG)
