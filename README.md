@@ -109,6 +109,41 @@ Below is a list of the libraries or frameworks required for the project to run. 
 
 Many thanks to all the amazing developers of these libraries. Based on this foundation, it is possible to create larger projects like this one with a moderate amount of time. This enables significantly more functionality than would have been achievable by a single person alone.
 
+All Lib's will be installed by PlatformIO based on ini file .. perfect .. @PlatforIO team: outstanding job, i know several professional tools from automobile industry that can not do this !!!!
+
+
+
+### from Arduino:
++ Arduino base
++ wire
++ spi
++ SD
+
+### RP2040 Toolchain 
+https://github.com/maxgerhardt/platform-raspberrypi.git
+
+### form adafruit: Adafruit BusIO @ ^1.16.2
++ RTClib @ ^2.1.4
++ Adafruit NeoMatrix @ ^1.3.3
+  
+### form bodmer:
++ TFT_eSPI @ ^2.5.43
+
+### from kitesurfer1404:
++ WS2812FX @ ^1.4.4
+  A beautiful and extensive library with many animations for intelligent RGB LEDs. Truly professional and exceptionally impressive work. Thank you so much for making something like this available!
+  
+### bitbank2:
++ AnimatedGIF @ ^2.1.1
+  a real handy lib to handle GIF's thanks .. It would have cost me several monthes to do somthing that will be for sure not at this level ... Thanks
+  
+### robtillaart:
++ CRC @ ^1.0.3
+
+### bblanchon:
++ ArduinoJson @ ^7.2.1
+
+@all LIB authors .. great job, please keep up this good work 
 
 
 ---
