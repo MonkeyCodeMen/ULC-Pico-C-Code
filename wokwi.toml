@@ -1,4 +1,0 @@
-[wokwi]
-version = 1
-firmware = '.pio/build/cmsis-dap/firmware.bin'
-elf = '.pio\build\cmsis-dap\firmware.elf'
