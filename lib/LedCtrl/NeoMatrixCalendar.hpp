@@ -124,7 +124,7 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             // setup dir structure names
             // until now only one list entry .. but prepared for further extension use a StringList
             StringList *    pList;
-            pList = new StringList(cfg.str.c_str(),"#~#"); 
+            pList = new StringList(cfg.str.c_str(),"~&~"); 
             _dirBase = pList->getNextListEntry();
             _dirBase = removeLeadingCharacters(_dirBase,' ');
             _dirBase = removeTrailingCharacters(_dirBase,' ');

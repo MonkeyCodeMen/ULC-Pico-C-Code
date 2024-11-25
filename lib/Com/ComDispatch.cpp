@@ -40,7 +40,7 @@
 
 extern void mainMenu_syncFromCtrl();
 
-String printDirectory(SDFile dir, String in=String("") , int numTabs=0) {
+String printDirectory(SDFile dir, String in=String("") , int numTabs=0,String baseDir=String("~")) {
   String res=in;
   while (true) {
     SDFile entry =  dir.openNextFile();
@@ -49,19 +49,29 @@ String printDirectory(SDFile dir, String in=String("") , int numTabs=0) {
       break;
     }
 
+
     for (uint8_t i = 0; i < numTabs; i++) {
       res += "  ";
     }
 
-    res += entry.name();
+    String name(entry.name());
+    
     if (entry.isDirectory()) {
-      res += ("/\n");
-      res = printDirectory(entry, res , numTabs + 1);
+        if (baseDir == "~"){
+            res += name+"/\n";
+            res = printDirectory(entry, res,numTabs+1 );
+        } else {
+            res += baseDir+name+"/\n";
+            res = printDirectory(entry, res,0,baseDir+name+"/" );    
+        }
+    
     } else {
-      // files have sizes, directories do not
-      res+=("    ");
-      res+=String(entry.size(), DEC);
-      res+="\n";
+        // files have sizes, directories do not
+        if (baseDir == "~"){
+            res+=String("    ")+name+"*"+String(entry.size(), DEC)+"\n";
+        } else {
+            res+=baseDir+name+"*"+String(entry.size(), DEC)+"\n";
+        }
     }
     entry.close();
   }
@@ -136,9 +146,6 @@ bool ComDispatch::_dispatchCommonFrame(ComFrame * pFrame){
         return menuHandler.onEvent(EVENT_RIGHT);
     } else if (pFrame->command == "ENTER"){
         return menuHandler.onEvent(EVENT_ENTER);
-    } else if (pFrame->command == "DIR"){
-        pFrame->res = printDirectory(globalSDcard0.open("/"),"directory of SD card:\n "); 
-        return true;
     } else if (pFrame->command == "MEM"){
         LOG_MEM(F("mem log requested by COM interface"));
         return true;
@@ -163,10 +170,13 @@ bool ComDispatch::_dispatchCommonFrame(ComFrame * pFrame){
         return neoMatrixCtrl2.dump(pFrame->res,"calendar");
     } else if (pFrame->command == "DUMP") {
         return _dump(pFrame);
-    }  else if (pFrame->command == "READFILE") {
+    }  else if (pFrame->command == "FILEREAD") {
         return _readFile(pFrame);
-    } else if (pFrame->command == "WRITEFILE") {
+    } else if (pFrame->command == "FILEWRITE") {
         return _writeFile(pFrame);
+    } else if (pFrame->command == "FILELIST"){
+        pFrame->res = printDirectory(globalSDcard0.open("/"),"directory of SD card:\n ",0,"/"); 
+        return true;
     }
 
     pFrame->res = "unknown common comand";
@@ -179,7 +189,7 @@ bool ComDispatch::_dump(ComFrame * pFrame){
     char module;
     uint8_t index;
     String ref,prg;
-    StringList strList(pFrame->cfg.str.c_str(),"#~#");
+    StringList strList(pFrame->cfg.str.c_str(),"~&~");
     ref = strList.getNextListEntry();
     prg = strList.getNextListEntry();
     if (ref.length() != 2) {
@@ -242,7 +252,7 @@ switch(module){
 
 
 bool ComDispatch::_readFile(ComFrame *pFrame) {
-    StringList strList(pFrame->cfg.str.c_str(), "#~#");
+    StringList strList(pFrame->cfg.str.c_str(), "~&~");
     String cmdType = strList.getNextListEntry();
 
     if (cmdType == "INIT") {
@@ -260,7 +270,7 @@ bool ComDispatch::_readFile(ComFrame *pFrame) {
         _fileTransferState.currentChunk = 0;
         _fileTransferState.isActive = true;
 
-        pFrame->res = "INIT#~#" + _fileTransferState.filename + "#~#" + String(_fileTransferState.fileSize) + "#~#" +
+        pFrame->res = "INIT~&~" + _fileTransferState.filename + "~&~" + String(_fileTransferState.fileSize) + "~&~" +
                       String(_fileTransferState.totalChunks);
         file.close();
         return true;
@@ -292,7 +302,7 @@ bool ComDispatch::_readFile(ComFrame *pFrame) {
 
     char bufferBase64[COM_FRAME_MAX_STR_LENGTH];
     encode_base64(buffer, bytesToRead,(uint8_t*) bufferBase64);
-    pFrame->res = "DATA#~#" + _fileTransferState.filename + "#~#" + String(_fileTransferState.currentChunk) + "#~#" + String(bufferBase64);
+    pFrame->res = "DATA~&~" + _fileTransferState.filename + "~&~" + String(_fileTransferState.currentChunk) + "~&~" + String(bufferBase64);
 
     _fileTransferState.currentChunk++;
     if (_fileTransferState.currentChunk >= _fileTransferState.totalChunks) {
@@ -303,7 +313,7 @@ bool ComDispatch::_readFile(ComFrame *pFrame) {
 }
 
 bool ComDispatch::_writeFile(ComFrame *pFrame) {
-    StringList strList(pFrame->cfg.str.c_str(), "#~#");
+    StringList strList(pFrame->cfg.str.c_str(), "~&~");
     String cmdType = strList.getNextListEntry();
 
     if (cmdType == "INIT") {
@@ -323,7 +333,7 @@ bool ComDispatch::_writeFile(ComFrame *pFrame) {
         }
 
         file.close();
-        pFrame->res = "INIT#~#" + _fileTransferState.filename + "#~#" + String(_fileTransferState.fileSize) + "#~#" +
+        pFrame->res = "INIT~&~" + _fileTransferState.filename + "~&~" + String(_fileTransferState.fileSize) + "~&~" +
                       String(_fileTransferState.totalChunks);
         return true;
     }
@@ -364,7 +374,7 @@ bool ComDispatch::_writeFile(ComFrame *pFrame) {
         _fileTransferState.reset();
         pFrame->res = "File write completed.";
     } else {
-        pFrame->res = "DATA#~#" + _fileTransferState.filename + "#~#" + String(_fileTransferState.currentChunk);
+        pFrame->res = "DATA~&~" + _fileTransferState.filename + "~&~" + String(_fileTransferState.currentChunk);
     }
 
     return true;

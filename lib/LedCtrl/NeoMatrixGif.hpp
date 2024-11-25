@@ -97,9 +97,9 @@
 						|| ++---------: time t2 in 100ms: time for dim down
 						++------------: reserved
 
-	str: string parameter : color list #~# file list
-					example: "0x0000 0000 #~# 3*rainbow.gif,2*alien.gif"
-                    default: "0x0000 0000 #~# 0*start.gif"      0 ==> endless
+	str: string parameter : color list ~&~ file list
+					example: "0x0000 0000 ~&~ 3*rainbow.gif,2*alien.gif"
+                    default: "0x0000 0000 ~&~ 0*start.gif"      0 ==> endless
 */
  
 
@@ -120,7 +120,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
         }
         
         void reset() { 
-            config(AniCfg( ANI_WR_ALL | 0x40,0,0,0,"0x0000 0000 #~# 0*GIF/START.GIF" )); 
+            config(AniCfg( ANI_WR_ALL | 0x40,0,0,0,"0x0000 0000 ~&~ 0*GIF/START.GIF" )); 
         }
 
         int  config(AniCfg cfg){
@@ -131,7 +131,7 @@ class MatrixGifFileAni : public NeoMatrixAni{
             int             res;
             _state      = stop;
 
-            pList = new StringList(cfg.str.c_str(),"#~#");
+            pList = new StringList(cfg.str.c_str(),"~&~");
             String colorList = pList->getNextListEntry();
             String fileList  = pList->getNextListEntry();
             delete pList;

@@ -167,48 +167,48 @@ The commands in this module perform general system-level operations or interact 
 | `LEFT`            | Simulates a menu "Left" button press, typically to navigate backward or to a parent menu.                                                                         | None                                   | Boolean: `true` (success) or `false` (failure).                              |
 | `RIGHT`           | Simulates a menu "Right" button press, typically to navigate forward or into a submenu.                                                                           | None                                   | Boolean: `true` (success) or `false` (failure).                              |
 | `ENTER`           | Simulates a menu "Enter" button press, selecting the currently highlighted item.                                                                                  | None                                   | Boolean: `true` (success) or `false` (failure).                              |
-| `DIR`             | Lists the contents of the SD card's root directory, including files and directories.                                                                              | None                                   | Directory structure as a string.                                             |
 | `MEM`             | Logs memory information, including usage and free space.                                                                                                         | None                                   | Memory log.                                                                  |
 | `SLAVE_LED`       | Toggles the LED state on the I²C slave device (if present).                                                                                                      | None                                   | Boolean: `true` (success) or `false` (failure).                              |
 | `CLOCK`           | Returns the current system clock time.                                                                                                                           | None                                   | Current timestamp (formatted).                                               |
 | `CLOCKSET`        | Sets the system clock to a provided timestamp. Example timestamp: `"2024-11-04T12:34:56"`.                                                                        | Timestamp string in `cfg.str`.          | Updated timestamp (formatted).                                               |
 | `DUMPCALENDAR0`   | Dumps the current state of the calendar for the NeoMatrix controller at index `0`.                                                                                | None                                   | Calendar state dump as a string.                                             |
 | `DUMPCALENDAR1`   | Dumps the current state of the calendar for the NeoMatrix controller at index `1`.                                                                                | None                                   | Calendar state dump as a string.                                             |
-| `DUMP`            | Dumps a specific program or the current program state for the specified module/index combination.                                                                | `cfg.str`: `<Module><Index>#~#<Program>` | Program or current state dump as a string.                                   |
-| `FILEWRITE`       | Writes a file in multiple frames.                                                                                                                                | `cfg.str`: `<INIT>#~#<Filename>#~#<Size>#~#<ChunkCount>` (init) or `<DATA>#~#<Filename>#~#<Chunk>#~#<Data>` (data frames). | Boolean: `true` (success) or `false` (failure). |
-| `FILEREAD`        | Reads a file in multiple frames.                                                                                                                                  | `cfg.str`: `<INIT>#~#<Filename>` (init) or `<DATA>#~#<Filename>#~#<Chunk>` (chunk request). | File data in Base64 format, with chunk details.                              |
+| `DUMP`            | Dumps a specific program or the current program state for the specified module/index combination.                                                                | `cfg.str`: `<Module><Index>~&~<Program>` | Program or current state dump as a string.                                   |
+| `FILEWRITE`       | Writes a file in multiple frames.                                                                                                                                | `cfg.str`: `<INIT>~&~<Filename>~&~<Size>~&~<ChunkCount>` (init) or `<DATA>~&~<Filename>~&~<Chunk>~&~<Data>` (data frames). | Boolean: `true` (success) or `false` (failure). |
+| `FILEREAD`        | Reads a file in multiple frames.                                                                                                                                  | `cfg.str`: `<INIT>~&~<Filename>` (init) or `<DATA>~&~<Filename>~&~<Chunk>` (chunk request). | File data in Base64 format, with chunk details.                              |
+| `FILELIST`        | Lists the contents of the SD card's root directory, including files and directories.                                                                              | None                                   | Directory structure as a string.                                             |
 ---
 
 #### File Read/Write Sequence Details
 ##### 1. File Write (`FILEWRITE`):
 - **Initialization Frame:**  
   - Identified by the `INIT` marker in `cfg.str`.
-  - Format: `INIT#~#<Filename>#~#<Size>#~#<ChunkCount>`  
-  - Example: `INIT#~#example.txt#~#1024#~#4` (file size is 1024 bytes split into 4 chunks).
+  - Format: `INIT~&~<Filename>~&~<Size>~&~<ChunkCount>`  
+  - Example: `INIT~&~example.txt~&~1024~&~4` (file size is 1024 bytes split into 4 chunks).
   - Resets the sequence tracker and prepares for data frames.
-  - the complete frame will look this: `S:C0,FILEWRITE,0,0,0,0,"INIT#~#example.txt#~#1024#~#4"#`
-  - and the Answer as complete frame like this: `A:C0,FILEWRITE,0,0,0,0,"INIT#~#example.txt#~#1024#~#4"#OK-`
+  - the complete frame will look this: `S:C0,FILEWRITE,0,0,0,0,"INIT~&~example.txt~&~1024~&~4"#`
+  - and the Answer as complete frame like this: `A:C0,FILEWRITE,0,0,0,0,"INIT~&~example.txt~&~1024~&~4"#OK-`
 
 - **Data Frames:**  
   - Identified by the `DATA` marker in `cfg.str`.
-  - Format: `DATA#~#<Filename>#~#<Chunk>#~#<Base64Data>`  
-  - Example: `DATA#~#example.txt#~#1#~#SGVsbG8gV29ybGQ=` (Base64 encoded data for chunk 1).  
+  - Format: `DATA~&~<Filename>~&~<Chunk>~&~<Base64Data>`  
+  - Example: `DATA~&~example.txt~&~1~&~SGVsbG8gV29ybGQ=` (Base64 encoded data for chunk 1).  
   - Validates the sequence tracker and ensures correct chunk ordering.
 
 ##### 2. File Read (`FILEREAD`):
 - **Initialization Frame:**  
   - Identified by the `INIT` marker in `cfg.str`.
-  - Format: `INIT#~#<Filename>`  
-  - Example: `INIT#~#example.txt` (requests file details, including size and chunk count).
+  - Format: `INIT~&~<Filename>`  
+  - Example: `INIT~&~example.txt` (requests file details, including size and chunk count).
   - Resets the sequence tracker.
 
 - **Response to Init:**  
-  - Format: `Filename#~#Size#~#ChunkCount`  
-  - Example: `example.txt#~#1024#~#4`.
+  - Format: `Filename~&~Size~&~ChunkCount`  
+  - Example: `example.txt~&~1024~&~4`.
 
 - **Data Frames:**  
-  - Format: `DATA#~#<Filename>#~#<Chunk>#~#<Base64Data>`  
-  - Example: `DATA#~#example.txt#~#1#~#SGVsbG8gV29ybGQ=` (Base64 encoded chunk 1).  
+  - Format: `DATA~&~<Filename>~&~<Chunk>~&~<Base64Data>`  
+  - Example: `DATA~&~example.txt~&~1~&~SGVsbG8gV29ybGQ=` (Base64 encoded chunk 1).  
   - The client requests chunks sequentially, starting from chunk `1`.
 
 ---
@@ -398,8 +398,8 @@ S:M0,static,0xFF0000FF#
 S:M0,rect#
 S:M0,circle#
 S:M0,gif#
-S:M0,gif,0,0,0,0,"0x0 #~# day_1.gif"#
-S:M0,gif,0,0,0,0,"0x0 #~# invader.gif"#  
+S:M0,gif,0,0,0,0,"0x0 ~&~ day_1.gif"#
+S:M0,gif,0,0,0,0,"0x0 ~&~ invader.gif"#  
 
 S:M0,dump#   // dump of current animantion of M0
 S:M1,dump#
@@ -414,12 +414,12 @@ S:C0,dir#
 
 S:C0,CLOCKSET,0,0,0,0,"2024-11-20T19:24:37#
 S:C0,CLOCK#
-S:C0,DUMP,0,0,0,0,"M0#~#calendar#   // dump any animation form ani module .. active and inactive 
+S:C0,DUMP,0,0,0,0,"M0~&~calendar#   // dump any animation form ani module .. active and inactive 
 S:C0,DUMPCALENDAR0#
 S:C0,DUMPCALENDAR1#
 
 
 
-S:M1,gif,0xF000 0001,00x000A0100,0,0x00408070,"0x0 #~# 0*ball.gif"#
+S:M1,gif,0xF000 0001,00x000A0100,0,0x00408070,"0x0 ~&~ 0*ball.gif"#
 
 

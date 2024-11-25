@@ -154,8 +154,8 @@ void test_StringList_empytStringStrSep(void) {
 }
 
 void test_StringList_emptyListStrSep(void) {
-  char list[]="#~#";
-  StringList object(list,"#~#");
+  char list[]="~&~";
+  StringList object(list,"~&~");
   String res; 
   
   TEST_ASSERT_FALSE(object.isEndReached());
