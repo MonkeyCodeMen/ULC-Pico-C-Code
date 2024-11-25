@@ -29,6 +29,7 @@
 #include <Ani.hpp>
 
 /*
+    for details see: README
 
     Start,ModuleIndex,Command,Par1,Par2,Par3,Par4,str,length,data#
 
@@ -64,82 +65,11 @@
 
     #           end of frame
 
-examples:
-
--- LED switch ---
-S:L0,on#
-S:L0,dim,0xFF#
-S:L0,dim,10#
-S:L0,blink#
-S:L0,multi flash,0xFF,0,0x00200060,0x000201F4#
-
--- RGB LEDS'S ---
-S:R0,on,0x00FF00FF#
-garbage S:R0,on,0x0000FF00#
-S:R0,blink,0,0x000000FF,250,250#
-S:R0,breath,0x000000FF,10,10,0x04004000#
-S:R0,off#
-S:R0,blink#
-S:R0,breath#
-S:R0,on,0xFFFFFF#
-S:R0,rainbow,255,1,50#
-S:R0,multi flash#
-
--- Neo LED stripes
-S:S0,Static,0x00FFFFFF,0xFF,1000#
-S:S0,Static,0x00FF0000,0xFF,1000#
-S:S0,Static,0x0000FF00,0xFF,1000#
-S:S0,Static,0x000000FF,0xFF,1000#
-S:S0,Static,0x000000FF,0x10,1000#
-S:S0,Off#
-S:S0,Rainbow Cycle#
-vsi
-
-"Off","Static","Blink","Breath","Color Wipe","Color Wipe Inverse","Color Wipe Reverse","Color Wipe Reverse Inverse","Color Wipe Random","Random Color","Single Dynamic",
-"Multi Dynamic","Rainbow","Rainbow Cycle","Scan","Dual Scan","Fade","Theater Chase","Theater Chase Rainbow","Running Lights","Twinkle","Twinkle Random","Twinkle Fade",
-"Twinkle Fade Random","Sparkle","Flash Sparkle","Hyper Sparkle","Strobe","Strobe Rainbow","Multi Strobe","Blink Rainbow","Chase White","Chase Color","Chase Random",
-"Chase Rainbow","Chase Flash","Chase Flash Random","Chase Rainbow White","Chase Blackout","Chase Blackout Rainbow","Color Sweep Random","Running Color","Running Red Blue",
-"Running Random","Larson Scanner","Comet","Fireworks","Fireworks Random","Merry Christmas","Fire Flicker","Fire Flicker (soft)","Fire Flicker (intense)","Circus Combustus",
-"Halloween","Bicolor Chase","Tricolor Chase","TwinkleFOX","Rain",
-"Custom 0","Custom 1","Custom 2","Custom 3","Custom 4","Custom 5","Custom 6","Custom 7",
-
-- NEO LED Matrix
-S:M0,breath#
-S:M0,static,0xFF0000FF#
-S:M0,rect#
-S:M0,circle#
-S:M0,gif#
-S:M0,gif,0,0,0,0,"0x0 #~# day_1.gif"#
-S:M0,gif,0,0,0,0,"0x0 #~# invader.gif"#  
-
-S:M0,dump#   // dump of current animantion of M0
-S:M1,dump#
-
--common commands
-S:C0,down#
-S:C0,up#
-S:C0,left#
-S:C0,right#
-S:C0,enter#
-S:C0,dir#
-
-S:C0,CLOCKSET,0,0,0,0,"2024-11-20T19:24:37#
-S:C0,CLOCK#
-S:C0,DUMP,0,0,0,0,"M0#~#calendar#   // dump any animation form ani module .. active and inactive 
-S:C0,DUMPCALENDAR0#
-S:C0,DUMPCALENDAR1#
-
-
-
-S:M1,gif,0xF000 0001,00x000A0100,0,0x00408070,"0x0 #~# 0*ball.gif"#
-
-
-
 */
 
 #define COM_FRAME_MAX_COMMAND_LENGTH    50
 #define COM_FRAME_MAX_PARAMETER_LENGTH  30
-#define COM_FRAME_MAX_STR_LENGTH        100
+#define COM_FRAME_MAX_STR_LENGTH        250
 #define COM_FRAME_START1            'S'
 #define COM_FRAME_START2            ':'
 #define COM_FRAME_END               '#'
@@ -150,9 +80,18 @@ S:M1,gif,0xF000 0001,00x000A0100,0,0x00408070,"0x0 #~# 0*ball.gif"#
 
 class ComFrame{
     public:
-        ComFrame();
-        ~ComFrame();
-        void reset();
+        ComFrame(): module(0),index(0),command(""),cfg(0,0,0,0,""),res(""),withPar(false)  {}
+        ~ComFrame() {cfg.str = "";   }
+        void reset(){
+            module = ' ';
+            index  = 0;
+            command == "";
+            cfg = AniCfg(0,0,0,0,"");
+            withPar = false;
+            res ="";
+        }
+
+
 
         char    module;
         uint8_t index;

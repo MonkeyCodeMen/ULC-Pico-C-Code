@@ -28,6 +28,27 @@
 #include "ComFrame.hpp"
 #include <Ctrl.hpp>
 
+
+class FileTransferState {
+public:
+    String filename;
+    uint32_t fileSize = 0;
+    uint32_t totalChunks = 0;
+    uint32_t currentChunk = 0;
+    bool isActive = false;
+
+    void reset() {
+        filename = "";
+        fileSize = 0;
+        totalChunks = 0;
+        currentChunk = 0;
+        isActive = false;
+    }
+};
+
+
+#define MAX_FILE_CHUNK_SIZE 128 // Maximum file chunk size for splitting.
+
 class ComDispatch
 {
 public:
@@ -40,7 +61,10 @@ private:
     bool _dump(ComFrame * pFrame);
     bool _dispatchLedFrame(ComFrame * pFrame);
     bool _dispatchCommonFrame(ComFrame * pFrame);
+    bool _readFile(ComFrame * pFrame);
+    bool _writeFile(ComFrame * pFrame);
 
     Ctrl * _refToObj(char module,uint8_t index);
 
+    FileTransferState _fileTransferState;
 };

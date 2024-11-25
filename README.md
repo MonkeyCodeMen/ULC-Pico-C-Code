@@ -24,13 +24,16 @@ I tried several other things like:
 ![Layout](./pictures/day_3_a.gif)
 ![Layout](./pictures/day_t5.gif)
 
+.. I think I show you a picture of the current state:
+![system architecture](./pictures/Sys-Arch.svg)
+
 I just want to explore how it works and it lead to this  .. but it will not be the end, it just reached a state where I decided to make it public to give something back to the community, in the hope it may be usefull for somebody. 
 And don’t forget: always stay curious and persistent. The best way to learn is through mistakes. But only those who try something new and unfamiliar can make mistakes to learn from. Every day without learning something is a lost day.
 
 So, search behind every tree and under very stone for the three-headed monkey, and if you need a boat, just ask for Stan.
 
 
-it grows and grows .. then I needed a PCB .. I found KiCad :
+The project keeps growing and growing .. I needed a PCB .. I found KiCad :
 @KiCad Team .. a professional layout tool for free .. great work ... 
 
 ![Layout](./pictures/Layout.PNG)
@@ -78,6 +81,7 @@ some more details:
 ---
 ## **System architecture**
 ![system architecture](./pictures/Sys-Arch.svg)
+
 ---
 ## **Software architecture**
 ![software architecture](./pictures/SW-Arch.png)
@@ -105,6 +109,41 @@ Below is a list of the libraries or frameworks required for the project to run. 
 
 Many thanks to all the amazing developers of these libraries. Based on this foundation, it is possible to create larger projects like this one with a moderate amount of time. This enables significantly more functionality than would have been achievable by a single person alone.
 
+All Lib's will be installed by PlatformIO based on ini file .. perfect .. @PlatforIO team: outstanding job, i know several professional tools from automobile industry that can not do this !!!!
+
+
+
+### from Arduino:
++ Arduino base
++ wire
++ spi
++ SD
+
+### RP2040 Toolchain 
+https://github.com/maxgerhardt/platform-raspberrypi.git
+
+### form adafruit: Adafruit BusIO @ ^1.16.2
++ RTClib @ ^2.1.4
++ Adafruit NeoMatrix @ ^1.3.3
+  
+### form bodmer:
++ TFT_eSPI @ ^2.5.43
+
+### from kitesurfer1404:
++ WS2812FX @ ^1.4.4
+  A beautiful and extensive library with many animations for intelligent RGB LEDs. Truly professional and exceptionally impressive work. Thank you so much for making something like this available!
+  
+### bitbank2:
++ AnimatedGIF @ ^2.1.1
+  a real handy lib to handle GIF's thanks .. It would have cost me several monthes to do somthing that will be for sure not at this level ... Thanks
+  
+### robtillaart:
++ CRC @ ^1.0.3
+
+### bblanchon:
++ ArduinoJson @ ^7.2.1
+
+@all LIB authors .. great job, please keep up this good work 
 
 
 ---
