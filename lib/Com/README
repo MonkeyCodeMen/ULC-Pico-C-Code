@@ -1,0 +1,425 @@
+# Table of content
+1. [Serial Communication Protocol Documentation](#serial-communication-protocol-documentation)
+2. [COM internals](#com-internals)
+3. [ULC command overview](#ulc-command-overview)
+4. [examples (copy to terminal :-)](#examples)
+
+
+## Serial Communication Protocol Documentation
+
+The `Com` class implements a serial communication protocol that handles parsing, processing, and responding to serialized data frames. This protocol is designed for communication over a serial port, supporting modular commands, parameters, and textual data.
+
+It mainly consists of transporting three parts:
+
+- **Address**: Module & Index
+- **Command**: Command string
+- **Parameters**: `parm[1..4]` & text (optional)
+
+**Key Points:**
+
+- Parameters are optional (all or only the last ones).
+- If any parameter is provided in the initial frame, a complete set of parameters is included in the response.
+- Response parameters are always presented in hexadecimal form without leading `0x`.
+- Initial frame parameters can be given in decimal or hexadecimal (with `0x` prefix), with or without spaces (e.g., `10000`, `10 000`, `0xDEAD BEEF`, `0xdeadbeef`).
+- the complete protocol is based on ASCII transfer. The performance is very poor there is alot of burden and overhaed, beacuse the focus in the design phase has been set on (even if I add a file tarnsfer later) :
+    + human raedable
+    + human writeable (on the fly)
+    + structure and possiblities for extension / modification
+    + suitable for handling a wide range of small data, events and actions
+- there is no CRC, if you are in need for a protection against tarnsfer errors, it has to be implemented in the datafields (i. e. very easy approach: send parameter two times in one frame or two different frames invers and not invers) (optimized for human writeable)
+
+
+Idea collection for improvements:
++ add a binary transfer (with and without CRC) by just change the start Sequence. So both protcols text & binary can be run one serial line.
+
+
+
+
+---
+
+### General Frame Structure
+
+A serial frame comprises several fields separated by `COM_FRAME_SEP` (`','`):
+
+| **Field**        | **Description**                                                                                      |
+|------------------|------------------------------------------------------------------------------------------------------|
+| **Start of Frame** | Two fixed bytes indicating the beginning of a frame: `COM_FRAME_START1` (`S`) and `COM_FRAME_START2` (`:`). |
+| **Module**         | A single character specifying the module for the command.                                            |
+| **Index**          | A single character digit (`0-9`) indicating the module's index.                                      |
+| **Command**        | A string representing the command (up to `COM_FRAME_MAX_COMMAND_LENGTH` characters).                 |
+| **Parameters**     | Up to 4 integer parameters separated by `COM_FRAME_SEP` (optional).                                  |
+| **Text**           | Optional quoted string parameter enclosed in `COM_FRAME_TEXT_QUOTES`.                                |
+| **End of Frame**   | A fixed byte: `COM_FRAME_END` (`#`) marking the frame's end.                                         |
+
+---
+
+### Frame Example
+
+| **Field**        | **Value**                         | **Description**                                                                                   |
+|------------------|-----------------------------------|---------------------------------------------------------------------------------------------------|
+| **Start of Frame** | `S:`                              | Fixed start bytes (`COM_FRAME_START1`, `COM_FRAME_START2`).                                       |
+| **Module**         | `L`                               | Module identifier.                                                                                |
+| **Index**          | `1`                               | Module-specific index.                                                                            |
+| **Separator**      | `,`                               | Separator byte (`COM_FRAME_SEP`).                                                                 |
+| **Command**        | `on`                              | Example command string.                                                                           |
+| **Separator**      | `,`                               | Separator byte (`COM_FRAME_SEP`).                                                                 |
+| **Parameter 1**    | `10`                              | Integer parameter.                                                                                |
+| **Separator**      | `,`                               | Separator byte (`COM_FRAME_SEP`).                                                                 |
+| **Parameter 2**    | `20`                              | Integer parameter.                                                                                |
+| **Separator**      | `,`                               | Separator byte (`COM_FRAME_SEP`).                                                                 |
+| **Parameter 3**    | `30`                              | Integer parameter.                                                                                |
+| **Separator**      | `,`                               | Separator byte (`COM_FRAME_SEP`).                                                                 |
+| **Parameter 4**    | `40`                              | Integer parameter.                                                                                |
+| **Separator**      | `,`                               | Separator byte (`COM_FRAME_SEP`).                                                                 |
+| **Text**           | `"Some Text"`                     | Optional string data enclosed in quotes.                                                          |
+| **End of Frame**   | `#`                               | Fixed end byte (`COM_FRAME_END`).                                                                 |
+
+#### Example Frame
+```plaintext
+S:L1,on,10,20,30,40,"Some Text"#
+```
+
+#### short forms
+```plaintext
+S:L1,on,0,0,0,0#
+S:L1,on,0,0,0#
+S:L1,on,0,0#
+S:L1,on,0#
+S:L1,on#
+```
+
+#### Example Response
+example for a successful repsonse: 
+```plaintext
+S:L0,on,0x0000 0010,0x20,0x30,0x40,"Some Text"#
+A:L0,on,00000010,00000030,00000030,00000040,"Some Text"#OK-#
+```
+
+example for a failed repsonse: 
+
+```plaintext
+S:L0,overkill,0,0,0,0,""#
+A:L0,overkill,0,0,0,0,""#NOK-program does not exist#
+```
+
+
+
+## COM internals
+
+### States in Frame Decoding
+
+The protocol operates using a state machine to parse frames. Each state corresponds to a step in the decoding process.
+
+| **State**       | **Description**                                                                                                   |
+|------------------|-------------------------------------------------------------------------------------------------------------------|
+| **`WAIT`**       | Waits for the first start byte (`COM_FRAME_START1`).                                                             |
+| **`START_FRAME`**| Validates the second start byte (`COM_FRAME_START2`).                                                            |
+| **`MODULE`**     | Reads the module byte, index, and separator.                                                                     |
+| **`COMMAND`**    | Parses the command string until the next separator or frame end.                                                |
+| **`PAR1`**       | Reads the first parameter, transitioning to the next parameter state or frame completion.                        |
+| **`PAR2`**       | Reads the second parameter.                                                                                      |
+| **`PAR3`**       | Reads the third parameter.                                                                                      |
+| **`PAR4`**       | Reads the fourth parameter.                                                                                      |
+| **`STR_START`**  | Validates the start of the optional text string (`COM_FRAME_TEXT_QUOTES`).                                       |
+| **`STR_DATA`**   | Reads the quoted text string, ensuring it doesn’t exceed `COM_FRAME_MAX_STR_LENGTH`.                             |
+| **`STR_END`**    | Confirms the end of the quoted string.                                                                           |
+| **`FRAME_DONE`** | Marks the frame as fully parsed, dispatches it for processing, and sends a response.                            |
+
+---
+
+### Protocol Constants
+
+The protocol defines several constants to standardize the frame structure and content:
+
+| **Constant**                    | **Value**            | **Description**                                                            |
+|---------------------------------|----------------------|----------------------------------------------------------------------------|
+| `COM_FRAME_START1`              | `S`                  | First byte indicating the start of the frame.                              |
+| `COM_FRAME_START2`              | `:`                  | Second byte indicating the start of the frame.                             |
+| `COM_FRAME_SEP`                 | `,`                  | Field separator byte.                                                      |
+| `COM_FRAME_END`                 | `#`                  | End-of-frame byte.                                                         |
+| `COM_FRAME_TEXT_QUOTES`         | `"`                  | Byte used to enclose text fields.                                          |
+| `COM_FRAME_MAX_COMMAND_LENGTH`  | `50`                 | Maximum length of the command string.                                      |
+| `COM_FRAME_MAX_PARAMETER_LENGTH`| `30`                 | Maximum length of each parameter field.                                    |
+| `COM_FRAME_MAX_STR_LENGTH`      | `250`                | Maximum length of the text field.                                          |
+
+---
+
+## ULC command overview
+
+
+Below is an overview of the commands supported by the ULC Pico application. These tables document the structure, parameters, and expected responses for each command.
+
+---
+
+### Common Module Commands (`Module: C`)
+
+
+The commands in this module perform general system-level operations or interact with system peripherals. These commands do not require an index, and their execution generally affects the entire system or provides global information.
+
+---
+
+#### Command Table
+
+| **Command**       | **Description**                                                                                                                                                   | **Parameters**                         | **Response**                                                                 |
+|--------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------|----------------------------------------|-------------------------------------------------------------------------------|
+| `UP`              | Simulates a menu "Up" button press, moving to the previous item in the menu.                                                                                      | None                                   | Boolean: `true` (success) or `false` (failure).                              |
+| `DOWN`            | Simulates a menu "Down" button press, moving to the next item in the menu.                                                                                        | None                                   | Boolean: `true` (success) or `false` (failure).                              |
+| `LEFT`            | Simulates a menu "Left" button press, typically to navigate backward or to a parent menu.                                                                         | None                                   | Boolean: `true` (success) or `false` (failure).                              |
+| `RIGHT`           | Simulates a menu "Right" button press, typically to navigate forward or into a submenu.                                                                           | None                                   | Boolean: `true` (success) or `false` (failure).                              |
+| `ENTER`           | Simulates a menu "Enter" button press, selecting the currently highlighted item.                                                                                  | None                                   | Boolean: `true` (success) or `false` (failure).                              |
+| `DIR`             | Lists the contents of the SD card's root directory, including files and directories.                                                                              | None                                   | Directory structure as a string.                                             |
+| `MEM`             | Logs memory information, including usage and free space.                                                                                                         | None                                   | Memory log.                                                                  |
+| `SLAVE_LED`       | Toggles the LED state on the I²C slave device (if present).                                                                                                      | None                                   | Boolean: `true` (success) or `false` (failure).                              |
+| `CLOCK`           | Returns the current system clock time.                                                                                                                           | None                                   | Current timestamp (formatted).                                               |
+| `CLOCKSET`        | Sets the system clock to a provided timestamp. Example timestamp: `"2024-11-04T12:34:56"`.                                                                        | Timestamp string in `cfg.str`.          | Updated timestamp (formatted).                                               |
+| `DUMPCALENDAR0`   | Dumps the current state of the calendar for the NeoMatrix controller at index `0`.                                                                                | None                                   | Calendar state dump as a string.                                             |
+| `DUMPCALENDAR1`   | Dumps the current state of the calendar for the NeoMatrix controller at index `1`.                                                                                | None                                   | Calendar state dump as a string.                                             |
+| `DUMP`            | Dumps a specific program or the current program state for the specified module/index combination.                                                                | `cfg.str`: `<Module><Index>#~#<Program>` | Program or current state dump as a string.                                   |
+| `FILEWRITE`       | Writes a file in multiple frames.                                                                                                                                | `cfg.str`: `<INIT>#~#<Filename>#~#<Size>#~#<ChunkCount>` (init) or `<DATA>#~#<Filename>#~#<Chunk>#~#<Data>` (data frames). | Boolean: `true` (success) or `false` (failure). |
+| `FILEREAD`        | Reads a file in multiple frames.                                                                                                                                  | `cfg.str`: `<INIT>#~#<Filename>` (init) or `<DATA>#~#<Filename>#~#<Chunk>` (chunk request). | File data in Base64 format, with chunk details.                              |
+---
+
+#### File Read/Write Sequence Details
+##### 1. File Write (`FILEWRITE`):
+- **Initialization Frame:**  
+  - Identified by the `INIT` marker in `cfg.str`.
+  - Format: `INIT#~#<Filename>#~#<Size>#~#<ChunkCount>`  
+  - Example: `INIT#~#example.txt#~#1024#~#4` (file size is 1024 bytes split into 4 chunks).
+  - Resets the sequence tracker and prepares for data frames.
+  - the complete frame will look this: `S:C0,FILEWRITE,0,0,0,0,"INIT#~#example.txt#~#1024#~#4"#`
+  - and the Answer as complete frame like this: `A:C0,FILEWRITE,0,0,0,0,"INIT#~#example.txt#~#1024#~#4"#OK-`
+
+- **Data Frames:**  
+  - Identified by the `DATA` marker in `cfg.str`.
+  - Format: `DATA#~#<Filename>#~#<Chunk>#~#<Base64Data>`  
+  - Example: `DATA#~#example.txt#~#1#~#SGVsbG8gV29ybGQ=` (Base64 encoded data for chunk 1).  
+  - Validates the sequence tracker and ensures correct chunk ordering.
+
+##### 2. File Read (`FILEREAD`):
+- **Initialization Frame:**  
+  - Identified by the `INIT` marker in `cfg.str`.
+  - Format: `INIT#~#<Filename>`  
+  - Example: `INIT#~#example.txt` (requests file details, including size and chunk count).
+  - Resets the sequence tracker.
+
+- **Response to Init:**  
+  - Format: `Filename#~#Size#~#ChunkCount`  
+  - Example: `example.txt#~#1024#~#4`.
+
+- **Data Frames:**  
+  - Format: `DATA#~#<Filename>#~#<Chunk>#~#<Base64Data>`  
+  - Example: `DATA#~#example.txt#~#1#~#SGVsbG8gV29ybGQ=` (Base64 encoded chunk 1).  
+  - The client requests chunks sequentially, starting from chunk `1`.
+
+---
+
+##### Protocol Rules
+1. **Initialization Frame Required:**  
+   - Every sequence starts with an `INIT` frame to reset the state and provide file details.
+2. **Sequential Chunks:**  
+   - Chunks must be sent or requested sequentially. Out-of-order frames are rejected.
+   - Chunks are currently have a fix limit of 128Bytes
+3. **Error Handling:**  
+   - Invalid file names or chunks result in immediate sequence termination with an error.
+4. **Base64 Encoding:**  
+   - All file data is Base64 encoded to ensure compatibility with ASCII-based protocols.
+
+---
+
+### LED Object Commands (`Modules: L, R, S, M`)
+
+These commands control animations and configurations for LED modules (e.g., single LEDs, RGB strips, NeoPixels, and matrices).
+
+| **Command**      | **Description**                                                                                  | **Parameters**                | **Example**                                     | **Response**                                   |
+|-------------------|--------------------------------------------------------------------------------------------------|--------------------------------|------------------------------------------------|------------------------------------------------|
+| `dump`           | Dumps the current configuration of the LED object.                                              | None                           | `S:L0,dump#`                                   | Dump data string in response.                  |
+| Any Program Name | Selects an animation program for the module.                                                     | Optional: `cfg` parameters     | `S:L0,rainbow#`                                | `A:L0,rainbow#OK-0#`                           |
+
+---
+
+#### Animation Configuration Parameters
+
+The `Ani` class supports the following parameters for configuring animations:
+
+| **Parameter**  | **Type** | **Range** | **Description**                                                                                                  |
+|----------------|----------|-----------|------------------------------------------------------------------------------------------------------------------|
+| `dimCfg`       | `struct` | N/A     | Controls dimming level, increment/decrement steps, and update flags.                                             |
+| `colorCfg`     | `struct` | N/A     | Controls color selection, increments, time intervals, and color list (str) or color wheel usage.                                      |
+| `flashCfg`     | `struct` | N/A     | Configures flashes in group counts, durations, and intervals.                                                         |
+| `breathCfg`    | `struct` |N/A     | Configures breathing effect parameters like delta values and timings.                                            |
+| `str`          | `String` | N/A       | Optional string for advanced settings, such as color lists or specific file sequences.                           |
+
+
+The `Ani` class supports four configurable parameters for controlling various animation behaviors.
+These controls can be combined to create complex animations, although some combinations might not make practical sense. The parameters are designed in a register-like format for efficient access using unions/structs.
+
+descriptions of conrol structs:
+
+
+##### 1. Dimming Configuration (`dimCfg`)
+
+| **Bits**    | **Description**                                                                 |
+|-------------|---------------------------------------------------------------------------------|
+| `7-0`       | Set dim value (0-255).                                                         |
+| `15-8`      | Increment/Decrement: 0 = no change, <128 = increment, >=128 = decrement.       |
+| `27-16`     | NeoStripe speed parameter.                                                    |
+| `28`        | Update `breathCfg` flag.                                                      |
+| `29`        | Update `flashCfg` flag.                                                       |
+| `30`        | Update `colorCfg` flag.                                                       |
+| `31`        | Update `dimCfg` flag.                                                         |
+
+examples:
+- `dimCfg: 0x80000030` - Sets dim level to `0x30`.
+- `dimCfg: 0x80001000` - Increment dim level by 10; results in `0x30 + 0x10 = 0x40`.
+
+
+
+##### 2. Color Configuration (`colorCfg`)
+
+| **Bits**    | **Description**                                                                 |
+|-------------|---------------------------------------------------------------------------------|
+| `7-0`       | Start index of color list (0-255).                                              |
+|             | If `cfg.str` is empty, colors are taken from the color wheel.                  |
+| `15-8`      | Increment/Decrement: 0 = static, <128 = increment, >=128 = decrement.          |
+| `23-16`     | Time `t2` in ms (time between two color steps).                                 |
+| `31-24`     | Event divider (0-255 = 1-256). Example: 2 = 3 triggers or 3 time events per change. |
+
+examples:
+- `colorCfg: 0` with `str: "0x00FFFFFF"` - Constant white.
+- `colorCfg: 0` with `str: "0x000000FF"` - Constant blue.
+- `colorCfg: 0xFFFF0100` with `str: "0x00FF0000,0x000000FF"` - Switch between red and blue on trigger events, starting with red.
+
+
+##### 3. Flash Configuration (`flashCfg`)
+
+| **Bits**    | **Description**                                                                 |
+|-------------|---------------------------------------------------------------------------------|
+| `7-0`       | Flashes per group (0 = off).                                                   |
+| `15-8`      | Time `t1` in 10ms (duration of one flash).                                      |
+| `23-16`     | Time `t2` in 10ms (time between flashes).                                       |
+| `31-24`     | Time `t3` in 100ms (time between flash groups).                                 |
+
+examples:
+- `flashCfg: 0xXXXXXX00` - Flash module switched off.
+- `flashCfg: 0xFFXXXXXX` - Flash triggered manually.
+
+
+##### 4. Breathing Configuration (`breathCfg`)
+
+| **Bits**    | **Description**                                                                 |
+|-------------|---------------------------------------------------------------------------------|
+| `7-0`       | Delta dim increment (clipped at 255) for high level (dimCfg = low level).       |
+| `15-8`      | Time `t1` in 100ms (time to increase brightness).                               |
+| `23-16`     | Time `t2` in 100ms (time to decrease brightness).                               |
+| `31-24`     | Reserved.                                                                      |
+
+
+##### 5. String Parameter (`str`)
+
+The `str` parameter provides additional configuration options. It can define custom color lists or file playback patterns.
+
+
+
+---
+
+
+#### Standard Error Codes
+
+| **Error Code**   | **Value** | **Description**                                                                      |
+|-------------------|-----------|--------------------------------------------------------------------------------------|
+| `ANI_OK`         | `0`       | Operation completed successfully.                                                   |
+| `ANI_ERROR_GENERAL` | `1`    | General error occurred.                                                             |
+| `ANI_ERROR_PROGRAM_DOES_NOT_EXIST` | `2` | Requested animation program does not exist.                                    |
+| `ANI_ERROR_OUT_OF_RANGE` | `3`        | A parameter value is out of the allowed range.                                 |
+| `ANI_ERROR_INTERNAL` | `4`           | Internal error in the animation logic.                                         |
+| `ANI_ERROR_PAR_MISSING` | `5`        | Required parameter is missing.                                                 |
+| `ANI_ERROR_FILE_NOT_FOUND` | `6`     | Specified file could not be found.                                             |
+| `ANI_ERROR_OUT_OF_MEMORY` | `7`      | System ran out of memory.                                                      |
+
+---
+
+## examples
+
+collection of various examples
+
++ name:  xxyh
+    * description: 
+    e erer
+    reohjeorl
+    eropjer
+
+    * prompt:
+    sdfhkjwfe
++ next 
+
+
+
+
+-- LED switch ---
+S:L0,on#
+S:L0,dim,0xFF#
+S:L0,dim,10#
+S:L0,blink#
+S:L0,multi flash,0xFF,0,0x00200060,0x000201F4#
+
+-- RGB LEDS'S ---
+S:R0,on,0x00FF00FF#
+garbage S:R0,on,0x0000FF00#
+S:R0,blink,0,0x000000FF,250,250#
+S:R0,breath,0x000000FF,10,10,0x04004000#
+S:R0,off#
+S:R0,blink#
+S:R0,breath#
+S:R0,on,0xFFFFFF#
+S:R0,rainbow,255,1,50#
+S:R0,multi flash#
+
+-- Neo LED stripes
+S:S0,Static,0x00FFFFFF,0xFF,1000#
+S:S0,Static,0x00FF0000,0xFF,1000#
+S:S0,Static,0x0000FF00,0xFF,1000#
+S:S0,Static,0x000000FF,0xFF,1000#
+S:S0,Static,0x000000FF,0x10,1000#
+S:S0,Off#
+S:S0,Rainbow Cycle#
+vsi
+
+"Off","Static","Blink","Breath","Color Wipe","Color Wipe Inverse","Color Wipe Reverse","Color Wipe Reverse Inverse","Color Wipe Random","Random Color","Single Dynamic",
+"Multi Dynamic","Rainbow","Rainbow Cycle","Scan","Dual Scan","Fade","Theater Chase","Theater Chase Rainbow","Running Lights","Twinkle","Twinkle Random","Twinkle Fade",
+"Twinkle Fade Random","Sparkle","Flash Sparkle","Hyper Sparkle","Strobe","Strobe Rainbow","Multi Strobe","Blink Rainbow","Chase White","Chase Color","Chase Random",
+"Chase Rainbow","Chase Flash","Chase Flash Random","Chase Rainbow White","Chase Blackout","Chase Blackout Rainbow","Color Sweep Random","Running Color","Running Red Blue",
+"Running Random","Larson Scanner","Comet","Fireworks","Fireworks Random","Merry Christmas","Fire Flicker","Fire Flicker (soft)","Fire Flicker (intense)","Circus Combustus",
+"Halloween","Bicolor Chase","Tricolor Chase","TwinkleFOX","Rain",
+"Custom 0","Custom 1","Custom 2","Custom 3","Custom 4","Custom 5","Custom 6","Custom 7",
+
+- NEO LED Matrix
+S:M0,breath#
+S:M0,static,0xFF0000FF#
+S:M0,rect#
+S:M0,circle#
+S:M0,gif#
+S:M0,gif,0,0,0,0,"0x0 #~# day_1.gif"#
+S:M0,gif,0,0,0,0,"0x0 #~# invader.gif"#  
+
+S:M0,dump#   // dump of current animantion of M0
+S:M1,dump#
+
+-common commands
+S:C0,down#
+S:C0,up#
+S:C0,left#
+S:C0,right#
+S:C0,enter#
+S:C0,dir#
+
+S:C0,CLOCKSET,0,0,0,0,"2024-11-20T19:24:37#
+S:C0,CLOCK#
+S:C0,DUMP,0,0,0,0,"M0#~#calendar#   // dump any animation form ani module .. active and inactive 
+S:C0,DUMPCALENDAR0#
+S:C0,DUMPCALENDAR1#
+
+
+
+S:M1,gif,0xF000 0001,00x000A0100,0,0x00408070,"0x0 #~# 0*ball.gif"#
+
+

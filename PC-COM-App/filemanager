@@ -1,0 +1,218 @@
+import tkinter as tk
+from tkinter import ttk, messagebox, filedialog
+import serial
+import serial.tools.list_ports
+import os
+import base64
+
+CHUNK_SIZE = 128  # Maximum chunk size for file operations
+
+
+class App:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Pico Serial Communication")
+
+        # Serial configuration
+        self.serial_port = None
+        self.baud_rate = 9600
+        self.config_window = None
+
+        # Menu
+        menu = tk.Menu(root)
+        root.config(menu=menu)
+
+        file_menu = tk.Menu(menu, tearoff=0)
+        menu.add_cascade(label="File", menu=file_menu)
+        file_menu.add_command(label="Open Serial Port", command=self.open_serial_config)
+
+        actions_menu = tk.Menu(menu, tearoff=0)
+        menu.add_cascade(label="Actions", menu=actions_menu)
+        actions_menu.add_command(label="Dump", command=self.dump_command)
+        actions_menu.add_command(label="Read Clock", command=self.read_clock)
+        actions_menu.add_command(label="Sync Clock", command=self.sync_clock)
+
+        # File dialog
+        file_dialog_menu = tk.Menu(menu, tearoff=0)
+        menu.add_cascade(label="File Dialog", menu=file_dialog_menu)
+        file_dialog_menu.add_command(label="File Manager", command=self.open_file_manager)
+
+        # SD Card and Local Files
+        self.sd_files_list = None
+        self.local_files_list = None
+
+    def open_serial_config(self):
+        """Opens the serial configuration dialog."""
+        if self.config_window:
+            return  # Prevent multiple instances
+
+        self.config_window = tk.Toplevel(self.root)
+        self.config_window.title("Serial Port Configuration")
+        self.config_window.geometry("400x200")
+        self.config_window.protocol("WM_DELETE_WINDOW", self.close_serial_config)
+
+        tk.Label(self.config_window, text="Select Serial Port:").pack(pady=5)
+        self.port_combobox = ttk.Combobox(self.config_window, values=self.get_serial_ports(), state="readonly")
+        self.port_combobox.pack(pady=5)
+
+        tk.Label(self.config_window, text="Select Baud Rate:").pack(pady=5)
+        self.baud_rate_combobox = ttk.Combobox(self.config_window, values=[9600, 19200, 38400, 57600, 115200], state="readonly")
+        self.baud_rate_combobox.set(self.baud_rate)
+        self.baud_rate_combobox.pack(pady=5)
+
+        tk.Button(self.config_window, text="Connect", command=self.connect_serial).pack(pady=10)
+
+    def close_serial_config(self):
+        """Closes the serial configuration dialog."""
+        self.config_window.destroy()
+        self.config_window = None
+
+    def get_serial_ports(self):
+        """Lists available serial ports."""
+        ports = serial.tools.list_ports.comports()
+        return [port.device for port in ports]
+
+    def connect_serial(self):
+        """Connects to the selected serial port."""
+        port = self.port_combobox.get()
+        baud_rate = self.baud_rate_combobox.get()
+
+        if not port or not baud_rate:
+            messagebox.showerror("Error", "Please select a valid serial port and baud rate.")
+            return
+
+        try:
+            self.serial_port = serial.Serial(port, int(baud_rate), timeout=1)
+            self.baud_rate = int(baud_rate)
+            messagebox.showinfo("Success", f"Connected to {port} at {baud_rate} baud.")
+            self.close_serial_config()
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to open serial port: {e}")
+
+    def send_command(self, command):
+        """Sends a command via the serial port and returns the response."""
+        if not self.serial_port or not self.serial_port.is_open:
+            messagebox.showerror("Error", "Serial port is not open.")
+            return None
+
+        try:
+            self.serial_port.write(f"{command}\n".encode())
+            response = self.serial_port.readline().decode().strip()
+            return response
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to send command: {e}")
+            return None
+
+    def dump_command(self):
+        """Sends a dump command."""
+        response = self.send_command("S:C,DUMP#")
+        if response:
+            messagebox.showinfo("Dump Response", response)
+
+    def read_clock(self):
+        """Sends a clock read command."""
+        response = self.send_command("S:C,CLOCK#")
+        if response:
+            messagebox.showinfo("Clock Response", response)
+
+    def sync_clock(self):
+        """Synchronizes the clock with the PC's clock."""
+        import time
+        now = time.strftime("%Y-%m-%dT%H:%M:%S", time.gmtime())
+        response = self.send_command(f'S:C,CLOCKSET,"{now}"#')
+        if response:
+            messagebox.showinfo("Clock Sync Response", response)
+
+    def open_file_manager(self):
+        """Opens the file manager dialog."""
+        file_manager = tk.Toplevel(self.root)
+        file_manager.title("File Manager")
+        file_manager.geometry("600x400")
+
+        # SD Card files
+        tk.Label(file_manager, text="SD Card Files").grid(row=0, column=0, padx=10, pady=10)
+        self.sd_files_list = tk.Listbox(file_manager)
+        self.sd_files_list.grid(row=1, column=0, padx=10, pady=10)
+
+        # Local files
+        tk.Label(file_manager, text="Local Files").grid(row=0, column=1, padx=10, pady=10)
+        self.local_files_list = tk.Listbox(file_manager)
+        self.local_files_list.grid(row=1, column=1, padx=10, pady=10)
+
+        # Buttons
+        tk.Button(file_manager, text="Copy to Pico", command=self.copy_to_pico).grid(row=2, column=0, padx=10, pady=10)
+        tk.Button(file_manager, text="Copy from Pico", command=self.copy_from_pico).grid(row=2, column=1, padx=10, pady=10)
+
+        # Populate local files
+        self.update_local_files()
+
+    def update_local_files(self):
+        """Updates the list of local files."""
+        self.local_files_list.delete(0, tk.END)
+        for file in os.listdir("."):
+            self.local_files_list.insert(tk.END, file)
+
+    def copy_to_pico(self):
+        """Copy a file from the local file system to the Pico's SD card."""
+        selected = self.local_files_list.get(self.local_files_list.curselection())
+        if selected:
+            try:
+                with open(selected, "rb") as f:
+                    data = f.read()
+                file_size = len(data)
+                chunks = (file_size + CHUNK_SIZE - 1) // CHUNK_SIZE
+
+                # Send INIT frame
+                init_frame = f'S:C,FILEWRITEINIT,"{selected}","{file_size}","{chunks}"#'
+                response = self.send_command(init_frame)
+                if not response or "OK" not in response:
+                    raise Exception("Failed to initialize file write.")
+
+                # Send chunks
+                for i in range(chunks):
+                    chunk_data = data[i * CHUNK_SIZE:(i + 1) * CHUNK_SIZE]
+                    encoded_data = base64.b64encode(chunk_data).decode("utf-8")
+                    chunk_frame = f'S:C,FILEWRITE,"{selected}","{i}","{encoded_data}"#'
+                    response = self.send_command(chunk_frame)
+                    if not response or "OK" not in response:
+                        raise Exception(f"Failed to write chunk {i}.")
+                messagebox.showinfo("Copy to Pico", "File successfully copied to Pico.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to copy file: {e}")
+
+    def copy_from_pico(self):
+        """Copy a file from the Pico's SD card to the local file system."""
+        selected = self.sd_files_list.get(self.sd_files_list.curselection())
+        if selected:
+            try:
+                # Request file info
+                init_frame = f'S:C,FILEREADINIT,"{selected}"#'
+                response = self.send_command(init_frame)
+                if not response or "OK" not in response:
+                    raise Exception("Failed to initialize file read.")
+
+                # Parse file size and chunk count from response
+                _, file_size, chunks = response.split(",")[1:]
+                file_size = int(file_size)
+                chunks = int(chunks)
+
+                data = bytearray()
+                for i in range(chunks):
+                    chunk_frame = f'S:C,FILEREAD,"{selected}","{i}"#'
+                    response = self.send_command(chunk_frame)
+                    if not response or "OK" not in response:
+                        raise Exception(f"Failed to read chunk {i}.")
+                    encoded_data = response.split(",")[2]
+                    data.extend(base64.b64decode(encoded_data))
+
+                with open(selected, "wb") as f:
+                    f.write(data)
+                messagebox.showinfo("Copy from Pico", f"File {selected} successfully copied.")
+            except Exception as e:
+                messagebox.showerror("Error", f"Failed to copy file: {e}")
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    app = App(root)
+   

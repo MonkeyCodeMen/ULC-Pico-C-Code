@@ -36,6 +36,8 @@
 #include <I2C_master.hpp>
 #include <I2C_register.h>
 
+#include <Base64.hpp> 
+
 extern void mainMenu_syncFromCtrl();
 
 String printDirectory(SDFile dir, String in=String("") , int numTabs=0) {
@@ -161,6 +163,10 @@ bool ComDispatch::_dispatchCommonFrame(ComFrame * pFrame){
         return neoMatrixCtrl2.dump(pFrame->res,"calendar");
     } else if (pFrame->command == "DUMP") {
         return _dump(pFrame);
+    }  else if (pFrame->command == "READFILE") {
+        return _readFile(pFrame);
+    } else if (pFrame->command == "WRITEFILE") {
+        return _writeFile(pFrame);
     }
 
     pFrame->res = "unknown common comand";
@@ -229,4 +235,137 @@ switch(module){
             break;
     }    
     return nullptr;
+}
+
+
+
+
+
+bool ComDispatch::_readFile(ComFrame *pFrame) {
+    StringList strList(pFrame->cfg.str.c_str(), "#~#");
+    String cmdType = strList.getNextListEntry();
+
+    if (cmdType == "INIT") {
+        _fileTransferState.reset();
+
+        _fileTransferState.filename = strList.getNextListEntry();
+        SDFile file = globalSDcard0.open(_fileTransferState.filename.c_str(), FILE_READ);
+        if (!file) {
+            pFrame->res = "File not found: " + _fileTransferState.filename;
+            return false;
+        }
+
+        _fileTransferState.fileSize = file.size();
+        _fileTransferState.totalChunks = (_fileTransferState.fileSize + MAX_FILE_CHUNK_SIZE - 1) / MAX_FILE_CHUNK_SIZE;
+        _fileTransferState.currentChunk = 0;
+        _fileTransferState.isActive = true;
+
+        pFrame->res = "INIT#~#" + _fileTransferState.filename + "#~#" + String(_fileTransferState.fileSize) + "#~#" +
+                      String(_fileTransferState.totalChunks);
+        file.close();
+        return true;
+    }
+
+    if (!_fileTransferState.isActive) {
+        pFrame->res = "No active file read sequence.";
+        return false;
+    }
+
+    uint32_t chunk = strList.getNextListEntry().toInt();
+    if (chunk != _fileTransferState.currentChunk) {
+        pFrame->res = "Invalid chunk order.";
+        return false;
+    }
+
+    SDFile file = globalSDcard0.open(_fileTransferState.filename.c_str(), FILE_READ);
+    if (!file) {
+        pFrame->res = "File not found: " + _fileTransferState.filename;
+        return false;
+    }
+
+    uint32_t offset = _fileTransferState.currentChunk * MAX_FILE_CHUNK_SIZE;
+    file.seek(offset);
+    uint8_t buffer[MAX_FILE_CHUNK_SIZE];
+    uint32_t bytesToRead = min((uint32_t)MAX_FILE_CHUNK_SIZE, _fileTransferState.fileSize - offset);
+    file.read(buffer, bytesToRead);
+    file.close();
+
+    char bufferBase64[COM_FRAME_MAX_STR_LENGTH];
+    encode_base64(buffer, bytesToRead,(uint8_t*) bufferBase64);
+    pFrame->res = "DATA#~#" + _fileTransferState.filename + "#~#" + String(_fileTransferState.currentChunk) + "#~#" + String(bufferBase64);
+
+    _fileTransferState.currentChunk++;
+    if (_fileTransferState.currentChunk >= _fileTransferState.totalChunks) {
+        _fileTransferState.reset();
+    }
+
+    return true;
+}
+
+bool ComDispatch::_writeFile(ComFrame *pFrame) {
+    StringList strList(pFrame->cfg.str.c_str(), "#~#");
+    String cmdType = strList.getNextListEntry();
+
+    if (cmdType == "INIT") {
+        _fileTransferState.reset();
+
+        _fileTransferState.filename = strList.getNextListEntry();
+        _fileTransferState.fileSize = strList.getNextListEntry().toInt();
+        _fileTransferState.totalChunks = strList.getNextListEntry().toInt();
+        _fileTransferState.currentChunk = 0;
+        _fileTransferState.isActive = true;
+
+        SDFile file = globalSDcard0.open(_fileTransferState.filename.c_str(), FILE_WRITE);
+        if (!file) {
+            pFrame->res = "Failed to create file: " + _fileTransferState.filename;
+            _fileTransferState.reset();
+            return false;
+        }
+
+        file.close();
+        pFrame->res = "INIT#~#" + _fileTransferState.filename + "#~#" + String(_fileTransferState.fileSize) + "#~#" +
+                      String(_fileTransferState.totalChunks);
+        return true;
+    }
+
+    if (!_fileTransferState.isActive) {
+        pFrame->res = "No active file write sequence.";
+        return false;
+    }
+
+    uint32_t chunk = strList.getNextListEntry().toInt();
+    if (chunk != _fileTransferState.currentChunk) {
+        pFrame->res = "Invalid chunk order.";
+        return false;
+    }
+
+    String base64Data = strList.getNextListEntry();
+    uint8_t buffer[MAX_FILE_CHUNK_SIZE];
+    size_t decodedLength = decode_base64((const uint8_t *)base64Data.c_str(), base64Data.length(), buffer);
+
+
+    if (decodedLength == 0) {
+        pFrame->res = "Base64 decode failed.";
+        return false;
+    }
+
+    SDFile file = globalSDcard0.open(_fileTransferState.filename.c_str(), O_APPEND);
+    if (!file) {
+        pFrame->res = "Failed to write to file: " + _fileTransferState.filename;
+        _fileTransferState.reset();
+        return false;
+    }
+
+    file.write(buffer, decodedLength);
+    file.close();
+
+    _fileTransferState.currentChunk++;
+    if (_fileTransferState.currentChunk >= _fileTransferState.totalChunks) {
+        _fileTransferState.reset();
+        pFrame->res = "File write completed.";
+    } else {
+        pFrame->res = "DATA#~#" + _fileTransferState.filename + "#~#" + String(_fileTransferState.currentChunk);
+    }
+
+    return true;
 }
