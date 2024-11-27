@@ -1,0 +1,89 @@
+    def open_directory_dialog(self):
+        """Open file dialog for selecting a directory on the local PC."""
+        new_directory = filedialog.askdirectory(initialdir=self.app.local_directory, title="Select Directory")
+        if new_directory:
+            self.app.local_directory = new_directory
+            self.update_local_file_list()
+
+
+    def copy_to_pico(self):
+        """Copy a selected file from PC to Pico's SD card."""
+        selected_item = self.local_files_tree.focus()
+        if not selected_item:
+            messagebox.showerror("Error", "No file selected to copy to Pico.")
+            return
+
+        filename = self.local_files_tree.item(selected_item, "values")[0]
+        local_file_path = os.path.join(self.app.local_directory, filename)
+
+        if not self._frame_syntax_check(local_file_path):
+            return
+
+        # Get the target directory on Pico from the combobox
+        target_directory = self.app.target_directory_var.get()
+        target_path = os.path.join(target_directory, filename)
+
+        try:
+            # Start copying the file to Pico
+            self._copy_file_to_pico(local_file_path, target_path)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to copy file to Pico: {e}")
+
+    def _copy_file_to_pico(self, local_file_path, target_path):
+        """Handles file copy to Pico with progress."""
+        with open(local_file_path, "rb") as file:
+            data = file.read()
+            file_size = len(data)
+            chunk_size = 128
+            chunks = (file_size + chunk_size - 1) // chunk_size
+
+            # Notify the start of the transfer
+            self.serial_comm.send_data(f'S:C0,FILEWRITE,0,0,0,0,"INIT~&~{target_path}~&~{file_size}~&~{chunks}"#')
+
+            for i in range(chunks):
+                chunk_data = data[i * chunk_size:(i + 1) * chunk_size]
+                encoded_data = base64.b64encode(chunk_data).decode("utf-8")
+                chunk_frame = f'S:C0,FILEWRITE,0,0,0,0,"DATA~&~{target_path}~&~{i}~&~{encoded_data}"#'
+                self.serial_comm.send_data(chunk_frame)
+
+            messagebox.showinfo("Copy to Pico", f"File '{local_file_path}' successfully copied to Pico.")
+
+    def copy_from_pico(self):
+        """Copy a selected file from Pico's SD card to the local system."""
+        selected_item = self.app.sd_files_tree.focus()
+        if not selected_item:
+            messagebox.showerror("Error", "No file selected to copy from Pico.")
+            return
+
+        filename = self.app.sd_files_tree.item(selected_item, "values")[0]
+        if filename.endswith("/"):
+            messagebox.showerror("Error", "Cannot copy directories, only files.")
+            return
+
+        local_file_path = os.path.join(self.app.local_directory, filename)
+
+        try:
+            # Request file info from Pico and start copying
+            self._copy_file_from_pico(filename, local_file_path)
+        except Exception as e:
+            messagebox.showerror("Error", f"Failed to copy file from Pico: {e}")
+
+    def _copy_file_from_pico(self, filename, local_file_path):
+        """Handles file copy from Pico with progress."""
+        init_frame = f'S:C0,FILEREAD,0,0,0,0,"INIT~&~{filename}"#'
+        self.serial_comm.send_data(init_frame)
+
+        # Simulate reading the file in chunks (using the same method as in copy_to_pico)
+        data = bytearray()
+        # Send commands to read data from Pico and assemble it into the local file
+        for i in range(10):  # Example: assume the file has 10 chunks
+            chunk_frame = f'S:C0,FILEREAD,0,0,0,0,"DATA~&~{filename}~&~{i}"#'
+            response = self.serial_comm.send_data(chunk_frame)
+            data.extend(base64.b64decode(response.split("~&~")[2]))  # This is where we would decode
+
+        with open(local_file_path, "wb") as f:
+            f.write(data)
+
+        messagebox.showinfo("Copy from Pico", f"File '{filename}' successfully copied to {local_file_path}.")
+
+

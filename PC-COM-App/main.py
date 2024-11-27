@@ -12,10 +12,10 @@ from serial_comm import SerialCommunicator
 from mode_handlers import ModeHandler
 from DateCmd import DateCmd
 
+import time
 import serial
 import serial.tools.list_ports
-import time 
-
+from file_manager import FileManager
 
 
 class SerialCommandApp:
@@ -26,64 +26,69 @@ class SerialCommandApp:
 
         self.mode_handler = ModeHandler(self)
         self.serial_comm  = SerialCommunicator(self)     # module to handle serial communication
-        self.date_time     = DateCmd(self)                  # Date cmd to read current datetime from pico
+        self.date_time    = DateCmd(self)                # Date cmd to read current datetime from pico
+        self.file_manager = FileManager(self) 
 
-        # UI layout erstellen
-        self._create_ui()
-
-    def _create_ui(self):
-        # Frame für das Hauptfenster
+        # main window .. the root of all
         main_frame = tk.Frame(self.master)
         main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         # Top Frame für Port und Baudrate
-        top_frame = tk.Frame(main_frame)
-        top_frame.pack(side=tk.TOP, fill=tk.X, pady=10)
+        self.connection_frame = tk.Frame(main_frame)
+        self.connection_frame.pack(side=tk.TOP, fill=tk.X, pady=10)
+        self._setup_connection_area(self.connection_frame)
 
-        # Auswahlbox für den Port
-        tk.Label(top_frame, text="Port:").pack(side=tk.LEFT, padx=10)
+        # create on button side frame for message log
+        self.message_frame = tk.Frame(main_frame)
+        self.message_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
+        self._setup_message_area(self.message_frame)
+
+        # create work area 
+        self.work_frame = tk.Frame(main_frame)
+        self.work_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=5)
+
+
+        # create on right side a command button 
+        self.button_frame = tk.Frame(main_frame)
+        self.button_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=5)
+        self._setup_command_area(self.button_frame)
+
+
+
+
+    def _setup_command_area(self,frame):
+        tk.Button(frame, text="Read DateTime",      command=self.date_time.read_date_time       ).pack(side=tk.TOP, pady=5)
+        tk.Button(frame, text="Update DateTime",    command=self.date_time.update_date_time     ).pack(side=tk.TOP, pady=5)
+        tk.Button(frame, text="File Manager",       command=self._start_file_manager            ).pack(side=tk.TOP, pady=5)
+        
+    def _start_file_manager(self):
+        self.file_manager._open_file_manager(self.work_frame)
+
+    def _setup_connection_area(self,frame):
+        # slection of port
+        tk.Label(frame, text="Port:").pack(side=tk.LEFT, padx=10)
         self.port_var = tk.StringVar()
         ports = [port.device for port in serial.tools.list_ports.comports()]
-        self.port_menu = ttk.Combobox(top_frame, textvariable=self.port_var, values=ports, state="readonly")
+        self.port_menu = ttk.Combobox(frame, textvariable=self.port_var, values=ports, state="readonly")
         self.port_menu.pack(side=tk.LEFT)
         
-        # Auswahlbox für Baudrate
-        tk.Label(top_frame, text="Baudrate:").pack(side=tk.LEFT, padx=10)
+        # selection of baudrate
+        tk.Label(frame, text="Baudrate:").pack(side=tk.LEFT, padx=10)
         self.baud_var = tk.StringVar(value="115200")
-        self.baud_menu = ttk.Combobox(top_frame, textvariable=self.baud_var, values=["9600", "115200", "19200", "38400", "57600"], state="readonly")
+        self.baud_menu = ttk.Combobox(frame, textvariable=self.baud_var, values=["9600", "115200", "19200", "38400", "57600"], state="readonly")
         self.baud_menu.pack(side=tk.LEFT)
         
         # Connect/Disconnect Button
-        self.connect_button = tk.Button(top_frame, text="Connect", command=self.toggle_connection)
+        self.connect_button = tk.Button(frame, text="Connect", command=self.toggle_connection)
         self.connect_button.pack(side=tk.LEFT, padx=10)
 
-        # Anzeige des Verbindungsstatus
-        self.connection_status_label = tk.Label(top_frame, text="Disconnected", width=20)
+        # status of connection
+        self.connection_status_label = tk.Label(frame, text="Disconnected", width=20)
         self.connection_status_label.pack(side=tk.LEFT, padx=10)
 
-        # Bereich für das Modusmanagement
-        self.dynamic_area_frame = tk.Frame(main_frame)
-        self.dynamic_area_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=5)
-
-        # Rechter Bereich mit Button-Leiste für Moduswahl
-        mode_button_frame = tk.Frame(main_frame)
-        mode_button_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=5)
-
-        tk.Button(mode_button_frame, text="Read DateTime", command=self.read_date_time).pack(side=tk.TOP, pady=5)
-        tk.Button(mode_button_frame, text="Update DateTime", command=self.update_date_time).pack(side=tk.TOP, pady=5)
-
-        for i in range(10):
-            tk.Button(mode_button_frame, text=f"Mode {i+1}", command=lambda mode=i: self.mode_handler.switch_mode(mode)).pack(side=tk.TOP, pady=5)
-
-        # Bereich für das Loggen von gesendeten und empfangenen Nachrichten
-        self._create_message_area(main_frame)
-
-    def _create_message_area(self, parent):
-        message_frame = tk.Frame(parent)
-        message_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
-
+    def _setup_message_area(self, frame):
         # Sent Messages Log
-        sent_frame = tk.LabelFrame(message_frame, text="Sent Messages", width=50, height=10)
+        sent_frame = tk.LabelFrame(frame, text="Sent frames")
         sent_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.sent_text = tk.Text(sent_frame, wrap=tk.WORD, state=tk.DISABLED, bg="lightgrey", height=5)
         self.sent_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -92,7 +97,7 @@ class SerialCommandApp:
         self.sent_text.configure(yscrollcommand=sent_scroll.set)
 
         # Received Messages Log
-        received_frame = tk.LabelFrame(message_frame, text="Received Messages", width=50, height=10)
+        received_frame = tk.LabelFrame(frame, text="Received frames")
         received_frame.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
         self.received_text = tk.Text(received_frame, wrap=tk.WORD, state=tk.DISABLED, bg="lightgrey", height=5)
         self.received_text.pack(side=tk.LEFT, fill=tk.BOTH, expand=True)
@@ -111,17 +116,22 @@ class SerialCommandApp:
             self.connection_status_label.config(text="Connected")
             self.connect_button.config(text="Disconnect")
 
-    def update_ui_for_mode(self, mode_data):
-        """Updates the UI when the mode is changed."""
-        self.mode_handler.update_mode_ui(mode_data)
 
-    def read_date_time(self):
-        """Trigger the Date Mode to read and display the current date and time."""
-        self.date_time.read_date_time()
+    def _log_recv(self,data):
+        timestamp = time.strftime("%H:%M:%S", time.localtime())
+        self.received_text.config(state='normal')
+        self.received_text.insert("end", f"[RECV] {timestamp}: {data}\n")
+        self.received_text.see("end")
+        self.received_text.config(state='disabled')
 
-    def update_date_time(self):
-        """update date time"""
-        self.date_time.update_date_time()
+
+    def _log_sent(self,data):
+        timestamp = time.strftime("%H:%M:%S", time.localtime())
+        self.sent_text.config(state='normal')
+        self.sent_text.insert("end", f"[SENT] {timestamp}: {data}\n")
+        self.sent_text.see("end")
+        self.sent_text.config(state='disabled')
+        
 
 if __name__ == "__main__":
     root = tk.Tk()
