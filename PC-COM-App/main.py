@@ -30,36 +30,39 @@ class SerialCommandApp:
         self.file_manager = FileManager(self) 
 
         # main window .. the root of all
-        main_frame = tk.Frame(self.master)
-        main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
+        self.main_frame = tk.Frame(self.master)
+        self.main_frame.pack(fill=tk.BOTH, expand=True, padx=10, pady=10)
 
         # Top Frame für Port und Baudrate
-        self.connection_frame = tk.Frame(main_frame)
-        self.connection_frame.pack(side=tk.TOP, fill=tk.X, pady=10)
+        self.connection_frame =  tk.LabelFrame(self.main_frame, text="connection")
+        self.connection_frame.pack(side=tk.TOP, expand = True, fill=tk.X, pady=10)
         self._setup_connection_area(self.connection_frame)
 
         # create on button side frame for message log
-        self.message_frame = tk.Frame(main_frame)
-        self.message_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
+        self.message_frame = tk.LabelFrame(self.main_frame, text="frames log")
+        self.message_frame.pack(side=tk.BOTTOM,  expand=True, fill=tk.X, pady=10)
         self._setup_message_area(self.message_frame)
 
         # create work area 
-        self.work_frame = tk.Frame(main_frame)
+        self.work_frame = tk.LabelFrame(self.main_frame, text="app")
         self.work_frame.pack(side=tk.TOP, fill=tk.BOTH, expand=True, padx=10, pady=5)
 
 
         # create on right side a command button 
-        self.button_frame = tk.Frame(main_frame)
-        self.button_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=5)
+        self.button_frame = tk.LabelFrame(self.main_frame, text="commands")
+        self.button_frame.pack(side=tk.TOP,  expand=True, fill=tk.X, padx=10, pady=5)
         self._setup_command_area(self.button_frame)
 
+    def __del__(self):
+        self.serial_comm.disconnect()
 
 
 
     def _setup_command_area(self,frame):
-        tk.Button(frame, text="Read DateTime",      command=self.date_time.read_date_time       ).pack(side=tk.TOP, pady=5)
-        tk.Button(frame, text="Update DateTime",    command=self.date_time.update_date_time     ).pack(side=tk.TOP, pady=5)
-        tk.Button(frame, text="File Manager",       command=self._start_file_manager            ).pack(side=tk.TOP, pady=5)
+        tk.Button(frame, text="clear log",          command=self._clear_log                     ).pack(side=tk.LEFT, pady=5)
+        tk.Button(frame, text="Read DateTime",      command=self.date_time.read_date_time       ).pack(side=tk.LEFT, pady=5)
+        tk.Button(frame, text="Update DateTime",    command=self.date_time.update_date_time     ).pack(side=tk.LEFT, pady=5)
+        tk.Button(frame, text="File Manager",       command=self._start_file_manager            ).pack(side=tk.LEFT, pady=5)
         
     def _start_file_manager(self):
         self.file_manager._open_file_manager(self.work_frame)
@@ -120,17 +123,26 @@ class SerialCommandApp:
     def _log_recv(self,data):
         timestamp = time.strftime("%H:%M:%S", time.localtime())
         self.received_text.config(state='normal')
-        self.received_text.insert("end", f"[RECV] {timestamp}: {data}\n")
-        self.received_text.see("end")
+        self.received_text.insert(tk.END, f"[RECV] {timestamp}: {data}\n")
+        self.received_text.see(tk.END)
         self.received_text.config(state='disabled')
 
 
     def _log_sent(self,data):
         timestamp = time.strftime("%H:%M:%S", time.localtime())
         self.sent_text.config(state='normal')
-        self.sent_text.insert("end", f"[SENT] {timestamp}: {data}\n")
-        self.sent_text.see("end")
+        self.sent_text.insert(tk.END, f"[SENT] {timestamp}: {data}\n")
+        self.sent_text.see(tk.END)
         self.sent_text.config(state='disabled')
+        
+    def _clear_log(self):
+        self.sent_text.config(state='normal')
+        self.sent_text.delete("1.0", tk.END)  # Clear the send message window
+        self.sent_text.config(state='disabled')
+
+        self.received_text.config(state='normal')
+        self.received_text.delete("1.0", tk.END)  # Clear the receive message window
+        self.received_text.config(state='disabled')
         
 
 if __name__ == "__main__":
