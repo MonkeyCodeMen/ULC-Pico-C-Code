@@ -16,44 +16,46 @@ class FileManager:
         self._clear_work_frame()
         
         # SD Card files section
-        pico_files = tk.LabelFrame(self.frame, text="Pico SD Card Files")
-        pico_files.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        self.sd_files_tree = ttk.Treeview(pico_files, columns=("Filename", "Size"), show="headings")
+        file_frame = tk.LabelFrame(self.frame, text="Files SD and PC")
+        file_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
+
+        self.sd_files_tree = ttk.Treeview(file_frame, columns=("Filename", "Size"), show="headings")
         self.sd_files_tree.heading("Filename", text="Filename")
         self.sd_files_tree.heading("Size", text="Size (bytes)")
         self.sd_files_tree.column("Filename", width=200)
         self.sd_files_tree.column("Size", width=100)
-        self.sd_files_tree.pack(side=tk.RIGHT, fill=tk.Y)
+        self.sd_files_tree.pack(side=tk.LEFT,expand=True, fill=tk.X)
 
-        # Local files section
-        PC_files = tk.Label(self.frame, text="Local Files")
-        PC_files.pack(side=tk.LEFT, fill=tk.BOTH, expand=True, padx=5, pady=5)
-        self.local_files_tree = ttk.Treeview(PC_files, columns=("Filename", "Size"), show="headings")
+        self.local_files_tree = ttk.Treeview(file_frame, columns=("Filename", "Size"), show="headings")
         self.local_files_tree.heading("Filename", text="Filename")
         self.local_files_tree.heading("Size", text="Size (bytes)")
         self.local_files_tree.column("Filename", width=200)
         self.local_files_tree.column("Size", width=100)
-        self.local_files_tree.pack(side=tk.RIGHT, fill=tk.Y)
+        self.local_files_tree.pack(side=tk.RIGHT,expand=True, fill=tk.X)
         
         # button interface for file manager
         self.file_button_frame = tk.Frame(self.frame)
-        self.file_button_frame.pack(side=tk.RIGHT, fill=tk.X, pady=10)
+        self.file_button_frame.pack(side=tk.BOTTOM, fill=tk.X, pady=10)
         
-        tk.Button(self.file_button_frame, text="change PC dir",      command=self.change_local_directory         ).pack(side=tk.RIGHT, pady=5)
-        tk.Button(self.file_button_frame, text="copy to SD",         command=self.copy_to_pico                   ).pack(side=tk.RIGHT, pady=5)
-        tk.Button(self.file_button_frame, text="copy from SD",       command=self.copy_from_pico                 ).pack(side=tk.RIGHT, pady=5)
-        
-
         # Dropdown to select the target directory on Pico
         self.target_dir_frame = tk.Label(self.file_button_frame, text="Target Directory on Pico")
         self.target_dir_frame.pack(side=tk.TOP, pady=5)
         self.target_directory_var = tk.StringVar(value="/")
-        self.target_directory_menu = ttk.Combobox(self.target_dir_frame, textvariable=self.target_directory_var, state="readonly").pack(side=tk.LEFT, pady=5)
+        self.target_directory_select = ttk.Combobox(self.target_dir_frame, textvariable=self.target_directory_var, state="readonly")
+        self.target_directory_select.pack(side=tk.LEFT, pady=5)
+
+        tk.Button(self.file_button_frame, text="copy to SD",         command=self.copy_to_pico                   ).pack(side=tk.RIGHT, padx=5)
+        tk.Button(self.file_button_frame, text="copy from SD",       command=self.copy_from_pico                 ).pack(side=tk.RIGHT, padx=5)
+        tk.Button(self.file_button_frame, text="change PC dir",      command=self.change_local_directory         ).pack(side=tk.RIGHT, padx=5)
+        tk.Button(self.file_button_frame, text="update SD",          command=self.update_sd_card_files           ).pack(side=tk.LEFT, padx=5)
+        tk.Button(self.file_button_frame, text="update SD dirs",     command=self.update_sd_card_directories     ).pack(side=tk.LEFT, padx=5)
+
 
         # Initialize local files and target directory
         self.local_directory = os.getcwd()
         self.update_local_files()
-        #self.update_sd_card_directories()
+        self.update_sd_card_directories()
+        self.update_sd_card_files()
 
         
 
@@ -63,12 +65,6 @@ class FileManager:
         for widget in self.frame.winfo_children():
             widget.destroy()
 
-    def _frame_syntax_check(self, file_path):
-        """Syntax check for the selected file."""
-        if not os.path.isfile(file_path):
-            messagebox.showerror("Error", f"The selected file {file_path} is not valid.")
-            return False
-        return True
     
     def update_sd_card_files(self):
         """Updates the list of files on the Pico's SD card."""
@@ -110,12 +106,12 @@ class FileManager:
 
     def update_sd_card_directories(self):
         """Updates the list of directories on the Pico's SD card for the target directory dropdown."""
-        if not self.serial_port or not self.serial_port.is_open:
+        if not self.serial_comm or not self.serial_comm.is_connected():
             messagebox.showerror("Error", "Serial port is not open.")
             return
 
         try:
-            response = self.send_command('S:C0,FILELIST#')
+            response = self.app.serial_comm.send('S:C0,FILELIST#')
 
             # Check if the response contains the expected structure
             if response and response.startswith("A:C0,FILELIST#OK-directory of SD card:"):
@@ -128,8 +124,8 @@ class FileManager:
                 directories.extend([file.strip() for file in files if file.strip().endswith("/")])
                 
                 # Update the dropdown menu
-                self.target_directory_menu["values"] = directories
-                self.target_directory_var.set(directories[0] if directories else "/")
+                self.target_directory_select["values"] = directories
+                self.target_directory_select.set(directories[0] if directories else "/")
             else:
                 messagebox.showerror("Error", "Failed to retrieve SD card directories or unexpected response format.")
         except Exception as e:
@@ -181,7 +177,7 @@ class FileManager:
 
             # Send INIT frame
             init_frame = f'S:C0,FILEWRITE,0,0,0,0,"INIT~&~{target_path}~&~{file_size}~&~{chunks}"#'
-            response = self.send_command(init_frame)
+            response = self.app.serial_comm.send(init_frame)
             if not response or "OK" not in response:
                 raise Exception("Failed to initialize file write.")
 
@@ -190,7 +186,7 @@ class FileManager:
                 chunk_data = data[i * chunk_size:(i + 1) * chunk_size]
                 encoded_data = base64.b64encode(chunk_data).decode("utf-8")
                 chunk_frame = f'S:C0,FILEWRITE,0,0,0,0,"DATA~&~{target_path}~&~{i}~&~{encoded_data}"#'
-                response = self.send_command(chunk_frame)
+                response = self.app.serial_comm.send(chunk_frame)
                 if not response or "OK" not in response:
                     raise Exception(f"Failed to write chunk {i}.")
 
@@ -215,7 +211,7 @@ class FileManager:
         try:
             # Request file info
             init_frame = f'S:C0,FILEREAD,0,0,0,0,"INIT~&~{filename}"#'
-            response = self.send_command(init_frame)
+            response = self.app.serial_comm.send(init_frame)
             
             # response frame look like :  A:C0,FILEREAD,0,0,0,0,"INIT~&~/HOTKEY.CFG"#OK-INIT~&~/HOTKEY.CFG~&~11101~&~87#
             if not response or "OK-" not in response:
@@ -238,7 +234,7 @@ class FileManager:
             data = bytearray()
             for i in range(chunks):
                 chunk_frame = f'S:C0,FILEREAD,0,0,0,0,"DATA~&~{filename}~&~{i}"#'
-                response = self.send_command(chunk_frame)
+                response = self.app.serial_comm.send(chunk_frame)
                 if not response or "OK" not in response:
                     raise Exception(f"Failed to read chunk {i}.")
                 encoded_data = response.split("~&~")[2]
