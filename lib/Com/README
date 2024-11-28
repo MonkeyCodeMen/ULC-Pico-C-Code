@@ -141,6 +141,7 @@ The protocol defines several constants to standardize the frame structure and co
 | `COM_FRAME_MAX_COMMAND_LENGTH`  | `50`                 | Maximum length of the command string.                                      |
 | `COM_FRAME_MAX_PARAMETER_LENGTH`| `30`                 | Maximum length of each parameter field.                                    |
 | `COM_FRAME_MAX_STR_LENGTH`      | `250`                | Maximum length of the text field.                                          |
+| `MAX_FILE_CHUNK_SIZE`           | `128`                | Maximum chunk data size on file tarnsfer.                                  |
 
 ---
 
@@ -182,17 +183,34 @@ The commands in this module perform general system-level operations or interact 
 #### File Read/Write Sequence Details
 ##### 1. File Write (`FILEWRITE`):
 - **Initialization Frame:**  
-  - Identified by the `INIT` marker in `cfg.str`.
-  - Format: `INIT~&~<Filename>~&~<Size>~&~<ChunkCount>`  
-  - Example: `INIT~&~example.txt~&~1024~&~4` (file size is 1024 bytes split into 4 chunks).
-  - Resets the sequence tracker and prepares for data frames.
-  - the complete frame will look this: `S:C0,FILEWRITE,0,0,0,0,"INIT~&~example.txt~&~1024~&~4"#`
-  - and the Answer as complete frame like this: `A:C0,FILEWRITE,0,0,0,0,"INIT~&~example.txt~&~1024~&~4"#OK-`
+| **frame element** | **content**|
+| Module            | C0         |
+| Command           | FILEWRITE  |
+| P1                | 0 for INIT |
+| P2                | 0 for current chunk nr  [1..max] |
+| P3                | max chunk nr     |
+| P4                | file size in byte  |
+| str               | filename           |
+
+  - the complete frame will look this: `S:C0,FILEWRITE,0,0,8,1024,"example.txt"#`
+  - the master (PC) start the filetransfer to the slave (pico) with an init frame.
+  - in this init frame the file size (1024 bytes) will be announced and the (expected) number of data chunks that are needed for this file transfer (4).
+  - The size of one data chunk ist 128 bytes maximum ... so all chunks, except the last, will have 128Bytes. The last data fraem/chuncks contains the rest number of bytes until the file size is been reached.
+  - The Answer as complete frame looks like this: `S:C0,FILEWRITE,0,0,8,1024,"example.txt"#`
 
 - **Data Frames:**  
-  - Identified by the `DATA` marker in `cfg.str`.
-  - Format: `DATA~&~<Filename>~&~<Chunk>~&~<Base64Data>`  
-  - Example: `DATA~&~example.txt~&~1~&~SGVsbG8gV29ybGQ=` (Base64 encoded data for chunk 1).  
+| **frame element** | **content**|
+| Module            | C0         |
+| Command           | FILEWRITE  |
+| P1                | 0x0D for data |
+| P2                | [1..max]    |
+| P3                | max chunk nr     |
+| P4                | file size in byte  |
+| str               | base64           |
+  - all data will be sent in base64 format in the str parameter
+  - the chunks must be sent a a succesive order starting with 1 and ending at max_chunk
+  - the complete frame will look this: `S:C0,FILEWRITE,0,0,1,7,"SGVsbG8gV29ybGQ="#` (Base64 encoded data for chunk 1)
+  - Example: `DATA~&~example.txt~&~1~&~SGVsbG8gV29ybGQ=` .  
   - Validates the sequence tracker and ensures correct chunk ordering.
 
 ##### 2. File Read (`FILEREAD`):
