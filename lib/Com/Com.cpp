@@ -248,13 +248,13 @@ void Com::sendAnswer(bool res,ComFrame * pFrame){
     out += pFrame->command;
     if (pFrame->withPar == true){
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg.dimCfg.uint32,HEX);
+        out += "0x" + String(pFrame->cfg.dimCfg.uint32,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg.colorCfg.uint32,HEX);
+        out += "0x" + String(pFrame->cfg.colorCfg.uint32,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg.flashCfg.uint32,HEX);
+        out += "0x" + String(pFrame->cfg.flashCfg.uint32,HEX);
         out += COM_FRAME_SEP;
-        out += String(pFrame->cfg.breathCfg.uint32,HEX);
+        out += "0x" + String(pFrame->cfg.breathCfg.uint32,HEX);
         out += COM_FRAME_SEP;
         out += COM_FRAME_TEXT_QUOTES;
         out += String(pFrame->cfg.str);

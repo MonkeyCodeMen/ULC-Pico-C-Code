@@ -148,6 +148,7 @@ void BufferdClock::loop(uint32_t now) {
 bool BufferdClock::udateRTC(DateTime newDateTime,bool blocking){
     _startDate = newDateTime;    
     _lastSync = millis();            // Set the last sync time to current time
+    _loopDate = _startDate;
     if (_validRTC == false){
         return false;
     }

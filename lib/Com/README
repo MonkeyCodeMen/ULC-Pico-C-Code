@@ -188,7 +188,7 @@ The commands in this module perform general system-level operations or interact 
 | Command           | FILEWRITE  |
 | P1                | 0 for INIT |
 | P2                | 0 for current chunk nr  [1..max] |
-| P3                | max chunk nr     |
+| P3                | total chunk     |
 | P4                | file size in byte  |
 | str               | filename           |
 
@@ -196,7 +196,8 @@ The commands in this module perform general system-level operations or interact 
   - the master (PC) start the filetransfer to the slave (pico) with an init frame.
   - in this init frame the file size (1024 bytes) will be announced and the (expected) number of data chunks that are needed for this file transfer (4).
   - The size of one data chunk ist 128 bytes maximum ... so all chunks, except the last, will have 128Bytes. The last data fraem/chuncks contains the rest number of bytes until the file size is been reached.
-  - The Answer as complete frame looks like this: `S:C0,FILEWRITE,0,0,8,1024,"example.txt"#`
+  - the file name with the complete target path will be handed over in the str parameter 
+  - The Answer as complete frame looks like this: `A:C0,FILEWRITE,0,0,8,1024,"example.txt"#`
 
 - **Data Frames:**  
 | **frame element** | **content**|
@@ -204,9 +205,9 @@ The commands in this module perform general system-level operations or interact 
 | Command           | FILEWRITE  |
 | P1                | 0x0D for data |
 | P2                | [1..max]    |
-| P3                | max chunk nr     |
+| P3                | total chunk    |
 | P4                | file size in byte  |
-| str               | base64           |
+| str               | data-base64           |
   - all data will be sent in base64 format in the str parameter
   - the chunks must be sent a a succesive order starting with 1 and ending at max_chunk
   - the complete frame will look this: `S:C0,FILEWRITE,0,0,1,7,"SGVsbG8gV29ybGQ="#` (Base64 encoded data for chunk 1)
@@ -215,19 +216,23 @@ The commands in this module perform general system-level operations or interact 
 
 ##### 2. File Read (`FILEREAD`):
 - **Initialization Frame:**  
-  - Identified by the `INIT` marker in `cfg.str`.
-  - Format: `INIT~&~<Filename>`  
-  - Example: `INIT~&~example.txt` (requests file details, including size and chunk count).
-  - Resets the sequence tracker.
 
-- **Response to Init:**  
-  - Format: `Filename~&~Size~&~ChunkCount`  
-  - Example: `example.txt~&~1024~&~4`.
+| **frame element** | **content**|
+| Module            | C0         |
+| Command           | FILEREAD  |
+| P1                | 0 for INIT |
+| P2                | 0 for current chunk nr  [1..max] |
+| P3                | 0 for unknown    |
+| P4                | 0 for unknown  |
+| str               | filename           |
+
+  - the complete frame will look this: `S:C0,FILEREAD,0,0,0,0,"example.txt"#`
+  - the master (PC) start the filetransfer to read a file from the slave (pico) with an init frame.
+  - in this inital frame only the filenname will be provided
+  - the slave will fill in chunk count an filesie in the answer
+  - The Answer as complete frame looks like this: `A:C0,FILEWRITE,0,0,8,1024,"example.txt"#`
 
 - **Data Frames:**  
-  - Format: `DATA~&~<Filename>~&~<Chunk>~&~<Base64Data>`  
-  - Example: `DATA~&~example.txt~&~1~&~SGVsbG8gV29ybGQ=` (Base64 encoded chunk 1).  
-  - The client requests chunks sequentially, starting from chunk `1`.
 
 ---
 

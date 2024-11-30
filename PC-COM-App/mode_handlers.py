@@ -1,3 +1,10 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Fri Nov 29 21:56:58 2024
+
+@author: MonekyCodeMen
+"""
+
 class ModeHandler:
     def __init__(self, app):
         self.app = app

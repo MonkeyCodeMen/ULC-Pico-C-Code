@@ -46,7 +46,13 @@ public:
     }
 };
 
+#define COM_FILE_P1 dimCfg
+#define COM_FILE_P2 colorCfg
+#define COM_FILE_P3 flashCfg
+#define COM_FILE_P4 breathCfg
 
+#define COM_FILE_INIT   0x00
+#define COM_FILE_DATA   0x0D
 #define MAX_FILE_CHUNK_SIZE 128 // Maximum file chunk size for splitting.
 
 class ComDispatch
