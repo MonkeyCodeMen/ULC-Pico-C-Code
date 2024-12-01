@@ -69,6 +69,11 @@ private:
     bool _dispatchCommonFrame(ComFrame * pFrame);
     bool _readFile(ComFrame * pFrame);
     bool _writeFile(ComFrame * pFrame);
+    bool _deleteFile(ComFrame * pFrame);
+    bool _createDirectory(ComFrame * pFrame);
+    bool _deleteDirectory(ComFrame * pFrame);
+    String _deleteDirectory(const String& path);
+
 
     Ctrl * _refToObj(char module,uint8_t index);
 

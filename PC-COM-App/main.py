@@ -3,6 +3,18 @@
 Created on Fri Nov 29 21:56:58 2024
 
 @author: MonekyCodeMen
+
+
+To DO 
+
+wenn files schon exestieren auf SD wird das neu übertragene file hinten angehängt !!!
+vorher löschen
+
+lösch Befehl allgemein einbauen
+
+Scrollleisten an tree views??
+
+
 """
 
 import os
@@ -171,3 +183,4 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = SerialCommandApp(root)
     root.mainloop()
+

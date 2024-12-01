@@ -44,7 +44,7 @@ class SerialCommunicator:
             frame: The command frame string to send.
         """
         if not self.serial_port or not self.serial_port.is_open:
-            self.app._log_sent("Error: Serial port not open.")
+            self.app._log_sent(f"Error: Serial port not open. could not send:{frame}")
             return
 
         # Validate frame structure

@@ -134,7 +134,7 @@ bool ComDispatch::_dispatchLedFrame(ComFrame * pFrame){
 
 bool ComDispatch::_dispatchCommonFrame(ComFrame * pFrame){
     // ignore index 
-    pFrame->command.toUpperCase();
+    // pFrame->command.toUpperCase();
 
     if (pFrame->command == "UP"){
         return menuHandler.onEvent(EVENT_UP);
@@ -158,7 +158,7 @@ bool ComDispatch::_dispatchCommonFrame(ComFrame * pFrame){
     } else if (pFrame->command == "CLOCK") {
         pFrame->res = bufferedClock.getLoopDateTime().timestamp();
         return true;
-    } else if (pFrame->command == "CLOCKSET") {
+    } else if (pFrame->command == "CLOCK set") {
         // e.g. "2020-06-25T15:29:37".
         DateTime set=DateTime(pFrame->cfg.str.c_str());
         if (bufferedClock.udateRTC(set,true) == false){
@@ -168,22 +168,28 @@ bool ComDispatch::_dispatchCommonFrame(ComFrame * pFrame){
             pFrame->res = bufferedClock.getLoopDateTime().timestamp();
             return true;
         }
-    } else if (pFrame->command == "DUMPCALENDAR0") {
+    } else if (pFrame->command == "DUMP CALENDAR0") {
         return neoMatrixCtrl1.dump(pFrame->res,"calendar");
-    } else if (pFrame->command == "DUMPCALENDAR1") {
+    } else if (pFrame->command == "DUMP CALENDAR1") {
         return neoMatrixCtrl2.dump(pFrame->res,"calendar");
     } else if (pFrame->command == "DUMP") {
         return _dump(pFrame);
-    }  else if (pFrame->command == "FILEREAD") {
+    }  else if (pFrame->command == "FILE read") {
         return _readFile(pFrame);
-    } else if (pFrame->command == "FILEWRITE") {
+    } else if (pFrame->command == "FILE write") {
         return _writeFile(pFrame);
-    } else if (pFrame->command == "FILELIST"){
+    } else if (pFrame->command == "FILE list"){
         pFrame->res = printDirectory(globalSDcard0.open("/"),"directory of SD card:\n ",0,"/"); 
         return true;
+    } else if (pFrame->command == "FILE delete"){
+        return _deleteFile(pFrame);
+    } else if (pFrame->command == "FILE mkdir"){
+        return _createDirectory(pFrame);
+    } else if (pFrame->command == "FILE rmdir"){
+        return _deleteDirectory(pFrame);
     }
 
-    pFrame->res = "unknown common comand";
+    pFrame->res = "Error: unknown common comand.";
     return false;
 }
 
@@ -264,7 +270,7 @@ bool ComDispatch::_readFile(ComFrame *pFrame) {
         _fileTransferState.filename = pFrame->cfg.str;
         SDFile file = globalSDcard0.open(_fileTransferState.filename.c_str(), FILE_READ);
         if (!file) {
-            pFrame->res = "File not found: " + _fileTransferState.filename;
+            pFrame->res = "Error: File not found: " + _fileTransferState.filename;
             pFrame->cfg.COM_FILE_P1.uint32 = 0;  // P1
             pFrame->cfg.COM_FILE_P2.uint32 = 0;  // P2
             pFrame->cfg.COM_FILE_P3.uint32 = 0;  // P3
@@ -291,21 +297,21 @@ bool ComDispatch::_readFile(ComFrame *pFrame) {
     } else if (sequenz == COM_FILE_DATA){
         // check state
         if (!_fileTransferState.isActive) {
-            pFrame->res = "No active file read sequence.";
+            pFrame->res = "Error: No active file read sequence.";
             return false;
         }
 
         // check chunk number
         uint32_t chunk = pFrame->cfg.colorCfg.uint32;
         if ((chunk != _fileTransferState.currentChunk) || (chunk < 1)) {
-            pFrame->res = "Invalid chunk order.";
+            pFrame->res = "Error: Invalid chunk order.";
             return false;
         }
 
         // read data
         SDFile file = globalSDcard0.open(_fileTransferState.filename.c_str(), FILE_READ);
         if (!file) {
-            pFrame->res = "File not found: " + _fileTransferState.filename;
+            pFrame->res = "Error: File not found: " + _fileTransferState.filename;
             return false;
         }
         uint32_t offset = (_fileTransferState.currentChunk-1) * MAX_FILE_CHUNK_SIZE;
@@ -335,7 +341,7 @@ bool ComDispatch::_readFile(ComFrame *pFrame) {
         return true;
     }
 
-    pFrame->res = "Invalid sequenze id P1:" + String(sequenz,HEX) ;
+    pFrame->res = "Error: Invalid sequenze id P1:" + String(sequenz,HEX) ;
     _fileTransferState.reset();
     return false;
 
@@ -351,10 +357,20 @@ bool ComDispatch::_writeFile(ComFrame *pFrame) {
         _fileTransferState.totalChunks  = pFrame->cfg.COM_FILE_P3.uint32;
         _fileTransferState.fileSize     = pFrame->cfg.COM_FILE_P4.uint32;
         _fileTransferState.isActive     = true;
+        pFrame->res = "";
+
+        if (SD.exists(_fileTransferState.filename.c_str())) {
+            // delete file if already exist
+            if (!SD.remove(_fileTransferState.filename.c_str())) {
+                pFrame->res = "Error: Failed to delte existing file with same filename.";
+                return false;
+            } 
+            pFrame->res = "Existing file deleted.";
+        }
 
         SDFile file = globalSDcard0.open(_fileTransferState.filename.c_str(), FILE_WRITE);
         if (!file) {
-            pFrame->res = "Failed to create file: " + _fileTransferState.filename;
+            pFrame->res += "Error: Failed to create new file: " + _fileTransferState.filename;
             _fileTransferState.reset();
             return false;
         }
@@ -365,7 +381,6 @@ bool ComDispatch::_writeFile(ComFrame *pFrame) {
         pFrame->cfg.COM_FILE_P3.uint32  = _fileTransferState.totalChunks;   // P3
         pFrame->cfg.COM_FILE_P4.uint32  = _fileTransferState.fileSize;  // P4
         pFrame->cfg.str                 = _fileTransferState.filename;
-        pFrame->res = "";
         
         _fileTransferState.currentChunk = 1;    // expect transfer starts with first chunk
 
@@ -373,13 +388,13 @@ bool ComDispatch::_writeFile(ComFrame *pFrame) {
     } else if (sequenz == COM_FILE_DATA){
         // check state
         if (!_fileTransferState.isActive) {
-            pFrame->res = "No active file write sequence.";
+            pFrame->res = "Error: No active file write sequence.";
             return false;
         }
         // check order
         uint32_t chunk = pFrame->cfg.COM_FILE_P2.uint32;
         if (chunk != _fileTransferState.currentChunk) {
-            pFrame->res = "Invalid chunk order.";
+            pFrame->res = "Error: Invalid chunk order.";
             return false;
         }
 
@@ -388,14 +403,14 @@ bool ComDispatch::_writeFile(ComFrame *pFrame) {
         uint8_t buffer[MAX_FILE_CHUNK_SIZE];
         size_t decodedLength = decode_base64((const uint8_t *)base64Data.c_str(), base64Data.length(), buffer);
         if (decodedLength == 0) {
-            pFrame->res = "Base64 decode failed.";
+            pFrame->res = "Error: Base64 decode failed.";
             return false;
         }
 
         // write data
         SDFile file = globalSDcard0.open(_fileTransferState.filename.c_str(), O_APPEND | O_WRITE);
         if (!file) {
-            pFrame->res = "Failed to write to file: " + _fileTransferState.filename;
+            pFrame->res = "Error: Failed to write to file: " + _fileTransferState.filename;
             _fileTransferState.reset();
             return false;
         }
@@ -412,7 +427,131 @@ bool ComDispatch::_writeFile(ComFrame *pFrame) {
         return true;
     }
 
-    pFrame->res = "Invalid sequenze id P1:" + String(sequenz,HEX) ;
+    pFrame->res = "Error: Invalid sequenze id P1:" + String(sequenz,HEX) ;
     _fileTransferState.reset();
+    return false;
+}
+
+
+/**
+ * @brief Deletes a directory and its contents from the SD card.
+ * 
+ * @param path Absolute path to the directory (e.g., "/myDir").
+ * @return "" if the directory and its contents were successfully deleted, otherwise "Error msg"
+ */
+String ComDispatch::_deleteDirectory(const String& path) {
+    String res="";
+    // Check if the path exists
+    if (!SD.exists(path.c_str())) {
+        res = "Error: Path does not exist: " + path;
+        return res;
+    }
+
+    // Open the directory
+    SDFile dir = SD.open(path.c_str());
+    if (!dir || !dir.isDirectory()) {
+        res = "Error: Path is not a directory: " + path;
+        return res;
+    }
+
+    // Recursively delete files and subdirectories
+    while (true) {
+        SDFile entry = dir.openNextFile();
+        if (!entry) {
+            // No more entries
+            break;
+        }
+
+        if (entry.isDirectory()) {
+            // Recursively delete subdirectory
+            String subDir = path + "/" + entry.name();
+            String subRes = _deleteDirectory(subDir);
+            if ( subRes != "") {
+                entry.close();
+                dir.close();
+                return subRes;
+            }
+        } else {
+            // Delete file
+            String filePath = path + "/" + entry.name();
+            if (!SD.remove(filePath.c_str())) {
+                res = "Error: Failed to delete file: " + filePath;
+                entry.close();
+                dir.close();
+                return res;
+            }
+            /*
+            String msg = "Deleted file: " + filePath;
+            LOG(msg.c_str());
+            */
+        }
+        entry.close();
+    }
+    dir.close();
+
+    // Remove the directory itself
+    if (!SD.rmdir(path.c_str())) {
+        res = "Error: Failed to remove directory: " + path;
+        return res;
+    }
+    return res; // success Res should be stil ""
+}
+
+
+/**
+ * @brief Deletes a directory and its contents from the SD card.
+ * 
+ * @param pFrame->cfg.str Absolute path to the directory (e.g., "/myDir").
+ * @return true if the directory and its contents were successfully deleted, otherwise false and error message stored in pFrame->res
+ */
+bool ComDispatch::_deleteDirectory(ComFrame * pFrame) {
+    String res = _deleteDirectory(pFrame->cfg.str);
+    if (res != "") return false;
+    return true;
+}
+
+/**
+ * @brief Creates a subdirectory on the SD card.
+ * 
+ * @param pFrame-cfg.str Absolute path to the directory (e.g., "/myDir").
+ * @return true if the directory was successfully created, false otherwise and error message stored in pFrame->res
+ */
+bool ComDispatch::_createDirectory(ComFrame * pFrame) {
+    String path = pFrame->cfg.str;
+    // Check if the path already exists
+    if (SD.exists(path.c_str())) {
+        pFrame->res="Error: Path already exists.";
+        return false;
+    }
+
+    // Attempt to create the directory
+    if (SD.mkdir(path.c_str())) {
+        return true;
+    } else {
+        pFrame->res = "Error: Failed to create directory.";
+        return false;
+    }
+}
+
+/**
+ * @brief Deletes a file from the SD card.
+ * 
+ * @param pFrame->cfg.str Absolute path to the file (e.g., "/example.txt").
+ * @return true if the file was successfully deleted, false otherwise and error message stored in pFrame->res
+ */
+bool ComDispatch::_deleteFile(ComFrame * pFrame) {
+    String filePath=pFrame->cfg.str;
+    // Check if the file exists
+    if (!SD.exists(filePath.c_str())) {
+        pFrame->res = "Error: File does not exist.";
+        return false;
+    }
+
+    // Attempt to delete the file
+    if (SD.remove(filePath.c_str())) {
+        return true;
+    } 
+
+    pFrame->res = "Error: Failed to delete file.";
     return false;
 }
