@@ -31,6 +31,7 @@
 #include "Debug.hpp"
 #include "BufferedClock.hpp"
 #include "NeoMatrixGif.hpp"
+#include "TimerManager.hpp"
 
 #include <vector>
 
@@ -103,6 +104,9 @@
 #define NEO_MATRIX_CALENDAR_WEIGHT_GLOBAL_ADD   1
 
 
+
+
+
 class MatrixGifCalendarAni : public MatrixGifFileAni{
     public:
         MatrixGifCalendarAni() :
@@ -122,15 +126,24 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             _clearAll();
 
             // setup dir structure names
-            // until now only one list entry .. but prepared for further extension use a StringList
-            StringList *    pList;
-            pList = new StringList(cfg.str.c_str(),"~&~"); 
-            _dirBase = pList->getNextListEntry();
+            Split cfgList(cfg.str,(char*)"~&~"); 
+            _dirBase = cfgList.getNextListEntry();
             _dirBase = removeLeadingCharacters(_dirBase,' ');
             _dirBase = removeTrailingCharacters(_dirBase,' ');
             _dirGlobalAdd  = _dirBase + "ADD/";
             _dirDefault    = _dirBase + "DEF/";
             _dirDefaultAdd = _dirBase + "DEF/ADD/";
+
+            // setup timer event list if provided
+            String timerEntryList = cfgList.getNextListEntry();
+            if (timerEntryList != ""){
+                _useTimer = true;
+    	        if (_timer.newEventList(timerEntryList) == TIMER_MANAGER_OK){
+                    String msg = "Error: failed to interpreate timerDef List :"+timerEntryList;
+                    LOG(msg.c_str());
+                    return ANI_ERROR_PAR_MISSING;
+                }
+            }
 
             // test required path
             String msg = " directory test failed for :";
@@ -205,8 +218,8 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
                             // last gif frame has been played 
                             _gif.close();
                             _gif.open((const char *)_currentFile.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
-                            //pMatrix->fillScreen(toColor565(getColor()));
-                            _gif.playFrame(false,&_wait,pMatrix);
+                            
+                            _gif.playFrame(false,&_wait,pMatrix);  // play insantly the next frame to get next wait time
                             // now it's time to select new/next file  (with possible update of filelists)
                             _selectNextFile();
                         } else if (res == -1){
@@ -263,8 +276,7 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
     protected:      
         String                      _dirBase,_dirGlobalAdd,_dirDefault,_dirDefaultAdd;
         String                      _dirDaily,_dirDailyAdd,_currentFile;
-        DateTime                    _currentDate;
-        DateTime                    _lastDate;
+
         std::vector<String>         _dailyFileList;
         std::vector<String>         _dailyAddFileList;
         std::vector<String>         _defaultFileList;
@@ -276,10 +288,15 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
         uint32_t                    _weightDailyAdd;
         uint32_t                    _weightGlobalAdd;
         uint32_t                    _randomValue;
+
+        TimerManager                _timer;
+        DateTime                    _currentDate,_lastDate;
+        bool                        _useTimer;
         
 
         void _clearAll(){
             _state          = stop;
+            _useTimer       = false;
             _dirBase        = "";
             _dirGlobalAdd   = "";
             _dirDefault     = "";
@@ -287,14 +304,14 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             _dirDaily       = "";
             _dirDailyAdd    = "";
             _currentFile    = "";
-            _lastDate       = DateTime(2000,1,1,0,0,0);
-            _currentDate    = DateTime(2000,1,2,0,0,0);
             _randomValue    = 0;
             _dailyFileList.clear();
             _dailyAddFileList.clear();
             _defaultFileList.clear();
             _defaultAddFileList.clear();
             _globalAddFileList.clear();
+            _currentDate = DateTime(2020,12,24,10,10,10); // some day in the past
+            _lastDate    = _currentDate;
         }
 
         void _selectNextFile(bool forceDirUpdate = false){

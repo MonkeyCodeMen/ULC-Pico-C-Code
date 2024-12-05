@@ -124,14 +124,14 @@ class MatrixGifFileAni : public NeoMatrixAni{
         }
 
         int  config(AniCfg cfg){
-            StringList *    pList;
-            StringList *    pEntryList;
+            Split *    pList;
+            Split *    pEntryList;
             String          entryStr,countStr,nameStr;
             AniGifNode      entry;
             int             res;
             _state      = stop;
 
-            pList = new StringList(cfg.str.c_str(),"~&~");
+            pList = new Split(cfg.str,(char*)"~&~");
             String colorList = pList->getNextListEntry();
             String fileList  = pList->getNextListEntry();
             delete pList;
@@ -142,11 +142,11 @@ class MatrixGifFileAni : public NeoMatrixAni{
 
             // do individual config (file list)
     	    _fileList.clear();
-            pList = new StringList(fileList.c_str(),',');
+            pList = new Split(fileList,',');
             while(pList->isEndReached() == false){
                 entryStr = pList->getNextListEntry();
 
-                pEntryList = new StringList(entryStr.c_str(),"*");
+                pEntryList = new Split(entryStr,'*');
                 countStr = pEntryList->getNextListEntry();
                 nameStr  = pEntryList->getNextListEntry();
                 delete pEntryList;

@@ -34,11 +34,11 @@
 
 
 
-#include "StringList.hpp"
+#include "Split.hpp"
 
-void test_StringList_empytString(void) {
+void test_Split_empytString(void) {
   char list[]="";
-  StringList object(list,',');
+  Split object(list,',');
   String res; 
   
   TEST_ASSERT_TRUE(object.isEndReached());
@@ -53,9 +53,9 @@ void test_StringList_empytString(void) {
 
 }
 
-void test_StringList_emptyList(void) {
+void test_Split_emptyList(void) {
   char list[]=",";
-  StringList object(list,',');
+  Split object(list,',');
   String res; 
   
   TEST_ASSERT_FALSE(object.isEndReached());
@@ -74,9 +74,9 @@ void test_StringList_emptyList(void) {
 }
 
 
-void test_StringList_threeEntries(void) {
+void test_Split_threeEntries(void) {
   char list[]="entry1,Entry-2,Entry  3";
-  StringList object(list,',');
+  Split object(list,',');
   String res; 
   
   TEST_ASSERT_FALSE(object.isEndReached());
@@ -102,9 +102,9 @@ void test_StringList_threeEntries(void) {
   TEST_ASSERT_TRUE(object.isEndReached());
 }
 
-void test_StringList_fourEntries(void) {
+void test_Split_fourEntries(void) {
   char list[]="entry1,Entry-2,Entry  3,";
-  StringList object(list,',');
+  Split object(list,',');
   String res; 
   
   TEST_ASSERT_FALSE(object.isEndReached());
@@ -118,9 +118,9 @@ void test_StringList_fourEntries(void) {
   TEST_ASSERT_TRUE(object.isEndReached());
 }
 
-void test_StringList_fourEntries_X(void) {
+void test_Split_fourEntries_X(void) {
   char list[]="entry1XEntry-2XEntry  3X";
-  StringList object(list,'X');
+  Split object(list,'X');
   String res; 
   
   TEST_ASSERT_FALSE(object.isEndReached());
@@ -136,9 +136,9 @@ void test_StringList_fourEntries_X(void) {
 
 
 
-void test_StringList_empytStringStrSep(void) {
+void test_Split_empytStringStrSep(void) {
   char list[]="";
-  StringList object(list,"###");
+  Split object(list,(char*)"###");
   String res; 
   
   TEST_ASSERT_TRUE(object.isEndReached());
@@ -153,9 +153,9 @@ void test_StringList_empytStringStrSep(void) {
 
 }
 
-void test_StringList_emptyListStrSep(void) {
+void test_Split_emptyListStrSep(void) {
   char list[]="~&~";
-  StringList object(list,"~&~");
+  Split object(list,(char*)"~&~");
   String res; 
   
   TEST_ASSERT_FALSE(object.isEndReached());
@@ -174,9 +174,9 @@ void test_StringList_emptyListStrSep(void) {
 }
 
 
-void test_StringList_threeEntriesStrSep(void) {
+void test_Split_threeEntriesStrSep(void) {
   char list[]="entry1~~Entry-2~~Entry  3";
-  StringList object(list,"~~");
+  Split object(list,(char*)"~~");
   String res; 
   
   TEST_ASSERT_FALSE(object.isEndReached());
@@ -207,15 +207,15 @@ void test_StringList_threeEntriesStrSep(void) {
 void runAllTests(void) {
   UNITY_BEGIN();
   
-  RUN_TEST(test_StringList_empytString);
-  RUN_TEST(test_StringList_emptyList);
-  RUN_TEST(test_StringList_threeEntries);
-  RUN_TEST(test_StringList_fourEntries);
-  RUN_TEST(test_StringList_fourEntries_X);
+  RUN_TEST(test_Split_empytString);
+  RUN_TEST(test_Split_emptyList);
+  RUN_TEST(test_Split_threeEntries);
+  RUN_TEST(test_Split_fourEntries);
+  RUN_TEST(test_Split_fourEntries_X);
 
-  RUN_TEST(test_StringList_empytStringStrSep);
-  RUN_TEST(test_StringList_emptyListStrSep);
-  RUN_TEST(test_StringList_threeEntriesStrSep);
+  RUN_TEST(test_Split_empytStringStrSep);
+  RUN_TEST(test_Split_emptyListStrSep);
+  RUN_TEST(test_Split_threeEntriesStrSep);
 
   UNITY_END();
 }

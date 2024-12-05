@@ -199,7 +199,7 @@ bool ComDispatch::_dump(ComFrame * pFrame){
     char module;
     uint8_t index;
     String ref,prg;
-    StringList strList(pFrame->cfg.str.c_str(),"~&~");
+    Split strList(pFrame->cfg.str,(char*)"~&~");
     ref = strList.getNextListEntry();
     prg = strList.getNextListEntry();
     if (ref.length() != 2) {

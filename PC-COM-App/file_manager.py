@@ -18,10 +18,9 @@ class FileManager:
         self.app = app
         self.serial_comm = app.serial_comm
 
-    def _open_file_manager(self,frame):
+    def open_file_manager(self,frame):
         """setup work frame for file manager."""
         self.frame = frame
-        self._clear_frame()
         self.frame.configure(text="File manager")
 
         # at top of file manager area a bar to select/change directories
@@ -39,15 +38,6 @@ class FileManager:
         file_view_frame = tk.Frame(self.frame)
         file_view_frame.pack(side=tk.TOP, expand=True, fill=tk.BOTH, padx=5, pady=5)
         
-        # Add canvas and scrollbar for SD card treeview
-        #canvas = tk.Canvas(file_view_frame)
-        #canvas.pack(side=tk.LEFT, expand=True, fill=tk.BOTH)
-        #scrollbar = tk.Scrollbar(file_view_frame, orient="vertical", command=canvas.yview)
-        #scrollbar.pack(side=tk.RIGHT, fill="y")
-        #canvas.configure(yscrollcommand=scrollbar.set)
-        #self.sd_files_tree_frame = tk.Frame(canvas)
-        #canvas.create_window((0, 0), window=self.sd_files_tree_frame, anchor="nw")
-
         ## SD card tree view
         self.sd_files_tree = ttk.Treeview(file_view_frame, columns=("Filename", "Size"), show="headings")
         self.sd_files_tree.heading("Filename", text="Filename")
@@ -55,6 +45,10 @@ class FileManager:
         self.sd_files_tree.column("Filename", width=200)
         self.sd_files_tree.column("Size", width=20)
         self.sd_files_tree.pack(side=tk.LEFT,expand=True, fill=tk.X)
+        # Add a scrollbar to the SD files tree view
+        sd_files_scroll = tk.Scrollbar(self.sd_files_tree_frame, command=self.sd_files_tree.yview)
+        sd_files_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.sd_files_tree.configure(yscrollcommand=sd_files_scroll.set)
 
         ## local tree vire
         self.local_files_tree = ttk.Treeview(file_view_frame, columns=("Filename", "Size"), show="headings")
@@ -63,11 +57,11 @@ class FileManager:
         self.local_files_tree.column("Filename", width=200)
         self.local_files_tree.column("Size", width=20)
         self.local_files_tree.pack(side=tk.RIGHT,expand=True, fill=tk.X)
-
-        # Configure the scrollbar
-        #self.sd_files_tree_frame.update_idletasks()
-        #canvas.config(scrollregion=canvas.bbox("all"))
-        
+        # Add a scrollbar to the local files tree view
+        local_files_scroll = tk.Scrollbar(self.local_files_tree_frame, command=self.local_files_tree.yview)
+        local_files_scroll.pack(side=tk.RIGHT, fill=tk.Y)
+        self.local_files_tree.configure(yscrollcommand=local_files_scroll.set)
+    
         # file manager commands are placed under the file windows
         self.file_command_frame = tk.Frame(self.frame)
         self.file_command_frame.pack(side=tk.BOTTOM, fill=tk.X, padx=5, pady=5)
@@ -77,18 +71,17 @@ class FileManager:
         tk.Button(self.file_command_frame, text="delete dir",       command=self._delete_dir_from_pico         ).pack(side=tk.RIGHT, padx=5)
         tk.Button(self.file_command_frame, text="create dir",       command=self._create_new_directory         ).pack(side=tk.RIGHT, padx=5)
 
-
-
         # Initialize local files and target directory
         self.local_directory       = os.getcwd()
         self._update_local_files()
         self._complete_update_sd_tree_view()
 
+    def stop(self):
+        """Stop the background thread by setting the stop flag"""
+        self.stop_flag = True  # Set the stop_flag to True to exit the loop in the background task   
 
-    def _clear_frame(self):
-        """Clears the content of the frame before adding new content."""
-        for widget in self.frame.winfo_children():
-            widget.destroy()
+ 
+
 
     def _get_sd_card_complete_file_list(self):
         """read from pico the complete recursive file list"""
@@ -436,7 +429,8 @@ class FileManager:
         """Prompt the user for a new directory name and create it on the SD card."""
         # Ask for the new directory name
         new_dir_name = tk.simpledialog.askstring("New Directory", "Enter the name of the new directory:")
-        
+        new_dir_name = new_dir_name.strip()
+
         if not new_dir_name:
             messagebox.showwarning("Invalid Input", "No directory name entered.")
             return
@@ -454,7 +448,6 @@ class FileManager:
             
             if response and "#OK-" in response:
                 messagebox.showinfo("Success", f"Directory '{new_dir_name}' created successfully.")
-                # Optionally, refresh the SD card files list after creating the new directory
             else:
                 messagebox.showerror("Error", f"Failed to create directory '{new_dir_name}'.")
             self._complete_update_sd_tree_view()

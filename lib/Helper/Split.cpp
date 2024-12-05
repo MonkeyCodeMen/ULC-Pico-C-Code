@@ -24,9 +24,9 @@
  */
 
 
-#include "StringList.hpp"
+#include "Split.hpp"
 
-StringList::StringList(const char * pList, char sep):
+Split::Split(char * pList, char sep):
 _text(pList),_sep(sep),_len(0),_nextStart(0),_endReached(false),_sepIsString(false)
 {
     _len = strlen(_text);
@@ -35,7 +35,7 @@ _text(pList),_sep(sep),_len(0),_nextStart(0),_endReached(false),_sepIsString(fal
     }
 }
 
-StringList::StringList(const char * pList, const char * sepStr):
+Split::Split(char * pList, char * sepStr):
 _text(pList),_len(0),_nextStart(0),_endReached(false),_sepIsString(true),_sepStr(sepStr)
 {
     _len    = strlen(_text);
@@ -45,7 +45,7 @@ _text(pList),_len(0),_nextStart(0),_endReached(false),_sepIsString(true),_sepStr
     }
 }
 
-void StringList::rewind(){
+void Split::rewind(){
     _len = strlen(_text);
     if ((_len==0) || ((_sepIsString == true) && (_sepLen == 0))){
         _endReached = true;
@@ -55,7 +55,7 @@ void StringList::rewind(){
     _nextStart = 0;
 }
 
-int StringList::_findNextSep(uint32_t startPos){
+int Split::_findNextSep(uint32_t startPos){
     int pos = startPos;
     while(pos < _len){
         if (_text[pos] == _sep){
@@ -66,7 +66,7 @@ int StringList::_findNextSep(uint32_t startPos){
     return -1; // no more sep found
 }
 
-int StringList::_findNextSepStr(uint32_t startPos){
+int Split::_findNextSepStr(uint32_t startPos){
     int pos = startPos;
     while(pos+_sepLen <= _len){
         if (strncmp(&_text[pos],_sepStr,_sepLen) == 0){
@@ -77,7 +77,7 @@ int StringList::_findNextSepStr(uint32_t startPos){
     return -1; // no more sep found
 }
 
-String StringList::getNextListEntry(){
+String Split::getNextListEntry(){
     if (_endReached == true){
         String res="";
         return res;
@@ -90,7 +90,7 @@ String StringList::getNextListEntry(){
     return _getNextWithSepChar();
 }
 
-String  StringList::_getNextWithSepChar(){
+String  Split::_getNextWithSepChar(){
     String res="";
     int from = _nextStart;
     if (from >= _len){
@@ -123,7 +123,7 @@ String  StringList::_getNextWithSepChar(){
     return res;
 }
 
-String  StringList::_getNextWithSepStr(){
+String  Split::_getNextWithSepStr(){
     String res="";
     int from = _nextStart;
     if ((from+_sepLen >= _len)  && (from != 0)){

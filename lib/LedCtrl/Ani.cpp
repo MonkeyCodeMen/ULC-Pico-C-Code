@@ -127,7 +127,7 @@ void ColorCtrl::config(colorCtrl_t cfg,String str){
     // setup color list
     _colorList.clear();         // clear old list
     if (str.length() > 0){
-        StringList list(str.c_str(),',');
+        Split list(str,',');
         while(list.isEndReached() == false){
             _colorList.add(convertStrToInt(list.getNextListEntry()));
         }

@@ -1,122 +1,196 @@
-
-/*
- * MIT License
- * 
- * Copyright (c) 2024 MonkeyCodeMen@GitHub
- * 
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * provided to do so, subject to the following conditions:
- * 
- * The above copyright notice and this permission notice shall be included in all
- * copies or substantial portions of the Software.
- * 
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
- * SOFTWARE.
- */
-
-
-#include <Arduino.h>
-#include <MainConfig.h>
 #include <unity.h>
+#include "Time.hpp"
 
-#include <SPI.h>
-#include <BufferedClock.hpp>
-#include <Adafruit_GFX.h>  // why ??
-#include <LittleFS.h>
-
-// Mock classes for testing
-#include "MockTwoWire.hpp"
-#include "Mutex.hpp"
-#include "MockRTC_DS1307.hpp"
-
-
-// Global variables for mock setup
-MockTwoWire     mockWire;
-Mutex           mockMutex;
-MockRTC_DS1307  mockRTC;
-
-// Global variable for the `Time` object
-BufferdClock testClock;
-
-
-/* Test: Default Initialization */
-void test_default_initialization(void) {
-    TEST_ASSERT_FALSE(testClock.getLoopDateTime().isValid());        // Ensure _loopDate is invalid by default
-    TEST_ASSERT_EQUAL(0, testClock.getErrorCounterInit());           // Error counter should be 0
+// Test default constructor
+void test_default_constructor() {
+    Time time;
+    TEST_ASSERT_EQUAL(0, time.totalseconds());
+    TEST_ASSERT_EQUAL(0, time.hour());
+    TEST_ASSERT_EQUAL(0, time.minute());
+    TEST_ASSERT_EQUAL(0, time.second());
 }
 
-/* Test: Begin with Valid Bus and RTC */
-void test_begin_with_valid_bus_and_rtc(void) {
-    testClock.begin(&mockWire, &mockMutex);                     // Call begin with valid mocks
-    TEST_ASSERT_TRUE(testClock.getLoopDateTime().isValid());         // _loopDate should be valid
-    TEST_ASSERT_EQUAL(0, testClock.getErrorCounterInit());           // Error counter should remain 0
+// Test parameterized constructor
+void test_parameterized_constructor() {
+    Time time(12, 34, 56); // 12:34:56
+    TEST_ASSERT_EQUAL((12 * SECONDS_PER_HOUR) + (34 * SECONDS_PER_MINUTE) + 56, time.totalseconds());
+    TEST_ASSERT_EQUAL(12, time.hour());
+    TEST_ASSERT_EQUAL(34, time.minute());
+    TEST_ASSERT_EQUAL(56, time.second());
 }
 
-/* Test: Failed RTC Initialization Increments Error Counter */
-void test_failed_rtc_initialization_increments_error_counter(void) {
-    mockRTC.setFailInit(true);                                  // Set RTC to fail initialization
-    testClock.begin( &mockWire, &mockMutex);                     // Call begin with failing RTC
-    TEST_ASSERT_EQUAL(1, testClock.getErrorCounterInit());           // Error counter should increment by 1
-    mockRTC.setFailInit(false);                                 // Reset RTC to succeed on next init
+// Test TimeSpan constructor
+void test_timespan_constructor() {
+    TimeSpan span(0, 12, 34, 56); // 12:34:56
+    Time time(span);
+
+    TEST_ASSERT_EQUAL(span.totalseconds() % SECONDS_PER_DAY, time.totalseconds());
+    TEST_ASSERT_EQUAL(12, time.hour());
+    TEST_ASSERT_EQUAL(34, time.minute());
+    TEST_ASSERT_EQUAL(56, time.second());
 }
 
-/* Test: Synchronization After Interval */
-void test_sync_after_interval(void) {
-    uint32_t now = millis();
-    testClock.begin(&mockWire, &mockMutex, MIN_SYNC_INTERVAL_MSEC); // Begin with minimum sync interval
+// Test TimeSpanExt constructor
+void test_timespan_ext_constructor() {
+    TimeSpanExt span(1, 12, 34, 56); // 1 day, 12:34:56
+    Time time(span);
 
-    delay(MIN_SYNC_INTERVAL_MSEC + 100);                        // Wait for interval to elapse
-    testClock.loop(now + MIN_SYNC_INTERVAL_MSEC + 100);              // Call loop to trigger sync
-
-    TEST_ASSERT_TRUE(testClock.getLoopDateTime().isValid());         // Ensure _loopDate is updated
+    TEST_ASSERT_EQUAL(span.totalseconds() % SECONDS_PER_DAY, time.totalseconds());
+    TEST_ASSERT_EQUAL(12, time.hour());
+    TEST_ASSERT_EQUAL(34, time.minute());
+    TEST_ASSERT_EQUAL(56, time.second());
 }
 
-/* Test: Software testClock Update Without Sync */
-void test_software_testClock_update_without_sync(void) {
-    uint32_t now = millis();
-    testClock.begin(&mockWire, &mockMutex, NO_SYNC);            // Begin with NO_SYNC to prevent syncing
+// Test addition operator
+void test_addition_operator() {
+    Time t1(10, 0, 0); // 10:00:00
+    Time t2(2, 30, 0); // 02:30:00
 
-    delay(1000);                                                // Wait 1 second
-    testClock.loop(now + 1000);                                      // Update software testClock
-
-    DateTime updatedTime = testClock.getLoopDateTime();
-    TEST_ASSERT_EQUAL(2024, updatedTime.year());                // Confirm base year is still correct
-    TEST_ASSERT_EQUAL(1, updatedTime.month());                  // Confirm base month
-    TEST_ASSERT_EQUAL(1, updatedTime.day());                    // Confirm base day
+    Time result = t1 + t2;
+    TEST_ASSERT_EQUAL((10 * SECONDS_PER_HOUR) + (2 * SECONDS_PER_HOUR) + (30 * SECONDS_PER_MINUTE), result.totalseconds());
+    TEST_ASSERT_EQUAL(12, result.hour());
+    TEST_ASSERT_EQUAL(30, result.minute());
+    TEST_ASSERT_EQUAL(0, result.second());
 }
 
-/* Test: Error Counter Increases on Consecutive Failures */
-void test_error_counter_increments_on_consecutive_failures(void) {
-    mockRTC.setFailInit(true);                                  // Cause RTC to fail init
-    uint32_t now = millis();
+// Test subtraction operator
+void test_subtraction_operator() {
+    Time t1(10, 0, 0); // 10:00:00
+    Time t2(2, 30, 0); // 02:30:00
 
-    testClock.begin(&mockWire, &mockMutex);                     // First failure
-    TEST_ASSERT_EQUAL(1, testClock.getErrorCounterInit());
-
-    testClock.loop(now + MIN_SYNC_INTERVAL_MSEC + 100);              // Retry init in loop
-    TEST_ASSERT_EQUAL(2, testClock.getErrorCounterInit());           // Error counter should increment on retry failure
+    Time result = t1 - t2;
+    TEST_ASSERT_EQUAL(((10 * SECONDS_PER_HOUR) - (2 * SECONDS_PER_HOUR) - (30 * SECONDS_PER_MINUTE)) % SECONDS_PER_DAY, result.totalseconds());
+    TEST_ASSERT_EQUAL(7, result.hour());
+    TEST_ASSERT_EQUAL(30, result.minute());
+    TEST_ASSERT_EQUAL(0, result.second());
 }
 
-void runAllTests() {
+// Test multiplication operator
+void test_multiplication_operator() {
+    Time time(1, 0, 0); // 01:00:00
+
+    Time result = time * 3;
+    TEST_ASSERT_EQUAL((1 * SECONDS_PER_HOUR) * 3, result.totalseconds());
+    TEST_ASSERT_EQUAL(3, result.hour());
+    TEST_ASSERT_EQUAL(0, result.minute());
+    TEST_ASSERT_EQUAL(0, result.second());
+}
+
+// Test division operator
+void test_division_operator() {
+    Time time(3, 0, 0); // 03:00:00
+
+    Time result = time / 3;
+    TEST_ASSERT_EQUAL((3 * SECONDS_PER_HOUR) / 3, result.totalseconds());
+    TEST_ASSERT_EQUAL(1, result.hour());
+    TEST_ASSERT_EQUAL(0, result.minute());
+    TEST_ASSERT_EQUAL(0, result.second());
+}
+
+// Test comparison operators
+void test_comparison_operators() {
+    Time t1(12, 0, 0); // 12:00:00
+    Time t2(10, 30, 0); // 10:30:00
+
+    TEST_ASSERT_TRUE(t1 > t2);
+    TEST_ASSERT_TRUE(t2 < t1);
+    TEST_ASSERT_TRUE(t1 >= t2);
+    TEST_ASSERT_TRUE(t2 <= t1);
+    TEST_ASSERT_FALSE(t1 == t2);
+    TEST_ASSERT_TRUE(t1 != t2);
+}
+
+// Test setHour, setMinute, setSec
+void test_set_methods() {
+    Time time;
+
+    time.setHour(15);
+    TEST_ASSERT_EQUAL(15, time.hour());
+    TEST_ASSERT_EQUAL(0, time.minute());
+    TEST_ASSERT_EQUAL(0, time.second());
+
+    time.setMinute(45);
+    TEST_ASSERT_EQUAL(15, time.hour());
+    TEST_ASSERT_EQUAL(45, time.minute());
+    TEST_ASSERT_EQUAL(0, time.second());
+
+    time.setSec(30);
+    TEST_ASSERT_EQUAL(15, time.hour());
+    TEST_ASSERT_EQUAL(45, time.minute());
+    TEST_ASSERT_EQUAL(30, time.second());
+}
+
+// Test edge cases
+void test_edge_cases() {
+    // Test wraparound at SECONDS_PER_DAY
+    Time time1(23, 59, 59); // 23:59:59
+    Time time2(0, 0, 1);    // 00:00:01
+
+    Time result = time1 + time2; // Should wrap around to 00:00:00
+    TEST_ASSERT_EQUAL(0, result.hour());
+    TEST_ASSERT_EQUAL(0, result.minute());
+    TEST_ASSERT_EQUAL(0, result.second());
+
+    // Test negative seconds handling
+    Time time3(-1); // Should wrap around to 23:59:59
+    TEST_ASSERT_EQUAL(23, time3.hour());
+    TEST_ASSERT_EQUAL(59, time3.minute());
+    TEST_ASSERT_EQUAL(59, time3.second());
+}
+
+void test_toFixedWidthText() {
+    Time time(12, 34, 56);
+
+    TEST_ASSERT_EQUAL_STRING("12:34:56", time.toFixedWidthText().c_str());
+    TEST_ASSERT_EQUAL_STRING("12-34-56", time.toFixedWidthText('-',0).c_str());
+    TEST_ASSERT_EQUAL_STRING(" 12-34-56", time.toFixedWidthText('-', ' ').c_str());
+}
+
+void test_toVariableWidthText() {
+    Time time(0, 5, 8);
+
+    TEST_ASSERT_EQUAL_STRING("0:5:8", time.toVariableWidthText().c_str());
+    TEST_ASSERT_EQUAL_STRING("0:5:8", time.toVariableWidthText(':', 0).c_str());
+    TEST_ASSERT_EQUAL_STRING(" 0:5:8", time.toVariableWidthText(':', ' ').c_str());
+}
+
+void test_overflow_handling() {
+    Time time1(23, 59, 59);
+    Time time2(0, 0, 2); // Add 2 seconds to cause wraparound
+
+    Time result = time1 + time2;
+    TEST_ASSERT_EQUAL(0, result.hour());
+    TEST_ASSERT_EQUAL(0, result.minute());
+    TEST_ASSERT_EQUAL(1, result.second());
+
+    Time negative(-1); // Should wrap to 23:59:59
+    TEST_ASSERT_EQUAL(23, negative.hour());
+    TEST_ASSERT_EQUAL(59, negative.minute());
+    TEST_ASSERT_EQUAL(59, negative.second());
+}
+
+
+int runAllTests() {
     UNITY_BEGIN();
 
-    RUN_TEST(test_default_initialization);
-    RUN_TEST(test_begin_with_valid_bus_and_rtc);
-    RUN_TEST(test_failed_rtc_initialization_increments_error_counter);
-    RUN_TEST(test_sync_after_interval);
-    RUN_TEST(test_software_testClock_update_without_sync);
-    RUN_TEST(test_error_counter_increments_on_consecutive_failures);
+    RUN_TEST(test_default_constructor);
+    RUN_TEST(test_parameterized_constructor);
+    RUN_TEST(test_timespan_constructor);
+    RUN_TEST(test_timespan_ext_constructor);
+    RUN_TEST(test_addition_operator);
+    RUN_TEST(test_subtraction_operator);
+    RUN_TEST(test_multiplication_operator);
+    RUN_TEST(test_division_operator);
+    RUN_TEST(test_comparison_operators);
+    RUN_TEST(test_set_methods);
+    RUN_TEST(test_edge_cases);
+    RUN_TEST(test_toFixedWidthText);
+    RUN_TEST(test_toVariableWidthText);
+    RUN_TEST(test_overflow_handling);
 
     UNITY_END();
+
+    return 0;
 }
 
 
@@ -129,13 +203,13 @@ BlinkingLED  blink = BlinkingLED(LED_BUILTIN);
 std::vector<uint32_t> testBlinkSeq = BLINK_SEQ_TEST;
 
 void setUp(void) {
-    // Reset the time object and initialize now
-    testClock = BufferdClock();
+  // set stuff up here
 }
 
 void tearDown(void) {
-    // Clean up code after each test if needed
+  // clean stuff up here
 }
+
 
 void setup() {
   blink.on();

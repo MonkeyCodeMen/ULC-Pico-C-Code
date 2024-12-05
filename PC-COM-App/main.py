@@ -35,6 +35,8 @@ import time
 import serial
 import serial.tools.list_ports
 from file_manager import FileManager
+from LED_config import LedConfig
+
 
 
 class SerialCommandApp:
@@ -47,6 +49,7 @@ class SerialCommandApp:
         self.serial_comm  = SerialCommunicator(self)     # module to handle serial communication
         self.date_time    = DateCmd(self)                # Date cmd to read current datetime from pico
         self.file_manager = FileManager(self) 
+        self.led_config   = LedConfig(self)
 
         # main window .. the root of all
         self.main_frame = tk.Frame(self.master)
@@ -67,8 +70,32 @@ class SerialCommandApp:
         self.message_frame.pack(side=tk.BOTTOM, fill=tk.BOTH, expand=True, pady=5)  # Füllt den unteren Bereich aus
         self._setup_message_area(self.message_frame)
 
+        master.protocol("WM_DELETE_WINDOW",self._on_close)
+
+
     def __del__(self):
         self.serial_comm.disconnect()
+
+    def _on_close(self):
+        self.led_config.stop()
+        self.file_manager.stop()    
+        self.master.quit()
+        self.master.destroy()
+
+    def _clear_frame(self,frame):
+        """Clears the content of the frame before adding new content."""
+        self.led_config.stop()
+        self.file_manager.stop()
+        for widget in frame.winfo_children():
+            widget.destroy()
+
+    def _start_file_manager(self):
+        self._clear_frame(self.work_frame)
+        self.file_manager.open_file_manager(self.work_frame)
+
+    def _start_led_config(self):
+        self._clear_frame(self.work_frame)
+        self.led_config.open_led_config(self.work_frame)
 
     def _fill_mid_frame(self, frame):
         # work_frame
@@ -78,12 +105,10 @@ class SerialCommandApp:
         # tkframe for button
         self.button_frame = tk.LabelFrame(frame, text="Commands")
         self.button_frame.pack(side=tk.RIGHT, fill=tk.Y, padx=10, pady=5)
-        tk.Button(self.button_frame, text="Read DateTime", command=self.date_time.read_date_time).pack(side=tk.TOP, pady=5)
-        tk.Button(self.button_frame, text="Update DateTime", command=self.date_time.update_date_time).pack(side=tk.TOP, pady=5)
-        tk.Button(self.button_frame, text="File Manager", command=self._start_file_manager).pack(side=tk.TOP, pady=5)
-
-    def _start_file_manager(self):
-        self.file_manager._open_file_manager(self.work_frame)
+        tk.Button(self.button_frame, text="Read DateTime",      command=self.date_time.read_date_time       ).pack(side=tk.TOP, pady=5)
+        tk.Button(self.button_frame, text="Update DateTime",    command=self.date_time.update_date_time     ).pack(side=tk.TOP, pady=5)
+        tk.Button(self.button_frame, text="File Manager",       command=self._start_file_manager            ).pack(side=tk.TOP, pady=5)
+        tk.Button(self.button_frame, text="LED config",         command=self._start_led_config              ).pack(side=tk.TOP, pady=5)
 
     def _setup_connection_area(self, frame):
         # Selection of port
@@ -183,4 +208,6 @@ if __name__ == "__main__":
     root = tk.Tk()
     app = SerialCommandApp(root)
     root.mainloop()
+
+
 

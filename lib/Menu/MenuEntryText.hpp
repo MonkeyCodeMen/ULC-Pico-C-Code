@@ -26,7 +26,7 @@
 
 #pragma once
 #include <MenuItem.hpp>
-#include <StringList.hpp>
+#include <Split.hpp>
 ////////////////////////////////////////////////
 // implementation for text lines
 
@@ -483,7 +483,7 @@ class MenuEntryList : public MenuEntryText{
                 }
             }
             count++; // entry ; entry   ==> one sep and two elements
-            StringList list(connectedList.c_str(),sep);
+            Split list(connectedList.c_str(),sep);
             
             _configMutex.lock();
             if (_pValueList != NULL){

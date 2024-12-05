@@ -28,13 +28,18 @@
 #include <Arduino.h>
 #include <Debug.hpp>
 
-class StringList
+class Split
 {
     public:
-        StringList(const char * pList, char sep);
-        StringList(const char * pList, const char * sepStr);
-        //StringList(String& in,char sep)  {StringList((const char *)in.c_str(),sep);};
-        ~StringList() = default;
+        Split(char * pList, char sep);
+        Split(char * pList, char * sepStr);
+
+        Split(String in,char sep)             {Split((char *)in.c_str(),sep);};
+        Split(String in,char * sepStr)        {Split((char *)in.c_str(),sepStr);};
+        Split(String in,String sepStr)        {Split((char *)in.c_str(),(char *)sepStr.c_str());};
+        Split(char * pList, String sepStr)    {Split(pList,(char *)sepStr.c_str());};
+
+        ~Split() = default;
 
         void   rewind();
         bool   isEndReached()     {return _endReached;}
@@ -45,13 +50,13 @@ class StringList
         int     _findNextSepStr(uint32_t startPos);
         String  _getNextWithSepChar();
         String  _getNextWithSepStr();
-        const char *    _text;
-        char            _sep;
-        const char *    _sepStr;
-        int             _sepLen;
-        int             _len;
-        int             _nextStart;
-        bool            _endReached;
-        bool            _sepIsString;
+        char *  _text;
+        char    _sep;
+        char *  _sepStr;
+        int     _sepLen;
+        int     _len;
+        int     _nextStart;
+        bool    _endReached;
+        bool    _sepIsString;
 };
 
