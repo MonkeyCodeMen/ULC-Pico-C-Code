@@ -69,7 +69,7 @@ void setup_configIn(void){
   configIn += "     \"obj\"  : \"LED0\",                             \r\n";
   configIn += "     \"cmd\"  :    \"off\",                           \r\n";
   configIn += "     \"param\": [\"0x00FF00\",\"  2 \",\" 0 \",\"\"], \r\n";
-  configIn += "     \"str\"  :  \"abc -# \",                         \r\n";
+  configIn += "     \"str\"  :  \"abc -# \"                          \r\n";
   configIn += " }                                         ";
 }
 
@@ -165,13 +165,13 @@ String scenario_config(void){
   res += "     \"obj\"  : \"LED0\",                             \r\n";
   res += "     \"cmd\"  :    \"off\",                           \r\n";
   res += "     \"param\": [\"0x00FF00\",\"  2 \",\" 0 \",\"\"], \r\n";
-  res += "     \"str\"  :  \"abc -# \",                         \r\n";
+  res += "     \"str\"  :  \"abc -# \"                          \r\n";
   res += "    },                                                \r\n";
   res += "    {                                                 \r\n";
   res += "     \"obj\"  : \"LED1\",                             \r\n";
   res += "     \"cmd\"  :    \"off\",                           \r\n";
   res += "     \"param\": [\"0x00FF00\",\"  2 \",\" 0 \",\"\"], \r\n";
-  res += "     \"str\"  :  \"def +* \",                         \r\n";
+  res += "     \"str\"  :  \"def +* \"                          \r\n";
   res += "    },                                                \r\n";
 
   res += "    {                                                 \r\n";

@@ -1,18 +1,13 @@
+#include <Arduino.h>
+#include <Debug.hpp>
+#include <helper.h>
+#include <Adafruit_NeoMatrix.h>
+#include <TFT_eSPI.h> // Hardware-specific library
+
+#include <TimerManager.hpp>
+
 #include <unity.h>
-#include "TimerManager.hpp"
 
-
-// Mock classes for Time and BufferedClock
-// you must move this clock by hand ... hey you can manipulate the time ;-)
-class MockBufferedClock {
-public:
-    DateTime value;
-    void set(DateTime newValue) {value=newValue;}
-    DateTime getLoopDateTime() {return value;}
-};
-
-// Override the global instance used in TimerManager
-MockBufferedClock bufferedClock;
 
 // Test initialization with an empty TimerManager
 void test_initialization_empty() {
@@ -23,7 +18,9 @@ void test_initialization_empty() {
 
 // Test initialization with a string of timers
 void test_initialization_string() {
-    TimerManager manager("8:30-120,18:45-180");
+    String initStr("8:30-120,18:45-180");
+    TimerManager manager(initStr);
+    TEST_ASSERT_EQUAL(2, manager.size());
     TEST_ASSERT_EQUAL(2, manager.getTimerList().size());
 }
 
@@ -52,17 +49,12 @@ void test_add_single_timer() {
 
 // Test switchedOn and switchedOff states
 void test_switched_states() {
-    TimerManager manager("8:30-120,18:45-180");
+    TimerManager manager((char *)"8:30-120,18:45-180");
 
-    // Mock current time
-    bufferedClock.set(DateTime(2022,12,24,8,45,0));
-    //bufferedClock.getLoopDateTime = []() { return Time(8, 45, 0); }; // During the first timer
-    manager.loop();
+    manager.loop(DateTime(2022,12,24,8,45,0));
     TEST_ASSERT_TRUE(manager.switchedOn());
 
-    bufferedClock.set(DateTime(2022,12,24,10,45,0));
-    //bufferedClock.getLoopDateTime = []() { return Time(10, 45, 0); }; // After the first timer ends
-    manager.loop();
+    manager.loop(DateTime(2022,12,24,10,45,0));
     TEST_ASSERT_FALSE(manager.switchedOn());
     TEST_ASSERT_TRUE(manager.switchedOff());
 }
@@ -83,25 +75,20 @@ void test_invalid_timer_list() {
 
     TEST_ASSERT_EQUAL(TIMER_MANAGER_INVALID_CONFIG, result);
     TEST_ASSERT_EQUAL(0, manager.getTimerList().size());
+    TEST_ASSERT_TRUE(manager.switchedOff());
 }
 
 // Test the loop function with a full timer schedule
 void test_full_timer_loop() {
-    TimerManager manager("8:30-120,12:00-90");
+    TimerManager manager((char *)"8:30-120,12:00-90");
 
-    bufferedClock.set(DateTime(2022,12,24,8,45,0));
-    //bufferedClock.getLoopDateTime = []() { return Time(8, 45, 0); }; // During the first timer
-    manager.loop();
+    manager.loop(DateTime(2022,12,24,8,45,0));
     TEST_ASSERT_TRUE(manager.switchedOn());
 
-    bufferedClock.set(DateTime(2022,12,24,12,45,0));
-    //bufferedClock.getLoopDateTime = []() { return Time(12, 45, 0); }; // During the second timer
-    manager.loop();
+    manager.loop(DateTime(2022,12,24,12,45,0));
     TEST_ASSERT_TRUE(manager.switchedOn());
 
-    bufferedClock.set(DateTime(2022,12,24,14,0,0));
-    //bufferedClock.getLoopDateTime = []() { return Time(14, 0, 0); }; // After all timers
-    manager.loop();
+    manager.loop(DateTime(2022,12,24,14,0,0));
     TEST_ASSERT_TRUE(manager.switchedOff());
 }
 

@@ -70,11 +70,10 @@ class TimeSpanExt:public TimeSpan {
             return TimeSpanExt(_seconds * factor);
         }
 
-        TimeSpanExt operator/(int scalar) const {
-            if (scalar <= 0) {
-                return TimeSpanExt(INT32_MAX);
-            }
-            return TimeSpanExt(_seconds / scalar);
+        TimeSpanExt operator/(int divisor) const {
+            if (divisor == 0) { return TimeSpanExt(INT32_MAX); }
+            if (divisor <  0) { return TimeSpanExt(_seconds / (divisor * (-1))); }
+            return TimeSpanExt(_seconds / divisor);
         }
 
         /*
@@ -82,23 +81,12 @@ class TimeSpanExt:public TimeSpan {
          for 0 : "P0S"
         */
         String print(){
+            if (totalseconds() == 0) { return String("P0S");   } 
             String out="P";
-            bool nothing=true;
-            if (days() > 0){
-                out += String(days(),DEC) + "D";
-                nothing = false;
-            }
-            if (minutes() > 0){
-                out += String(minutes(),DEC) + "M";
-                nothing = false;
-            }
-            if (seconds() > 0){
-                out += String(seconds(),DEC) + "M";
-                nothing = false;
-            }
-            if (nothing == true){
-                out += "0S";
-            }
+            if (days() != 0)    out+=String(days())    +'D';
+            if (hours() != 0)   out+=String(hours())   +'H';
+            if (minutes() != 0) out+=String(minutes()) +'M';
+            if (seconds() != 0) out+=String(seconds()) +'S';
             return out;
         }
 };

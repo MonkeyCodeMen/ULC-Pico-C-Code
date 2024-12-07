@@ -25,6 +25,7 @@
 #include <Arduino.h>
 #include <RTClib.h>
 #include <TimeSpanExt.hpp>
+#include <helper.h>
 
 #ifndef SECONDS_PER_DAY
 #define SECONDS_PER_DAY     86400L
@@ -38,12 +39,12 @@
 
 class Time{
     public:
-        Time(int8_t h, int8_t m, int8_t s)  { _sec=(h*SECONDS_PER_HOUR + m*SECONDS_PER_MINUTE + s)%SECONDS_PER_DAY; while (_sec < 0) {_sec += SECONDS_PER_DAY;}  }
-        Time(const int32_t sec = 0)         { _sec=sec % SECONDS_PER_DAY;                                           while (_sec < 0) {_sec += SECONDS_PER_DAY;}  }
-        Time(const TimeSpan& src)           { _sec=src.totalseconds() % SECONDS_PER_DAY;                            while (_sec < 0) {_sec += SECONDS_PER_DAY;}  }
-        Time(const TimeSpanExt& src)        { _sec=src.totalseconds() % SECONDS_PER_DAY;                            while (_sec < 0) {_sec += SECONDS_PER_DAY;}  }
-        Time(const Time& src)               { _sec=src._sec%SECONDS_PER_DAY;                                        while (_sec < 0) {_sec += SECONDS_PER_DAY;}  }
-        Time(const DateTime& src)           { _sec=(src.hour()*SECONDS_PER_HOUR + src.minute()*SECONDS_PER_MINUTE + src.second())%SECONDS_PER_DAY;   while (_sec < 0) {_sec += SECONDS_PER_DAY;}  }
+        Time(int8_t h, int8_t m, int8_t s)      { _sec=(h*SECONDS_PER_HOUR + m*SECONDS_PER_MINUTE + s); _sec = wrapAround(0,_sec,SECONDS_PER_DAY-1);}
+        Time(const int32_t sec = 0)             { _sec = sec;                                           _sec = wrapAround(0,_sec,SECONDS_PER_DAY-1);}
+        Time(const TimeSpan& src)               { _sec=src.totalseconds();                              _sec = wrapAround(0,_sec,SECONDS_PER_DAY-1);}
+        Time(const TimeSpanExt& src)            { _sec=src.totalseconds();                              _sec = wrapAround(0,_sec,SECONDS_PER_DAY-1);}
+        Time(const Time& src)                   { _sec=src.totalseconds();                              _sec = wrapAround(0,_sec,SECONDS_PER_DAY-1);}
+        Time(const DateTime& src)               { _sec=(src.hour()*SECONDS_PER_HOUR + src.minute()*SECONDS_PER_MINUTE + src.second());   _sec = wrapAround(0,_sec,SECONDS_PER_DAY-1);}
 
         Time operator+(const Time &other) const {return Time(_sec + other._sec);    }
         Time operator-(const Time &other) const {return Time(_sec - other._sec);    }
@@ -68,7 +69,7 @@ class Time{
         String toFixedWidthText(char separator = ':', char leadChar = 0) const {
             char buffer[10]; //_HH:MM:SS + null terminator
             if (leadChar == 0)
-                snprintf(buffer, sizeof(buffer), "%02d%c%02d%c%02d", leadChar, hour(), separator, minute(), separator, second());
+                snprintf(buffer, sizeof(buffer), "%02d%c%02d%c%02d", hour(), separator, minute(), separator, second());
             else
                 snprintf(buffer, sizeof(buffer), "%c%02d%c%02d%c%02d", leadChar, hour(), separator, minute(), separator, second());
             

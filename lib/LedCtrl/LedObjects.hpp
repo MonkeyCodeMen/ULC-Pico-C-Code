@@ -27,13 +27,20 @@
 #pragma once
 
 #include <Arduino.h>
+
 #include <MainConfig.h>
+#include <PinMapping.h>
+
+#include <I2C_register.h>
+
 #include <helper.h>
 #include <Adafruit_NeoMatrix.h>
 #include <LedCtrl.hpp>
 #include <RgbLedCtrl.hpp>
 #include <NeoStripeCtrl.hpp>
 #include <NeoMatrixCtrl.hpp>
+
+
 
 #define max
 #include <WS2812FX.h>

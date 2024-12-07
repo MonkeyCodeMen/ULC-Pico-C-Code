@@ -33,9 +33,10 @@
 #include <Adafruit_NeoMatrix.h>
 #include <SDcard.hpp>
 #include <TFT_eSPI.h> // Hardware-specific library
-#include "Led.hpp"
-#include "Ani.hpp"
-#include "Split.hpp"
+#include <I2C_register.h>
+#include <Led.hpp>
+
+#include <Ani.hpp>
 
 #include <unity.h>
 
@@ -753,6 +754,7 @@ void test_flashCtrl_trigger(void){
 
   int count = sizeof(res) / sizeof(timeListResult_t);
   uint32_t time,startTime;
+  String msg;
 
   startTime = 0;
   for(int i=0;i< count;i++){
@@ -760,12 +762,12 @@ void test_flashCtrl_trigger(void){
     if ( res[i].triggerColor == true ) { obj.triggerColor(); }
     if ( res[i].triggerFlash == true ) { obj.triggerFlash(); }
     obj.loop(time);
-    String msg="loop: "+String(i)+"   time: " +String(time) + "ms ";
+    msg ="loop: "+String(i)+"   time: " +String(time) + "ms ";
     
     TEST_ASSERT_EQUAL_INT_MESSAGE(    res[i].hasChanged       , obj.hasChanged()   , msg.c_str()  );
     TEST_ASSERT_EQUAL_UINT32_MESSAGE( res[i].color            , obj.getColor()     , msg.c_str()  );
     TEST_ASSERT_EQUAL_UINT8_MESSAGE(  res[i].dim              , obj.getDim()       , msg.c_str()  );
-  }  
+  } 
 }
 
 void test_flashCtrl_time(void){
@@ -826,6 +828,7 @@ void test_flashCtrl_time(void){
 
   int count = sizeof(res) / sizeof(timeListResult_t);
   uint32_t time,startTime;
+  String msg;
 
   startTime = 0;
   for(int i=0;i< count;i++){
@@ -833,7 +836,7 @@ void test_flashCtrl_time(void){
     if ( res[i].triggerColor == true ) { obj.triggerColor(); }
     if ( res[i].triggerFlash == true ) { obj.triggerFlash(); }
     obj.loop(time);
-    String msg="loop: "+String(i)+"   time: " +String(time) + "ms ";
+    msg="loop: "+String(i)+"   time: " +String(time) + "ms ";
     
     TEST_ASSERT_EQUAL_INT_MESSAGE(    res[i].hasChanged       , obj.hasChanged()   , msg.c_str()  );
     TEST_ASSERT_EQUAL_UINT32_MESSAGE( res[i].color            , obj.getColor()     , msg.c_str()  );

@@ -471,7 +471,7 @@ class MenuEntryList : public MenuEntryText{
             return false;
         }
 
-        virtual bool setValueList(String connectedList,char sep=','){
+        virtual bool setValueList(String& connectedList,char sep=','){
             uint8_t count=0;
             uint32_t i,length;
             length = connectedList.length();
@@ -483,7 +483,7 @@ class MenuEntryList : public MenuEntryText{
                 }
             }
             count++; // entry ; entry   ==> one sep and two elements
-            Split list(connectedList.c_str(),sep);
+            Split list(connectedList,sep);
             
             _configMutex.lock();
             if (_pValueList != NULL){

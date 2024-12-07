@@ -24,10 +24,7 @@
  */
 
 
-#include <Arduino.h>
 #include <LedObjects.hpp>
-#include <PinMapping.h>
-#include <I2C_register.h>
 
 
 

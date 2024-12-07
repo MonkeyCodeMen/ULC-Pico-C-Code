@@ -31,13 +31,13 @@
 class Split
 {
     public:
-        Split(char * pList, char sep);
-        Split(char * pList, char * sepStr);
+        Split(char * pList, char sep)           {_init(pList,sep);                                          }
+        Split(char * pList, char * sepStr)      {_init(pList,sepStr);                                       }
 
-        Split(String in,char sep)             {Split((char *)in.c_str(),sep);};
-        Split(String in,char * sepStr)        {Split((char *)in.c_str(),sepStr);};
-        Split(String in,String sepStr)        {Split((char *)in.c_str(),(char *)sepStr.c_str());};
-        Split(char * pList, String sepStr)    {Split(pList,(char *)sepStr.c_str());};
+        Split(String& list,char sep)            {_init((char *)(list.c_str()),sep);                         }
+        Split(String& list,char * sepStr)       {_init((char *)(list.c_str()),sepStr);                      }
+        Split(String& list,String& sepStr)      {_init((char *)(list.c_str()),(char *)(sepStr.c_str()));    }
+        Split(char * pList,String& sepStr)      {_init(pList,(char *)(sepStr.c_str()));                     }
 
         ~Split() = default;
 
@@ -46,6 +46,8 @@ class Split
         String getNextListEntry();
 
     private:
+        void    _init(char * pList, char sep);
+        void    _init(char * pList, char * sepStr);
         int     _findNextSep(uint32_t startPos);
         int     _findNextSepStr(uint32_t startPos);
         String  _getNextWithSepChar();

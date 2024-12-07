@@ -150,10 +150,27 @@ void renderDisplay(uint32_t now){
     #endif
 }
 */
+#include <configItem.hpp>
 
 void TestDebug(){
-  // place code to debug here 
-  // will be called early in setup of core 0
+  String configIn;
+  JsonDocument config;
+
+  configIn ="";
+  configIn += " {                                                    \r\n";
+  configIn += "     \"obj\"  : \"LED0\",                             \r\n";
+  configIn += "     \"cmd\"  :    \"off\",                           \r\n";
+  configIn += "     \"param\": [\"0x00FF00\",\"  2 \",\" 0 \",\"\"], \r\n";
+  configIn += "     \"str\"  :  \"abc -# \",                         \r\n";
+  configIn += " }                                         ";
+
+  DeserializationError error = deserializeJson(config, configIn);
+  if (error) {
+    String msg = "deserializeJson() failed: ";
+    msg += error.c_str(); 
+    LOG(msg.c_str());
+    String msg2 = msg;
+  }
 }
 
 

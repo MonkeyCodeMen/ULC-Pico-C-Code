@@ -28,3 +28,10 @@
 #define WAIT_FOR_UINTY_FRAMEWORK    2000  // [ms]
 #define BLINK_SEQ_TEST              {500, 1000, 50, 500, 50, 250, 50, 125}
 
+
+///////////////////////////////////////////
+// common configs   
+
+#define I2C_100KHZ  100*1000
+#define I2C_400KHZ  400*1000
+#define I2C_DEFAULT_SPEED   I2C_400KHZ

@@ -26,18 +26,26 @@
 
 #include "Split.hpp"
 
-Split::Split(char * pList, char sep):
-_text(pList),_sep(sep),_len(0),_nextStart(0),_endReached(false),_sepIsString(false)
-{
+void Split::_init(char * pList, char sep){
+    _text=pList;
+    _sep=sep;
+    _sepStr = nullptr;
+    _nextStart=0;
+    _endReached=false;
+    _sepIsString=false;
     _len = strlen(_text);
     if (_len==0){
         _endReached = true;
     }
 }
 
-Split::Split(char * pList, char * sepStr):
-_text(pList),_len(0),_nextStart(0),_endReached(false),_sepIsString(true),_sepStr(sepStr)
-{
+void Split::_init(char * pList, char * sepStr){
+    _text=pList;
+    _sep='X';
+    _sepStr = sepStr;
+    _nextStart=0;
+    _endReached=false;
+    _sepIsString=true;
     _len    = strlen(_text);
     _sepLen = strlen(_sepStr);
     if ((_len==0) || (_sepLen == 0) ){

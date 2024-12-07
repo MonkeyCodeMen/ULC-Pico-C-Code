@@ -29,9 +29,9 @@
 #include <Arduino.h>
 
 
-#define I2C_ADR_SLAVE     0x58
-#define PWM_CHANNELS 12
-#define CHAR_ARRAY_LENGTH 5
+#define I2C_ADR_SLAVE       0x58
+#define PWM_CHANNELS        12
+#define CHAR_ARRAY_LENGTH   5
 /////////////////////////////////////////////////////
 // slave receive register Bank
 struct I2C_SlaveReceiveReg_Struct{

@@ -27,8 +27,8 @@
 #include <Arduino.h>
 #include <Time.hpp>
 #include <TimeSpanExt.hpp>
-#include <BufferedClock.hpp>
 #include <vector>
+#include <algorithm>
 #include <Split.hpp>
 #include <helper.h>
 
@@ -71,177 +71,6 @@ struct TimerDef{
     timer.add("22:30-45")
 
 */
-#ifdef NIX
-class TimerManager {
-    public:
-        TimerManager() : _init(true) {}
-
-        TimerManager(const String& list) : _init(true) {
-            _parseTimerEventList(list);
-            _init = false; // Initialization complete
-        }
-
-        TimerManager(const std::vector<TimerDef>& timerList) 
-            : _init(true), _timerList(timerList) {
-            _init = false; // Initialization complete
-        }
-
-        TimerManager(const TimerManager& other) 
-            : _timerList(other._timerList), _init(other._init) {}
-
-        ~TimerManager() {
-            _timerList.clear();
-            _init = true; // Reset to default state
-        }
-
-        // Check if currently switched on
-        bool switchedOn() const { return _state == SWITCHED_ON; }
-        // Check if currently switched off
-        bool switchedOff() const { return _state == SWITCHED_OFF; }
-
-        const std::vector<TimerDef>& getTimerList() const { return _timerList; }
-
-        void loop() {
-            if (_init) return; // Exit if still initializing
-
-            Time currentTime(bufferedClock.getLoopDateTime());
-            if (_timerList.empty()) {
-                _state = OFF;
-                return;
-            }
-
-            _state = RUN;
-            bool activeTimer = false;
-
-            for (int i=0;i<_timerList.size();i++) {
-                TimerDef entry=_timerList[i];
-                Time startTime = entry.startTime();
-                Time endTime = startTime + entry.durationTime();
-
-                if (currentTime >= startTime && currentTime <= endTime) {
-                    _state = SWITCHED_ON;
-                    activeTimer = true;
-                    break;
-                } else if (currentTime < startTime) {
-                    _state = SWITCHED_OFF;
-                    activeTimer = false;
-                    break;
-                }
-            }
-
-            if (!activeTimer && currentTime > _timerList.back().startTime() + _timerList.back().durationTime()) {
-                _state = OFF;
-            }
-        }
-
-
-        // Load a new timer list from a string
-        int newEventList(const String& list) {
-            _init = true;
-            _timerList.clear();
-            int result = _parseTimerEventList(list);
-            _init = false;
-            return result;
-        }
-
-        // Add a timer list from a string
-        int addEventList(const String& list) {
-            _init = true;
-            int result = _parseTimerEventList(list);
-            _init = false;
-            return result;
-        }
-
-        // Add a new list from a vector of TimerDef
-        void newEventList(const std::vector<TimerDef>& timerList) {
-            _init = true;
-            _timerList = timerList;
-            _sortList();
-            _init = false;
-        }
-
-        // Add more timers to the list
-        void addEventList(const std::vector<TimerDef>& timerList) {
-            _init = true;
-            _timerList.insert(_timerList.end(), timerList.begin(), timerList.end());
-            _sortList();
-            _init = false;
-        }
-
-        void addEvent(const String& eventString) {
-            _init = true;
-            Split entry(eventString, '-');
-            Split startPar(entry.getNextListEntry(), ':');
-
-            uint8_t start_hour = convertStrToInt(startPar.getNextListEntry());
-            uint8_t start_minute = convertStrToInt(startPar.getNextListEntry());
-            uint16_t duration = convertStrToInt(entry.getNextListEntry());
-
-            if ((duration == 0) || (start_hour > 23) || (start_minute > 59)) {
-                // Handle invalid event configuration
-                _init = false;
-                return;
-            }
-
-            _timerList.emplace_back(start_hour, start_minute, duration);
-            _sortList();
-            _init = false;
-        }
-
-        void addEvent(const TimerDef& event) {
-            _init = true;
-            _timerList.emplace_back(event);
-            _sortList();
-            _init = false;
-        }
-
-        void addEvent(uint8_t start_hour, uint8_t start_minute, uint16_t duration_minutes) {
-            if ((duration_minutes == 0) || (start_hour > 23) || (start_minute > 59)) {
-                // Handle invalid parameters
-                return;
-            }
-
-            _init = true;
-            _timerList.emplace_back(start_hour, start_minute, duration_minutes);
-            _sortList();
-            _init = false;
-        }
-
-
-    private:
-        enum TimerState { RUN, OFF, SWITCHED_ON, SWITCHED_OFF };
-        std::vector<TimerDef> _timerList;
-        TimerState _state = OFF;
-        bool _init; // Indicates if the TimerManager is in an initialization state
-
-        void _sortList(){
-            // use std lib function
-            std::sort(_timerList.begin(), _timerList.end(),
-                    [](TimerDef& a, TimerDef& b) { return a.startTime() < b.startTime(); });
-        }
-
-        int _parseTimerEventList(const String& list) {
-            Split timerInputList(list, ',');
-            while (!timerInputList.isEndReached()) {
-                String entryStr = timerInputList.getNextListEntry();
-                Split entry(entryStr, '-');
-                Split startPar(entry.getNextListEntry(), ':');
-
-                uint8_t start_hour = convertStrToInt(startPar.getNextListEntry());
-                uint8_t start_minute = convertStrToInt(startPar.getNextListEntry());
-                uint16_t duration = convertStrToInt(entry.getNextListEntry());
-
-                if ((duration == 0) || (start_hour > 23) || (start_minute > 59)) {
-                    return TIMER_MANAGER_INVALID_CONFIG;
-                }
-
-                _timerList.emplace_back(start_hour, start_minute, duration);
-            }
-            _sortList();
-            return TIMER_MANAGER_OK;
-        }
-};
-#endif
 /**
  * @class TimerManager
  * @brief A class to manage timer events with support for multiple configurations and thread-safe initialization.
@@ -251,44 +80,48 @@ public:
     /**
      * @brief Default constructor. Initializes the manager in a thread-safe initialization state.
      */
-    TimerManager() : _init(true) {}
+    TimerManager() : _init(true),_state(SWITCHED_OFF),_lastCheckedTime(TIMER_MANAGER_PAST_TIME) {}
 
     /**
      * @brief Constructor that initializes the manager with a list of timer events from a string.
      * @param list A string representing timer events in the format "HH:MM-DURATION,HH:MM-DURATION,...".
      */
-    TimerManager(const String& list) : _init(true) {
+    TimerManager(String& list) : _init(true),_state(SWITCHED_OFF),_lastCheckedTime(TIMER_MANAGER_PAST_TIME) {
         _parseTimerEventList(list);
         _init = false; // Initialization complete
-        _lastCheckedTime = TIMER_MANAGER_PAST_TIME;
     }
+    TimerManager(char * list) :_init(true),_state(SWITCHED_OFF),_lastCheckedTime(TIMER_MANAGER_PAST_TIME){
+        String strList(list);
+        _parseTimerEventList(strList);
+        _init = false; // Initialization complete
+    } 
 
     /**
      * @brief Constructor that initializes the manager with a vector of TimerDef objects.
      * @param timerList A vector of TimerDef objects to initialize the timer manager.
      */
-    TimerManager(const std::vector<TimerDef>& timerList)
-        : _init(true), _timerList(timerList) {
+    TimerManager(std::vector<TimerDef>& timerList)
+        : _init(true),_state(SWITCHED_OFF),_lastCheckedTime(TIMER_MANAGER_PAST_TIME), _timerList(timerList) {
         _init = false; // Initialization complete
-        _lastCheckedTime = TIMER_MANAGER_PAST_TIME;
     }
 
     /**
      * @brief Copy constructor.
      * @param other The TimerManager instance to copy from.
      */
-    TimerManager(const TimerManager& other)
-        : _timerList(other._timerList), _state(other._state), 
-        _lastCheckedTime(other._lastCheckedTime),
-        _init(other._init) 
-        {}
+    TimerManager(TimerManager& other)
+        : _init(true), _timerList(other._timerList), _state(other._state), 
+        _lastCheckedTime(other._lastCheckedTime) {
+            _init=other._init;
+        }
 
     /**
      * @brief Destructor. Clears the timer list and resets the initialization state.
      */
     ~TimerManager() {
-        _timerList.clear();
         _init = true; // Reset to default state
+        _state = SWITCHED_OFF;
+        _timerList.clear();
         _lastCheckedTime = TIMER_MANAGER_PAST_TIME;
     }
 
@@ -309,27 +142,27 @@ public:
      * @return A const reference to the vector of TimerDef objects.
      */
     const std::vector<TimerDef>& getTimerList() const { return _timerList; }
+    int size() {return _timerList.size(); }
 
     /**
      * @brief Processes timer events. Should be called in a loop.
      * Exits immediately if the manager is in an initialization state.
      * (full) check will be performed every minute only (=resolution of timer)
      */
-    void loop() {
+    void loop(DateTime dateTime) {
+        TimerState res=SWITCHED_OFF;    // default off but do not reload now to avoid jitter
         if (_init == true || _timerList.empty()) {
-            _state = OFF;
+            _state = res;
             return;
         }
 
-        Time currentTime(bufferedClock.getLoopDateTime());
+        Time currentTime(dateTime);
         // ceck if we have another time, ignore seconds
         currentTime.setSec(0);
         if (_lastCheckedTime == currentTime) {
             return;
         }
         _lastCheckedTime = currentTime; // Cache aktualisieren
-
-        _state = RUN;
         bool activeTimer = false;
 
         for (int i = 0; i < _timerList.size(); i++) {
@@ -338,19 +171,16 @@ public:
             Time endTime = startTime + entry.durationTime();
 
             if (currentTime >= startTime && currentTime <= endTime) {
-                _state = SWITCHED_ON;
+                res = SWITCHED_ON;
                 activeTimer = true;
                 break;
             } else if (currentTime < startTime) {
-                _state = SWITCHED_OFF;
+                res = SWITCHED_OFF;
                 activeTimer = false;
                 break;
             }
         }
-
-        if (!activeTimer && currentTime > _timerList.back().startTime() + _timerList.back().durationTime()) {
-            _state = OFF;
-        }
+        _state = res;       // now the result is stable ==> take over
     }
 
     /**
@@ -358,7 +188,7 @@ public:
      * @param list A string representing timer events in the format "HH:MM-DURATION,HH:MM-DURATION,...".
      * @return A status code indicating success or failure.
      */
-    int newEventList(const String& list) {
+    int newEventList(String list) {
         _init = true;
         _timerList.clear();
         int result = _parseTimerEventList(list);
@@ -371,8 +201,9 @@ public:
      * @param list A string representing timer events in the format "HH:MM-DURATION,HH:MM-DURATION,...".
      * @return A status code indicating success or failure.
      */
-    int addEventList(const String& list) {
+    int addEventList(String list) {
         _init = true;
+        _state = SWITCHED_OFF;
         int result = _parseTimerEventList(list);
         _init = false;
         return result;
@@ -382,8 +213,9 @@ public:
      * @brief Loads a new list of timer events from a vector of TimerDef objects.
      * @param timerList A vector of TimerDef objects to initialize the timer manager.
      */
-    void newEventList(const std::vector<TimerDef>& timerList) {
+    void newEventList(std::vector<TimerDef>& timerList) {
         _init = true;
+        _state = SWITCHED_OFF;
         _timerList = timerList;
         _sortList();
         _init = false;
@@ -393,8 +225,9 @@ public:
      * @brief Adds more timer events to the list from a vector of TimerDef objects.
      * @param timerList A vector of TimerDef objects to add to the timer manager.
      */
-    void addEventList(const std::vector<TimerDef>& timerList) {
+    void addEventList(std::vector<TimerDef>& timerList) {
         _init = true;
+        _state = SWITCHED_OFF;
         _timerList.insert(_timerList.end(), timerList.begin(), timerList.end());
         _sortList();
         _init = false;
@@ -404,13 +237,15 @@ public:
      * @brief Adds a single timer event from a string.
      * @param eventString A string representing a single timer event in the format "HH:MM-DURATION".
      */
-    void addEvent(const String& eventString) {
+    void addEvent(String eventString) {
         _init = true;
+        _state = SWITCHED_OFF;
         Split entry(eventString, '-');
-        Split startPar(entry.getNextListEntry(), ':');
+        String startStr = entry.getNextListEntry();
+        Split startList(startStr, ':');
 
-        uint8_t start_hour = convertStrToInt(startPar.getNextListEntry());
-        uint8_t start_minute = convertStrToInt(startPar.getNextListEntry());
+        uint8_t start_hour = convertStrToInt(startList.getNextListEntry());
+        uint8_t start_minute = convertStrToInt(startList.getNextListEntry());
         uint16_t duration = convertStrToInt(entry.getNextListEntry());
 
         if ((duration == 0) || (start_hour > 23) || (start_minute > 59)) {
@@ -427,7 +262,7 @@ public:
      * @brief Adds a single timer event from a TimerDef object.
      * @param event A TimerDef object to add to the timer manager.
      */
-    void addEvent(const TimerDef& event) {
+    void addEvent(TimerDef event) {
         _init = true;
         _timerList.emplace_back(event);
         _sortList();
@@ -452,9 +287,9 @@ public:
     }
 
 private:
-    enum TimerState { RUN, OFF, SWITCHED_ON, SWITCHED_OFF };    //!< Timer states
+    enum TimerState { SWITCHED_ON, SWITCHED_OFF };              //!< Timer states
     std::vector<TimerDef> _timerList;                           //!< List of TimerDef objects managed by the TimerManager
-    TimerState _state = OFF;                                    //!< Current state of the timer manager
+    TimerState _state = SWITCHED_OFF;                           //!< Current state of the timer manager
     bool _init;                                                 //!< Indicates if the TimerManager is in an initialization state
     Time _lastCheckedTime;                                      //!< time cache to check timer evenets only every minute
 
@@ -471,12 +306,13 @@ private:
      * @param list A string representing timer events in the format "HH:MM-DURATION,HH:MM-DURATION,...".
      * @return A status code indicating success or failure.
      */
-    int _parseTimerEventList(const String& list) {
+    int _parseTimerEventList(String& list) {
         Split timerInputList(list, ',');
-        while (!timerInputList.isEndReached()) {
+        while (timerInputList.isEndReached() == false) {
             String entryStr = timerInputList.getNextListEntry();
             Split entry(entryStr, '-');
-            Split startPar(entry.getNextListEntry(), ':');
+            String startStr = entry.getNextListEntry();
+            Split startPar(startStr, ':');
 
             uint8_t start_hour = convertStrToInt(startPar.getNextListEntry());
             uint8_t start_minute = convertStrToInt(startPar.getNextListEntry());

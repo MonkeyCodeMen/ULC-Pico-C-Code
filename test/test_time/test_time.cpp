@@ -1,5 +1,12 @@
+#include <Arduino.h>
+#include <Debug.hpp>
+#include <helper.h>
+#include <Adafruit_NeoMatrix.h>
+#include <TFT_eSPI.h> // Hardware-specific library
+
+#include <Time.hpp>
+
 #include <unity.h>
-#include "Time.hpp"
 
 // Test default constructor
 void test_default_constructor() {

@@ -1,5 +1,12 @@
-#include <unity.h>
+#include <Arduino.h>
+#include <Debug.hpp>
+#include <helper.h>
+#include <Adafruit_NeoMatrix.h>
+#include <TFT_eSPI.h> // Hardware-specific library
+
 #include "TimeSpanExt.hpp"
+
+#include <unity.h>
 
 // Test default constructor
 void test_default_constructor() {
@@ -73,10 +80,10 @@ void test_division_operator() {
 
     // Test division by zero or negative scalar
     TimeSpanExt invalid_result = t1 / 0;
-    TEST_ASSERT_EQUAL(0, invalid_result.totalseconds());
+    TEST_ASSERT_EQUAL(INT32_MAX, invalid_result.totalseconds());
 
     invalid_result = t1 / -2;
-    TEST_ASSERT_EQUAL(0, invalid_result.totalseconds());
+    TEST_ASSERT_EQUAL(1800, invalid_result.totalseconds());
 }
 
 // Test negative results handling
@@ -95,9 +102,9 @@ void test_negative_results() {
 void test_print_method() {
     TimeSpanExt t1(1, 2, 37, 42); // 1 day, 2 hours, 37 minutes, 42 seconds
     String result = t1.print();
-    TEST_ASSERT_EQUAL_STRING("P1D37M37M", result.c_str()); // Correct ISO format
+    TEST_ASSERT_EQUAL_STRING("P1D2H37M42S", result.c_str()); // Correct ISO format
 
-    TimeSpanExt t2(0, 0, 0, 0); // 0 seconds
+    TimeSpanExt t2; // 0 seconds
     result = t2.print();
     TEST_ASSERT_EQUAL_STRING("P0S", result.c_str()); // "0S" for zero
 
@@ -145,11 +152,11 @@ void test_near_overflow() {
 
     // Adding large values to approach overflow
     TimeSpanExt nearOverflow = largeTimeSpan + TimeSpanExt(max_seconds - 1);
-    TEST_ASSERT_EQUAL(INT32_MAX - 1, nearOverflow.totalseconds());
+    TEST_ASSERT_EQUAL( (long)(INT32_MAX / 2)*2  - 1, nearOverflow.totalseconds());
 
     // Overflow-safe multiplication
     TimeSpanExt multiplied = largeTimeSpan * 2;
-    TEST_ASSERT_EQUAL(INT32_MAX, multiplied.totalseconds());
+    TEST_ASSERT_EQUAL((long)(INT32_MAX / 2)*2, multiplied.totalseconds());
 
     // Prevent overflow by clipping
     TimeSpanExt overflowResult = multiplied + TimeSpanExt(1);
@@ -185,9 +192,9 @@ void test_edge_cases() {
     TimeSpanExt result = maxTimeSpan + TimeSpanExt(1);
     TEST_ASSERT_EQUAL(INT32_MAX, result.totalseconds());
 
-    // Negative values (handled gracefully by returning zero)
+    // Negative values (negative time span no issue, there is only no negative time)
     TimeSpanExt negativeTimeSpan = TimeSpanExt(-1);
-    TEST_ASSERT_EQUAL(0, negativeTimeSpan.totalseconds());
+    TEST_ASSERT_EQUAL(-1, negativeTimeSpan.totalseconds());
 }
 
 

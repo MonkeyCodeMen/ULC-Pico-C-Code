@@ -203,6 +203,65 @@ void test_Split_threeEntriesStrSep(void) {
 }
 
 
+void test_Split_stringList(void) {
+  String list="entry1,Entry-2,Entry  3";
+  Split object(list,',');
+  String res; 
+  
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("entry1" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("Entry-2" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached() == false);
+  TEST_ASSERT_EQUAL_STRING("Entry  3" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+
+  object.rewind();
+
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("entry1" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("Entry-2" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached() == false);
+  TEST_ASSERT_EQUAL_STRING("Entry  3" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+}
+
+
+
+void test_Split_stringListStringSep(void) {
+  String list="entry1~~Entry-2~~Entry  3";
+  String Sep="~~";
+  Split object(list,Sep);
+  String res; 
+  
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("entry1" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("Entry-2" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached() == false);
+  TEST_ASSERT_EQUAL_STRING("Entry  3" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+
+  object.rewind();
+
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("entry1" , object.getNextListEntry().c_str());
+  TEST_ASSERT_FALSE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("Entry-2" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached() == false);
+  TEST_ASSERT_EQUAL_STRING("Entry  3" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+  TEST_ASSERT_EQUAL_STRING("" , object.getNextListEntry().c_str());
+  TEST_ASSERT_TRUE(object.isEndReached());
+}
+
 // collect all tests of this file to one collection
 void runAllTests(void) {
   UNITY_BEGIN();
@@ -216,6 +275,9 @@ void runAllTests(void) {
   RUN_TEST(test_Split_empytStringStrSep);
   RUN_TEST(test_Split_emptyListStrSep);
   RUN_TEST(test_Split_threeEntriesStrSep);
+
+  RUN_TEST(test_Split_stringList);
+  RUN_TEST(test_Split_stringListStringSep);
 
   UNITY_END();
 }
