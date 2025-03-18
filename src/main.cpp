@@ -60,6 +60,7 @@
   + implement startup test mode
   + implement boot screen
   + add new second class functionality with reset or not  ????
+  + exchange JSON config by YAML
  */
 
 
