@@ -168,8 +168,8 @@ void Debug::logMem(const char * file,int line,const char * text){
     _out(F("):"));
     _out(file);
     _out(F(":"));
-    //temp = String(line);
-    temp = line;
+    temp = String(line);
+    //temp = line;
     _out(temp);
     _out(F("::"));
     _out(text);
