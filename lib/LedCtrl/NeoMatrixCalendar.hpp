@@ -176,7 +176,6 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             cfg.str = "";   // list completly handled in this instance .. so delete list for base class init
             Ani::config(cfg); 
 
-            _selectNextFile(true);  // select start file with force of directory update
             _state = init;
             return ANI_OK;
         }
@@ -185,6 +184,8 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             u16_t color;
             u8_t dim;
             int nr;
+            _timer.loop(bufferedClock.getLoopDateTime());
+            static bool initEntryActionDone = false;
 
             switch (_state){
                 case stop:
@@ -194,16 +195,22 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
 
                 case init:
                     Ani::loop(now);
-                    pMatrix->fillScreen(toColor565(getColor()));
-                    pMatrix->setBrightness(getDim());
 
-                    _gif.close();
-                    _gif.open((const char *)_currentFile.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
+                    if (initEntryActionDone == false){
+                        _gif.close();   // in case of any open (like new config during animation running)
+                        pMatrix->fillScreen(toColor565(getColor()));
+                        pMatrix->setBrightness(getDim());
+                        _selectNextFile(true);  // select start file with force of directory update
+                        initEntryActionDone = true;
+                    }
 
-                    _lastFrame = now;
-                    _wait = 1;
-
-                    _state = run;
+                    if (  (_useTimer == false)  ||  ((_useTimer==true)&&(_timer.switchedOn() == true))  ){
+                        _gif.open((const char *)_currentFile.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
+                        _lastFrame = now;
+                        _wait = 1;
+                        _state = run;
+                        initEntryActionDone = false;
+                    }
                     break;
                 
                 case run:
@@ -217,11 +224,14 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
                         if(res == 0){
                             // last gif frame has been played 
                             _gif.close();
-                            _gif.open((const char *)_currentFile.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
-                            
-                            _gif.playFrame(false,&_wait,pMatrix);  // play insantly the next frame to get next wait time
-                            // now it's time to select new/next file  (with possible update of filelists)
-                            _selectNextFile();
+
+                            if ( (_useTimer == true) && (_timer.switchedOn()==true) ){
+                                _gif.open((const char *)_currentFile.c_str(),_GIFOpenFile, _GIFCloseFile, _GIFReadFile, _GIFSeekFile, _GIFDraw);
+                                _gif.playFrame(false,&_wait,pMatrix);   // play insantly the next frame to get next wait time
+                                _selectNextFile();                      // now it's time to select new/next file  (with possible update of filelists)
+                            } else {
+                                _state = init;
+                            }
                         } else if (res == -1){
                             _frameError();
                         }
@@ -233,6 +243,7 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
         String dump(){
             String out = Ani::dump();
             out += "current date: " + _currentDate.timestamp() + "; last date : " + _lastDate.timestamp() + "\n";
+            out += "use timer:" + (_useTimer == true)?" YES \n":" NO\n";
             out += "dir:             " + _dirBase        + "\n";
             out += "dir global add:  " + _dirGlobalAdd   + "\n";
             out += "dir default:     " + _dirDefault     + "\n";
@@ -268,6 +279,8 @@ class MatrixGifCalendarAni : public MatrixGifFileAni{
             for(int i=0; i < _dailyAddFileList.size(); i++){
                 out += "     " + _dailyAddFileList[i] + "\n";
             }
+
+            out += _timer.dump();
 
             return out;
         }

@@ -286,6 +286,24 @@ public:
         _init = false;
     }
 
+    String dump(){
+        String out = "Dump of TimerManager  at:0x" + String((uint32_t)this,HEX) +"  at time:"+String(millis())+" \n";
+        if (_state == SWITCHED_ON)          out+="state : SWITCHED_ON \n";
+        else if (_state == SWITCHED_OFF)    out+="state : SWITCHED_OFF \n";
+        else                                out+="state : INVALID STATE \n";
+        if (_init == true)                  out+="init: active \n";
+        else                                out+="init: not active \n";
+        out += "last checked time: " + _lastCheckedTime.toFixedWidthText() + " (seconds should be always 0)\n";
+        int count = _timerList.size();
+        out += "timer list entries: " + String(count) +"\n";
+        for (int i=0; i < count ; i++ ){
+            out += "Entry["+String(i)+"]: start:";
+            out +=String(_timerList[i].start_hour)+":"+String(_timerList[i].start_minute);
+            out +="  duration[miuntes]:" +String(_timerList[i].duration_minute)+"\n";
+        }
+        return out;
+    }
+
 private:
     enum TimerState { SWITCHED_ON, SWITCHED_OFF };              //!< Timer states
     std::vector<TimerDef> _timerList;                           //!< List of TimerDef objects managed by the TimerManager
